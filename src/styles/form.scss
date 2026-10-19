@@ -1,0 +1,20 @@
+.el-form{
+  .el-form-item__label {
+    color: #2a303d;
+  }
+  .el-form-item__content{
+    .el-form-item__error{
+      padding-top: 4px;
+    }
+  }
+  // .el-input.is-disabled {
+  //   .el-input__inner{
+  //     color: #2a303d;
+  //   }
+  // }
+  .el-input-number{
+    .el-input__inner{
+      text-align: left;
+    }
+  }
+}

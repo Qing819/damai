@@ -1,0 +1,1 @@
+(window["webpackJsonp_point"]=window["webpackJsonp_point"]||[]).push([["chunk-2d0d3321"],{"5c74":function(n,t,c){"use strict";c.r(t);var o=function(){var n=this,t=n._self._c;return t("div",{staticClass:"container"},[n._v("客户权益配置")])},s=[],i={components:{}},e=i,u=c("2877"),a=Object(u["a"])(e,o,s,!1,null,null,null);t["default"]=a.exports}}]);

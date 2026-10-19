@@ -1,18 +1,24 @@
-# 积分管理系统
+# point-system
 
-从零开发的积分管理系统，使用 Git 管理源代码。
+## Project setup
+```
+npm install
+```
 
-## 开发状态
+### Compiles and hot-reloads for development
+```
+npm run dev
+```
 
-项目初始化阶段，技术栈和业务需求待确定。
+### Compiles and minifies for production
+```
+npm run build
+```
 
-## 代码管理
+### Lints and fixes files
+```
+npm run lint
+```
 
-- 仓库： https://github.com/Qing819/damai
-- 初始开发分支：`feat/points-management`
-- 按功能分批提交，提交说明应清晰描述改动。
-
-## 安全约定
-
-不要提交密码、访问令牌、真实用户数据或本地环境配置。
-如需提供配置示例，请使用不含敏感信息的 `.env.example`。
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).

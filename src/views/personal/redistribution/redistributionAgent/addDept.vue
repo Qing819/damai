@@ -1,0 +1,411 @@
+//孤儿客户重分配机构
+<template>
+  <div class="container">
+    <div class="container-header">
+      <div class="dialog-header">
+        <div class="title">{{`新建孤单客户分配代理人`}}</div>
+        <div>
+          <el-button plain size="small" icon="el-icon-back" @click="backPage" type="primary">返回</el-button>
+        </div>
+      </div>
+    </div>
+    <div class="blockStart">
+      <el-form inline label-width="500px">
+        <el-form-item>
+          <el-button @click="downloadTemplate" size="small" type="primary">下载上传模板</el-button>
+          <el-upload action="" accept=".xls,.xlsx" :on-change="fileChange" :show-file-list="false" :auto-upload="false"
+                     :file-list="fileList" style="display:inline;margin-left:10px">
+            <el-button size="small" type="primary">导入文件</el-button>
+          </el-upload>
+          <el-button @click="sureTemplateTemplate" size="small" style="display:inline;margin-left:10px" type="primary">
+            提交</el-button>
+          <div class="blockRebackInformation">
+            <span class="blockRebackInformationSpan" >手工回收操作：在模板中代理人ID列输入“99999”，代理人姓名列输入“孤单客户回收”。</span>
+            <div>
+              <el-popover placement="bottom" width="550" trigger="click" :visible.sync="popoverVisible">
+                <el-table ref="table" :data="tableRule" size="small" height="calc(100% - 50px - 40px)"
+                          reserve-selection v-loading="loading">
+                  <el-table-column type="index" prop="ruleId" width="50" label="序号" align="left" ></el-table-column>
+                  <el-table-column label="规则" prop="rule" min-width="120" align="left" show-overflow-tooltip></el-table-column>
+                </el-table>
+                <el-button slot="reference" type="primary" size="mini" class="validationText" @click="togglePopover" style="right: -350px;bottom: 3px;position: absolute;">校验规则</el-button>
+              </el-popover>
+            </div>
+          </div>
+        </el-form-item>
+      </el-form>
+    </div>
+    <div style="height: 89%;">
+      <el-table ref="table" :data="tableData" size="small" height="calc(100% - 50px - 40px)" row-key="code"
+                reserve-selection v-loading="loading">
+        <el-table-column type="index" width="50" label="序号" align="center" :index="indexMethods"></el-table-column>
+        <el-table-column label="客户ID" prop="custId" min-width="100" show-overflow-tooltip></el-table-column>
+        <el-table-column label="客户姓名" min-width="80" prop="custName" show-overflow-tooltip></el-table-column>
+        <el-table-column label="代理人ID" min-width="80" prop="agentId" show-overflow-tooltip></el-table-column>
+        <el-table-column label="代理人姓名" min-width="80" prop="agentName" show-overflow-tooltip></el-table-column>
+        <el-table-column label="机构ID" min-width="80" prop="custManage" show-overflow-tooltip></el-table-column>
+        <el-table-column label="机构名称" min-width="80" prop="saledeptName" show-overflow-tooltip></el-table-column>
+        <el-table-column label="分配开始时间" min-width="100" prop="effectiveTime" show-overflow-tooltip></el-table-column>
+        <el-table-column label="强制回收时间" min-width="100" prop="expirationTime" show-overflow-tooltip></el-table-column>
+        <el-table-column label="是否成功" min-width="50" prop="state" show-overflow-tooltip>
+          <template #default="{row}">
+            {{getAuditStatus(row.state)}}
+          </template>
+        </el-table-column>
+        <el-table-column label="原因" min-width="130" prop="exceptionCause" show-overflow-tooltip></el-table-column>
+      </el-table>
+      <div class="pagination" style="position: fixed;">
+        <el-pagination :current-page="pageNum" :page-sizes="[20, 40, 60, 80]" :page-size="pageSize"
+                       layout="total, sizes, prev, pager, next, jumper" :total="total" background @size-change="handleSizeChange"
+                       @current-change="handleCurrentChange"></el-pagination>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import {
+  mapGetters
+} from 'vuex'
+import {
+  exportFileGet
+} from 'utils/exportFile'
+import trackExamine from './components/trackExamine'
+import formItem from 'components/formItem'
+import {
+  getImportTemplateAgent,
+  importIntegrationRuleAgent,
+  orgCodesInformationAgent,
+  deleteFileListAgent,
+  sureFileListAgent,
+  sureFileListUpAgent
+} from 'api/pointRedistribution/index'
+
+export default {
+  components: {
+    trackExamine,
+    formItem
+  },
+  data() {
+    return {
+      pageNum: 1,
+      pageSize: 20,
+      total: null,
+      popoverVisible: false,
+      statusUP: null,
+      premiumIntegral: '', // 保费积分编码
+      searchConfig: [], // 查询内容配置
+      searchInfo: [], // 查询条件
+      loading: false,
+      trackDialog: false, // 轨迹查询弹窗
+      type: '', // 新增或编辑弹窗类型
+      fileId: null, // 轨迹查询fileId信息
+      tableHeader: [],
+      tableData: [],
+      fileList: [],
+      // 进度条
+      progressVisible: false,
+      progressNum: 0,
+      progressStatusText: '正在导入中...'
+    };
+  },
+  computed: {},
+  watch: {
+    searchConfig(val) {
+      this.searchInfo = []
+      val.forEach(item => {
+        this.searchInfo.push({
+          elementCode: item.elementCode,
+          elementValue: ''
+        })
+      })
+    }
+  },
+  created() {
+    this.getTableData();
+  },
+  methods: {
+    togglePopover() {
+      this.popoverVisible = !this.popoverVisible;
+      console.log('popoverVisible', this.popoverVisible)
+      console.log('tableRule', this.tableRule)
+      this.tableRule = [
+        {
+          ruleId: '1',
+          rule: '客户信息:校验客户ID、姓名、是否纯孤单客户、是否重复'
+        },
+        {
+          ruleId: '2',
+          rule: '客户指派状态:若客户已被回收或未指派服务机构，则报错'
+        },
+        {
+          ruleId: '3',
+          rule: '内勤权限:操作人员权限须与客户被指派的机构一致'
+        },
+        {
+          ruleId: '4',
+          rule: '代理人工号及姓名:代理人信息须填写完整及正确'
+        },
+        {
+          ruleId: '5',
+          rule: '代理人所属机构:代理人所属机构须与客户被指派的机构一致'
+        },
+        {
+          ruleId: '6',
+          rule: '代理人入围门槛:须在职、顾问以上职级、入职满30天、继续率≥85%、一年内无投诉'
+        },
+        {
+          ruleId: '7',
+          rule: '回收校验:已分配客户须进行回收，才可再次分配；已回收的不可再次提交回收'
+        }
+      ]
+    },
+    // 获取数据
+    getTableData() {
+      const param = {
+        fileId: this.fileId,
+        pageNum: this.pageNum,
+        pageSize: this.pageSize
+      };
+      orgCodesInformationAgent(param)
+        .then(({
+          page: {
+            total,
+            list
+          }
+        }) => {
+          this.tableData = list;
+          this.total = total
+        });
+      const paramState = {
+        fileId: this.fileId
+      };
+      if (this.fileId != null) {
+        const paramState = { fileId: this.fileId };
+        sureFileListUpAgent(paramState).then(res => {
+          this.statusUP = res.countNum
+        })
+      }
+    },
+    pickDateStart(time) {
+      if (this.value1) {
+        return time.getTime() > this.value1
+      } else {
+        return false
+      }
+    },
+    backPage() {
+      window.location.href = '/point/personal/redistributionAgent';
+    },
+
+    // 获取审核状态  0是false 1是true
+    getAuditStatus(state) {
+      switch (state) {
+        case 0:
+          return '失败'
+        case 1:
+          return '成功'
+        case 2:
+          return '审核中'
+        default:
+          return ''
+      }
+    },
+
+    // 获取表格单元格的内容
+    getTableValue(list, code) {
+      const value = list.find(e => e.elementCode === code)
+      return value ? value.elementValue || '' : ''
+    },
+
+    // 序号
+    indexMethods(index) {
+      return (this.pageNum - 1) * this.pageSize + index + 1
+    },
+    // 上传文件
+    fileChange(file, fileList) {
+      this.loading = true
+      if (file) {
+        const formData = new FormData()
+        formData.append('excel', file.raw)
+        formData.append('fileId', this.fileId)
+        this.progressVisible = true;
+        importIntegrationRuleAgent(
+          formData,
+          progressEvent => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            this.progressNum = percentCompleted > 90 ? 90 : percentCompleted
+          }
+        ).then(res => {
+          if (res) {
+            this.progressNum = 100
+            this.progressStatusText = '导入成功!'
+            this.progressVisible = false
+            this.$message({
+              type: 'success',
+              message: '导入成功'
+            })
+            this.fileId = res.fileId
+            this.startTime = res.startDate
+            this.endTime = res.endDate
+            this.startDateOption = false
+
+            this.getTableData();
+          } else {
+            this.progressVisible = false
+            this.$message({
+              type: 'warning',
+              message: '请检查您的导入文件',
+              duration: 2000
+            })
+          }
+        }).catch(() => {
+          this.progressNum = 100
+          this.progressStatusText = '导入失败!'
+          this.progressVisible = false
+        }).finally(() => {
+          // 清理进度条状态
+          this.progressStatusText = '正在导入中...'
+          this.progressNum = 0
+          this.loading = false
+        })
+      }
+    },
+    // 下载模板
+    downloadTemplate() {
+      this.loading = true
+      getImportTemplateAgent().then(res => {
+        exportFileGet(res, '孤单客户再分配代理人')
+      }).finally(() => {
+        // 清理进度条状态
+        this.progressStatusText = '正在下载中...'
+        this.progressNum = 0
+        this.loading = false
+      })
+    },
+    // 点击提交按钮
+    sureTemplateTemplate() {
+      if (this.statusUP != null) {
+        this.$message({
+          type: 'warning',
+          message: '客户再分配代理人有错误，请重新上传'
+        })
+        return;
+      } else {
+        const param = {
+          fileId: this.fileId
+        };
+        sureFileListAgent(param).then(res => {
+          this.$message({
+            type: 'success',
+            message: '提交成功'
+          })
+        }).finally(() => {
+          this.backPage()
+        });
+      }
+    },
+    // 处理新增
+    handleAdd(item) {},
+    // 处理轨迹查询
+    handleTrack(row) {
+      this.trackDialog = true
+    },
+    // 处理当前页面大小改变
+    handleSizeChange(val) {
+      this.pageSize = val
+      this.getTableData();
+    },
+
+    // 处理当前页更改
+    handleCurrentChange(val) {
+      this.pageNum = val
+      this.getTableData();
+    },
+    // 序号
+    indexMethods(index) {
+      return (this.pageNum - 1) * this.pageSize + index + 1
+    }
+  }
+};
+</script>
+
+<style lang="scss" scoped>
+  $radius: 4px;
+
+  /deep/.container .box {
+    margin-top: 0;
+    padding: 0;
+  }
+
+  .container {
+    .scrollbar {
+      height: calc(100% - 42px)
+    }
+
+    height: 100%;
+
+    .container-header {
+      font-size: 14px;
+      font-weight: bolder;
+    }
+
+    .blockStart {
+      margin-top: 10px;
+      background-color: #fff;
+      padding: 10px 0 0 0;
+      .blockRebackInformation{
+        position: absolute;
+        top:7px;
+        right: 0;
+        left: 270px;
+        width: 600px;
+        .blockRebackInformationSpan{
+          color: #8A8F9D;
+          font-weight:500;
+          list-style: inherit;
+          font-size: 12px;
+        }
+      }
+
+    }
+
+    .dialog-header {
+      background-color: #fff;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .title {
+      height: 16px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      font-weight: 600;
+
+      &::before {
+        content: '';
+        display: inline-block;
+        width: 3px;
+        height: 12px;
+        border-radius: 1px;
+        margin-right: 12px;
+        background-color: #6383ff;
+      }
+    }
+
+    .header {
+      background-color: #fff;
+      border-radius: $radius;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /deep/.el-scrollbar__wrap {
+      overflow-x: hidden;
+    }
+  }
+</style>

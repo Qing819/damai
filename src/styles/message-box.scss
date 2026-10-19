@@ -1,0 +1,27 @@
+// Message
+.el-message-box{
+  border: none;
+  .el-message-box__header{
+    background-color: #F5F7FD;
+    padding: 14px 18px;
+
+    .el-message-box__title{
+      font-size: 14px;
+      &::before {
+        content: '';
+        display: inline-block;
+        width: 4px;
+        height: 12px;
+        border-radius: 2px;
+        background-color: $--color-primary;
+        margin-right: 8px;
+      }
+    }
+    .el-message-box__headerbtn{
+      top: 12px;
+    }
+  }
+  .el-message-box__content{
+    padding: 15px 18px;
+  }
+}

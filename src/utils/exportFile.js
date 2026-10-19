@@ -1,0 +1,38 @@
+export function exportFileGet(content, name, suffix = 'xlsx') {
+  // 添加字节序标识，避免乱码
+  // const data = `\uFEFF${content}`;
+
+  const blob = new Blob([content], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const downloadElement = document.createElement('a');
+  // 创建下载链接
+  const href = window.URL.createObjectURL(blob);
+  downloadElement.href = href;
+  // 下载文件名
+  downloadElement.download = `${name}.${suffix}`;
+  // name ? downloadElement.download = `${name}.${suffix}` : '';
+  document.body.appendChild(downloadElement);
+  downloadElement.click();
+  // 移除元素
+  document.body.removeChild(downloadElement);
+  // 释放blob对象
+  window.URL.revokeObjectURL(href);
+}
+
+export function exportFilePost(name, data) {
+  const blob = new Blob([data])
+  const fileName = name + '.xlsx'
+  if (window.navigator.msSaveOrOpenBlob) {
+    navigator.msSaveBlob(blob, fileName);
+  } else {
+    const link = document.createElement('a');
+    const body = document.querySelector('body');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = fileName;
+    // fix Firefox
+    link.style.display = 'none';
+    body.appendChild(link);
+    link.click();
+    body.removeChild(link);
+    window.URL.revokeObjectURL(link.href);
+  }
+}

@@ -1,0 +1,12 @@
+.el-table {
+  .el-table__header-wrapper,
+  .el-table__fixed-header-wrapper {
+    th {
+      color: #8A8F9D;
+      background-color: #FAFAFA;
+    }
+  }
+}
+.el-table--enable-row-hover .el-table__body tr:hover > td{
+  background-color: #fff;
+}
