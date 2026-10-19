@@ -399,7 +399,7 @@ export default {
     background-color: #fff;
     height: 100%;
 
-    /deep/ .el-tabs__content {
+    ::v-deep .el-tabs__content {
       padding: 12px;
     }
   }
@@ -446,7 +446,7 @@ export default {
         margin-left: auto;
       }
 
-      /deep/ .el-form-item {
+      ::v-deep .el-form-item {
         padding-bottom: 12px;
         margin: 0;
       }

@@ -167,7 +167,7 @@ export default {
     .pagination{
         padding: 10px 10px 0;
     }
-    /deep/.el-link{
+    ::v-deep.el-link{
         font-size: 12px;
     }
 }

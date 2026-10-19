@@ -246,7 +246,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-/deep/.el-date-editor.el-input__inner {
+::v-deep.el-date-editor.el-input__inner {
   width: 100%;
 }
 </style>

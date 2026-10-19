@@ -163,7 +163,7 @@ $border-radius: 4px;
     .el-tag {
       margin-right: 10px;
     }
-    /deep/.el-form-item{
+    ::v-deep.el-form-item{
       margin-bottom: 12px;
     }
   }

@@ -133,7 +133,7 @@ export default {
 
 <style lang="scss" scoped>
 $radius: 4px;
-/deep/.container .box {
+::v-deep.container .box {
   margin-top: 0;
   padding: 0;
 }
@@ -177,6 +177,6 @@ $radius: 4px;
     display: flex;
     justify-content: space-between;
   }
-  /deep/.el-scrollbar__wrap{ overflow-x: hidden; }
+  ::v-deep.el-scrollbar__wrap{ overflow-x: hidden; }
 }
 </style>

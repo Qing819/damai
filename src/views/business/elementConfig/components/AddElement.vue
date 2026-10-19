@@ -556,8 +556,8 @@ $border-radius: 4px;
     }
   }
   .table-main {
-    /deep/.el-table__body-wrapper,
-    /deep/.el-table__fixed-body-wrapper {
+    ::v-deep.el-table__body-wrapper,
+    ::v-deep.el-table__fixed-body-wrapper {
       td {
         font-size: 13px;
         padding: 0;
@@ -567,7 +567,7 @@ $border-radius: 4px;
   }
 }
 .sub-dialog {
-  /deep/.el-dialog__body {
+  ::v-deep.el-dialog__body {
     height: 60vh;
     .dialog-search {
       height: 40px;

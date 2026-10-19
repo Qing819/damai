@@ -50,12 +50,12 @@ export default {
 .calculate-container{
     // overflow-x: hidden;
 }
-/deep/.el-divider{
+::v-deep.el-divider{
     width: 120%;
     margin-left: -20px;
     background-color: #F0F2F5;
 }
-/deep/.el-divider--horizontal{
+::v-deep.el-divider--horizontal{
     height: 10px;
 }
 </style>

@@ -274,7 +274,7 @@ export default {
         flex: 1;
         max-width: 300px;
         min-width: 100px;
-        /deep/.el-input__inner{
+        ::v-deep.el-input__inner{
           border-radius: 20.5px;
         }
       }
@@ -282,7 +282,7 @@ export default {
         margin-right: 5px;
       }
     }
-    /deep/.el-form-item{
+    ::v-deep.el-form-item{
       margin: 0;
     }
   }
@@ -309,7 +309,7 @@ export default {
   font-size: 13px;
 }
 .edit-dialog{
-  /deep/.el-dialog__body{
+  ::v-deep.el-dialog__body{
     padding: 0;
   }
 }

@@ -135,7 +135,7 @@ $border-redius: 4px;
     height: calc(100% - 55px);
     .advanced-form {
       margin-bottom: 10px;
-      /deep/.el-form-item {
+      ::v-deep.el-form-item {
         background-color: #fff;
         padding: 0px 0px 10px 10px;
         margin: 0;

@@ -688,14 +688,14 @@ $radius: 4px;
     }
   }
   .editBox{
-    /deep/.el-scrollbar__wrap{ overflow-x: hidden; }
-    /deep/.el-card{
+    ::v-deep.el-scrollbar__wrap{ overflow-x: hidden; }
+    ::v-deep.el-card{
       border:0px;
     }
-    /deep/.el-card.is-always-shadow{
+    ::v-deep.el-card.is-always-shadow{
       box-shadow: 0 0 0 0 transparent;
     }
-    /deep/.el-card__body{
+    ::v-deep.el-card__body{
       padding:0;
     }
   }
@@ -728,15 +728,15 @@ $radius: 4px;
     }
   }
 }
-/deep/.el-divider--horizontal {
+::v-deep.el-divider--horizontal {
   margin: 5px 0;
 }
-/deep/.el-card__header{
+::v-deep.el-card__header{
   padding:0;
   border-bottom:none
 }
-/deep/.el-card__body{
+::v-deep.el-card__body{
   padding:10px;
 }
-/deep/.el-scrollbar__wrap{ overflow-x: hidden; }
+::v-deep.el-scrollbar__wrap{ overflow-x: hidden; }
 </style>

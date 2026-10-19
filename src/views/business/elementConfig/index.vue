@@ -225,7 +225,7 @@ export default {
       .search-btn {
         text-align: right;
       }
-      /deep/.el-form-item {
+      ::v-deep.el-form-item {
         margin-bottom: 0px !important;
       }
     }

@@ -679,7 +679,7 @@ $radius: 4px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      /deep/.el-form-item{
+      ::v-deep.el-form-item{
         margin-bottom:0;
       }
     }
@@ -726,15 +726,15 @@ $radius: 4px;
     }
   }
 }
-/deep/.el-divider--horizontal {
+::v-deep.el-divider--horizontal {
   margin: 5px 0;
 }
-/deep/.el-card__header{
+::v-deep.el-card__header{
   padding:0;
   border-bottom:none
 }
-/deep/.el-card__body{
+::v-deep.el-card__body{
   padding:10px;
 }
-/deep/.el-scrollbar__wrap{ overflow-x: hidden; }
+::v-deep.el-scrollbar__wrap{ overflow-x: hidden; }
 </style>

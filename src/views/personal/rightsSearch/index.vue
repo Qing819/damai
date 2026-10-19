@@ -252,7 +252,7 @@ export default {
       .search-btn {
         text-align: right;
       }
-      /deep/.el-form-item {
+      ::v-deep.el-form-item {
         padding-bottom: 12px;
         margin: 0;
       }

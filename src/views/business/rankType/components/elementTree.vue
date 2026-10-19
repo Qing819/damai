@@ -174,7 +174,7 @@ $--color-primary: #6383ff;
         margin-left: 12px;
         margin-bottom: 8px;
         padding: 6px 5px;
-        /deep/.el-alert__title{
+        ::v-deep.el-alert__title{
             font-size: 12px;
         }
     }
@@ -205,7 +205,7 @@ $--color-primary: #6383ff;
         height: 24px;
         line-height: 24px;
         .el-input {
-        /deep/.el-input__inner {
+        ::v-deep.el-input__inner {
             height: 21px;
         }
         }

@@ -593,31 +593,31 @@ $radius: 4px;
       color: #6383ff;
       padding-top: 15px;
     }
-    /deep/.el-dialog {
+    ::v-deep.el-dialog {
       min-width: 400px;
       max-width: 800px;
       margin-top: calc(50vh - 90px);
     }
-    /deep/.el-dialog__header {
+    ::v-deep.el-dialog__header {
       display: none;
     }
-    /deep/.el-dialog__body {
+    ::v-deep.el-dialog__body {
       height: auto;
       padding: 30px 20px 20px;
     }
   }
 }
-/deep/.el-form-item--small.el-form-item {
+::v-deep.el-form-item--small.el-form-item {
   margin: 0;
   padding: 10px;
 }
-/deep/.el-dialog {
+::v-deep.el-dialog {
   background-color: #f4f4f4;
 }
-/deep/.el-dialog .el-dialog__body {
+::v-deep.el-dialog .el-dialog__body {
   padding: 0;
 }
-/deep/.el-dialog .el-dialog__header {
+::v-deep.el-dialog .el-dialog__header {
   padding: 0 10px;
   background: #fff;
   margin: 10px 10px 0 10px;

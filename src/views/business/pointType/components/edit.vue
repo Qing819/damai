@@ -828,13 +828,13 @@ $--color-primary: #6383ff;
                 // line-height: 28px;
                 margin-left: 20px;
             }
-            /deep/.el-form{
+            ::v-deep.el-form{
                 padding: 8px 0;
             }
-            /deep/.el-form-item{
+            ::v-deep.el-form-item{
                 margin-bottom: 0 !important;
             }
-            /deep/.el-tag{
+            ::v-deep.el-tag{
                 margin-left: 5px;
             }
         }
@@ -843,14 +843,14 @@ $--color-primary: #6383ff;
             flex: 1;
             // height: calc(100% - 81px);
             padding: 5px 12px;
-            /deep/.el-tag{
+            ::v-deep.el-tag{
                 border-radius: 3px;
                 border-width: 0;
                 vertical-align: middle;
                 max-width: 100%;
                 box-sizing: border-box;
             }
-            /deep/.el-checkbox__label{
+            ::v-deep.el-checkbox__label{
                 font-size: 12px;
                 padding-left: 6px;
             }
@@ -885,23 +885,23 @@ $--color-primary: #6383ff;
             padding: 0 4px;
             cursor: pointer;
         }
-        /deep/.el-table__row{
+        ::v-deep.el-table__row{
             cursor: move;
         }
-        /deep/.el-checkbox:not(:last-of-type){
+        ::v-deep.el-checkbox:not(:last-of-type){
             margin-right: 10px
         }
-        /deep/.cell{
+        ::v-deep.cell{
             padding: 0 5px;
         }
-        // /deep/.header-checkbox{
+        // ::v-deep.header-checkbox{
         //     .el-checkbox__label{
         //         font-size: 12px;
         //         font-weight: bold;
         //         color: #8a8f9d;
         //     }
         // }
-        // /deep/.el-radio__label{
+        // ::v-deep.el-radio__label{
         //     font-size: 12px;
         // }
     }

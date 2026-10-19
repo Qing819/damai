@@ -510,7 +510,7 @@ export default {
 }
 
 .sub-dialog {
-  /deep/.el-dialog__body {
+  ::v-deep.el-dialog__body {
     height: 60vh;
     .dialog-search {
       height: 40px;
@@ -526,7 +526,7 @@ export default {
 }
 .el-input-number {
   width: auto;
-  /deep/ .el-input {
+  ::v-deep .el-input {
     .el-input__inner {
       width: 40px;
       height: 25px;

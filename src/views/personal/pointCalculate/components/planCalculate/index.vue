@@ -269,7 +269,7 @@ export default {
 }
 
 // 表单项给定宽度：解决input输入框带后缀时，对不齐的问题
-/deep/.el-form-item{
+::v-deep.el-form-item{
     // width: 260px;
     margin: 0 25px 15px 0;
 }
