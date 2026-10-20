@@ -373,6 +373,13 @@ export default {
       immediate: true
     }
   },
+  mounted() {
+    const custId = this.$route.query.custId
+    if (custId) {
+      this.currentCustId = custId
+      this.fetchAllData(custId)
+    }
+  },
   methods: {
     // 判断积分类型是否包含保单生效日期（保费积分/养老协同积分）
     isPolicyPointType(type) {
@@ -431,9 +438,37 @@ export default {
         const res = await getCustPointDetailApi(custId)
         if (res && res.data) {
           const data = res.data || {}
-          this.userInfo = data.profile || {}
+          const profile = data.profile || {}
+          const baseInfo = data.custBaseInfo || {}
+          this.userInfo = {
+            cust_id: profile.custId || baseInfo.custId,
+            rule_version_tag: profile.ruleVersionTag,
+            current_grade: profile.currentGrade,
+            vip_point_total: profile.vipPointTotal,
+            loyalty_point_total: profile.loyaltyPointTotal,
+            switch_status: profile.switchStatus,
+            cust_name: baseInfo.custName,
+            id_type: baseInfo.idType,
+            id_no: baseInfo.idNo,
+            org_name: baseInfo.orgName
+          }
           this.pointsSummary = data.pointSummary || {}
-          this.pointsTrack = data.pointTraces || []
+          this.pointsTrack = (data.pointTraces || []).map(item => ({
+            ...item,
+            trace_id: item.traceId,
+            cust_id: item.custId,
+            operate_type: item.operateType,
+            point_type: item.pointType,
+            point_amt: item.pointAmt,
+            valid_end_date: item.validEndDate,
+            policy_no: item.policyNo,
+            rule_code: item.ruleCode,
+            operate_time: item.operateTime,
+            before_point: item.beforePoint,
+            after_point: item.afterPoint,
+            oa_no: item.oaNo,
+            operator: item.operator
+          }))
           this.levelTrack = data.gradeTraces || []
           this.benefitsData = data.benefitStatus || []
           this.benefitTrackData = data.usageRecords || []

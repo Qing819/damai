@@ -246,7 +246,7 @@ export default {
       loading: false,
       // 顶部三个统计卡片的数据
       totalStats: {
-        total: 10,
+        total: 0,
         newSystem: { count: 6, percent: 60.0 },
         oldSystem: { count: 4, percent: 40.0 }
       },
@@ -481,6 +481,7 @@ export default {
         if (res && res.data) {
           const bodyData = res.data || {}
           this.total = bodyData.total || 0
+          this.totalStats.total = this.total
 
           // 映射计算序号
           const list = bodyData.list || []
@@ -537,7 +538,10 @@ export default {
     },
 
     handleDetail(row) {
-      this.$message.info(`查看客户 ${row.cust_name} 的详情`)
+      this.$router.push({
+        path: '/personal/manageDetails',
+        query: { custId: row.cust_id }
+      })
     },
 
     handlePointDetail(row) {
