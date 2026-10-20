@@ -50,7 +50,7 @@ module.exports = {
         ],
     resolve: {
       alias: {
-        './utils/createSocketUrl': path.resolve(__dirname, 'node_modules/webpack-dev-server/client/utils/createSocketURL.js'),
+        './utils/createSocketUrl': path.resolve(__dirname, 'node_modules/webpack-dev-server/client/utils/createSocketUrl.js'),
         '@': resolve('src'),
         src: resolve('src'),
         api: resolve('src/api'),
