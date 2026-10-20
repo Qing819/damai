@@ -7,7 +7,7 @@ Vue.use(VueRouter);
 const routes = [
   {
     path: '/',
-    redirect: '/personal/pointRule'
+    redirect: '/personal/test'
   },
   // 孤儿客户重分配机构
   {
