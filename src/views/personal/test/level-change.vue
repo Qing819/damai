@@ -244,7 +244,8 @@
 import {
   getGradeTracePageApi,
   getGradeTraceSummaryApi,
-  getGradeTraceDetailApi
+  getGradeTraceDetailApi,
+  exportGradeTraceApi
 } from '@/api/test/index'
 
 export default {
@@ -282,7 +283,7 @@ export default {
         org_name: '',
         channel: '',
         change_type: '',
-        dateRange: ['2026-07-01', '2026-08-25']
+        dateRange: []
       },
 
       pagination: {
@@ -292,10 +293,10 @@ export default {
       },
 
       summaryData: {
-        upgradeCount: 5,
-        downgradeCount: 3,
-        invalidCount: 2,
-        totalCount: 96
+        upgradeCount: 0,
+        downgradeCount: 0,
+        invalidCount: 0,
+        totalCount: 0
       },
 
       tableData: []
@@ -426,8 +427,29 @@ export default {
       this.handleQuery()
     },
 
-    handleExport() {
-      this.$message.info('正在导出数据...')
+    async handleExport() {
+      try {
+        const params = {
+          custId: this.queryForm.cust_id,
+          custName: this.queryForm.cust_name,
+          idNo: this.queryForm.id_no,
+          orgName: this.queryForm.org_name,
+          channel: this.queryForm.channel,
+          changeType: this.queryForm.change_type,
+          startDate: this.queryForm.dateRange?.[0],
+          endDate: this.queryForm.dateRange?.[1]
+        }
+        const blob = await exportGradeTraceApi(params)
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = '等级变化轨迹.xlsx'
+        link.click()
+        window.URL.revokeObjectURL(url)
+        this.$message.success('导出成功')
+      } catch (error) {
+        this.$message.error('导出失败')
+      }
     },
 
     handleSizeChange(val) {
