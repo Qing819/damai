@@ -597,7 +597,10 @@ export default {
       try {
         const res = await getCustCurrentPointApi(custId)
         if (res && res.data) {
-          this.currentCustomerPoint = res.data
+          const pointData = res.data
+          this.currentCustomerPoint = typeof pointData === 'number'
+            ? pointData
+            : Number(pointData.currentPoint ?? pointData.current_point ?? 0)
           this.adjustForm.custId = custId
           this.hasSearchedCustomer = true
         } else {
