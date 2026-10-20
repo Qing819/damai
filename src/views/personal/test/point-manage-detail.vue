@@ -15,7 +15,7 @@
           <el-descriptions-item label="客户号">{{ userInfo.cust_id || '—' }}</el-descriptions-item>
           <el-descriptions-item label="规则版本">{{ userInfo.rule_version_tag || '—' }}</el-descriptions-item>
           <el-descriptions-item label="客户级别">
-            <el-tag type="warning" size="small">{{ userInfo.current_grade || '—' }}</el-tag>
+            <el-tag type="warning" size="small">{{ formatGrade(userInfo.current_grade) }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="VIP积分汇总">{{ userInfo.vip_point_total | formatNumber }}</el-descriptions-item>
           <el-descriptions-item label="忠诚积分汇总">{{ userInfo.loyalty_point_total | formatNumber }}</el-descriptions-item>
@@ -405,6 +405,18 @@ export default {
         MANUAL: '人工调整'
       }
       return typeMap[type] || type || '—'
+    },
+
+    formatGrade(grade) {
+      const gradeMap = {
+        PUXING: '普星',
+        SANXING: '三星',
+        SIXING: '四星',
+        WUXING: '五星',
+        ZHUOYUE: '卓越',
+        ZUNYAO: '尊耀'
+      }
+      return gradeMap[grade] || grade || '—'
     },
 
     formatDirection(direction) {
