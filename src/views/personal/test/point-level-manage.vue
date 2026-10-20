@@ -487,7 +487,20 @@ export default {
     async handleSaveBatchBands() {
       this.submitLoading = true
       try {
-        // 调用后端 API...
+        const rows = this.batchRows.filter(row => row.gradeName && row.maxPoint)
+        if (!rows.length) {
+          this.$message.warning('请至少填写一条完整分档')
+          return
+        }
+        await Promise.all(rows.map(row => saveGradeConfigBandApi({
+          versionId: this.currentVersionId,
+          gradeName: row.gradeName,
+          displayGradeName: row.displayGradeName,
+          minPoint: row.minPoint,
+          minBoundary: row.minBoundary,
+          maxPoint: row.maxPoint,
+          maxBoundary: row.maxBoundary
+        })))
         this.$message.success('保存成功！')
         this.dialogBatchVisible = false
         this.fetchBands(this.currentVersionId)
