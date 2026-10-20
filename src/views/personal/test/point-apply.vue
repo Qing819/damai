@@ -611,11 +611,11 @@ export default {
       detailDialogVisible: false,
 
       // 积分明细测试数据
-      detailFilter: {startDate: '', endDate: '', source: '', type: ''},
+      detailFilter: { startDate: '', endDate: '', source: '', type: '' },
       pointsDetailList: [],
 
       moreDetailDialogVisible: false,
-      moreDetailFilter: {startDate: '', endDate: '', source: '', type: ''},
+      moreDetailFilter: { startDate: '', endDate: '', source: '', type: '' },
       morePointsDetailList: [],
 
       // 新增与编辑表单
@@ -634,12 +634,12 @@ export default {
         attachment: ''
       },
       adjustRules: {
-        adjustType: [{required: true, message: '请选择调整方向', trigger: 'change'}],
-        adjustAmt: [{required: true, message: '请输入调整积分额度', trigger: 'blur'}],
-        validType: [{required: true, message: '请选择有效期类型', trigger: 'change'}],
-        validEndDate: [{required: true, message: '请选择有效期截止日', trigger: 'change'}],
-        oaNo: [{required: true, message: '请输入OA流水号', trigger: 'blur'}],
-        reasonCode: [{required: true, message: '请选择调整原因', trigger: 'change'}]
+        adjustType: [{ required: true, message: '请选择调整方向', trigger: 'change' }],
+        adjustAmt: [{ required: true, message: '请输入调整积分额度', trigger: 'blur' }],
+        validType: [{ required: true, message: '请选择有效期类型', trigger: 'change' }],
+        validEndDate: [{ required: true, message: '请选择有效期截止日', trigger: 'change' }],
+        oaNo: [{ required: true, message: '请输入OA流水号', trigger: 'blur' }],
+        reasonCode: [{ required: true, message: '请选择调整原因', trigger: 'change' }]
       },
 
       editDialogVisible: false,
@@ -684,7 +684,7 @@ export default {
           orgName: profile.orgName || profile.serviceOrg,
           currentPoint: (data.pointSummary || {}).current_point != null
             ? data.pointSummary.current_point
-            : (profile.currentPoint || 0)
+            : profile.currentPoint || 0
         }
         this.pointsDetailList = (data.pointTraces || []).map(item => ({
           date: item.occurTime || item.changeTime || item.createTime,
@@ -722,7 +722,7 @@ export default {
 
     formatAdjustType(type) {
       if (!type) return '—'
-      return { ADD: '加分', SUB: '减分', '加分': '加分', '减分': '减分' }[type] || type
+      return { ADD: '加分', SUB: '减分', 加分: '加分', 减分: '减分' }[type] || type
     },
 
     isAddAdjust(type) {
@@ -751,12 +751,12 @@ export default {
       this.loading = true
       try {
         const res = await getPointAdjustPageApi(this.searchForm)
-        if (res && res.data ) {
+        if (res && res.data) {
           const data = res.data || {}
           this.recordList = data.list || []
           this.total = data.total || 0
         } else {
-          console.log(res,"res")
+          console.log(res, 'res')
           this.$message.error(res?.header?.message || '获取申请列表失败')
         }
       } catch (err) {
@@ -780,16 +780,16 @@ export default {
       try {
         const res = await getPointAdjustDetailApi(targetId)
         if (res && res.data) {
-          console.log(res,"res")
+          console.log(res, 'res')
           this.detailData = res.data || {}
         } else {
           this.$message.error(res?.header?.message || '获取申请详情失败')
           // 容错处理：若网络/API异常则回退使用当前行表格数据
-          this.detailData = {...row}
+          this.detailData = { ...row }
         }
       } catch (err) {
         console.error('获取详情发生异常:', err)
-        this.detailData = {...row}
+        this.detailData = { ...row }
       } finally {
         this.detailLoading = false
       }
@@ -841,19 +841,19 @@ export default {
     // 表单其他交互方法
     handleReasonChange(val) {
       const reasonMap = {
-        'ACT_SUPPLEMENT': '活动积分补发',
-        'SYS_FIX': '系统故障补算',
-        'COMPLAINT': '客户投诉处理',
-        'HISTORY_CORRECTION': '历史积分修正'
+        ACT_SUPPLEMENT: '活动积分补发',
+        SYS_FIX: '系统故障补算',
+        COMPLAINT: '客户投诉处理',
+        HISTORY_CORRECTION: '历史积分修正'
       }
       this.adjustForm.reasonName = reasonMap[val] || ''
     },
     handleEditReasonChange(val) {
       const reasonMap = {
-        'ACT_SUPPLEMENT': '活动积分补发',
-        'SYS_FIX': '系统故障补算',
-        'COMPLAINT': '客户投诉处理',
-        'HISTORY_CORRECTION': '历史积分修正'
+        ACT_SUPPLEMENT: '活动积分补发',
+        SYS_FIX: '系统故障补算',
+        COMPLAINT: '客户投诉处理',
+        HISTORY_CORRECTION: '历史积分修正'
       }
       this.editForm.reasonName = reasonMap[val] || ''
     },
@@ -887,7 +887,7 @@ export default {
     handleDelete(row) {
       this.$confirm(`确认删除客户【${row.custName}】的此条调整申请记录？`, '提示', {
         type: 'warning'
-      }).then(async () => {
+      }).then(async() => {
         try {
           await deletePointAdjustApi(row.id || row.applyNo)
           this.$message.success('删除成功')
@@ -895,15 +895,14 @@ export default {
         } catch (err) {
           this.$message.error('删除失败')
         }
-      }).catch(() => {
-      })
+      }).catch(() => null)
     },
     submitAdjust() {
-      this.$refs.adjustForm.validate((valid) => {
+      this.$refs.adjustForm.validate(valid => {
         if (valid) {
-          this.$confirm(`确认提交调整申请？`, '二次确认', {
+          this.$confirm('确认提交调整申请？', '二次确认', {
             type: 'info'
-          }).then(async () => {
+          }).then(async() => {
             try {
               await submitPointAdjustApi(this.adjustForm)
               this.$message.success('提交成功！')

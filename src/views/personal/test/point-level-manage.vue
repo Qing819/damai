@@ -517,10 +517,10 @@ export default {
     },
     handleDeleteSingle(row) {
       this.$confirm(`确认删除分档【${row.gradeName}】吗？`, '提示', { type: 'warning' })
-          .then(() => {
-            this.$message.success('删除成功')
-          })
-          .catch(() => {})
+        .then(() => {
+          this.$message.success('删除成功')
+        })
+        .catch(() => null)
     },
 
     // 保存新增版本

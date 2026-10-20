@@ -607,7 +607,6 @@ import {
   switchTrialBatchApi,
   getSwitchTrialTaskPageApi,
   getSwitchTrialItemPageApi,
-  switchApplyDetailApi,
   switchTrialExtraApi,
   getSwitchTrialRiskPageApi
 } from '@/api/test'
@@ -630,7 +629,7 @@ export default {
 
       // 场景二：待试算产品列表
       productList: [
-        {riskCode: 'R1001', riskName: '分红年金保险A款', type: '年金保险', premium: 10000, payMode: 'year', pensionFlag: false}
+        { riskCode: 'R1001', riskName: '分红年金保险A款', type: '年金保险', premium: 10000, payMode: 'year', pensionFlag: false }
       ],
 
       // ==================== 场景一数据源 (默认备用) ==================== -->
@@ -673,15 +672,15 @@ export default {
         }
       ],
       scene1OldEquities: [
-        {service: '视频医生服务', item: '视频医生', provider: 'XX健康管理', available: '不限次', used: '3'},
-        {service: '专家问诊服务', item: '专家问诊', provider: 'XX医院互联网医院', available: '2 次/年', used: '1'},
-        {service: '体检服务', item: '体检套餐', provider: 'XX体检中心', available: '1 次/年', used: '0'}
+        { service: '视频医生服务', item: '视频医生', provider: 'XX健康管理', available: '不限次', used: '3' },
+        { service: '专家问诊服务', item: '专家问诊', provider: 'XX医院互联网医院', available: '2 次/年', used: '1' },
+        { service: '体检服务', item: '体检套餐', provider: 'XX体检中心', available: '1 次/年', used: '0' }
       ],
       scene1NewEquities: [
-        {service: '视频医生服务', item: '视频医生', provider: 'XX健康管理', available: '不限次', isNew: false},
-        {service: '专家问诊服务', item: '专家问诊', provider: 'XX医院互联网医院', available: '2 次/年', isNew: false},
-        {service: '体检服务', item: '体检套餐', provider: 'XX体检中心', available: '1 次/年', isNew: false},
-        {service: '重疾关怀服务', item: '重疾关怀', provider: 'XX康复服务', available: '1 次/年', isNew: true}
+        { service: '视频医生服务', item: '视频医生', provider: 'XX健康管理', available: '不限次', isNew: false },
+        { service: '专家问诊服务', item: '专家问诊', provider: 'XX医院互联网医院', available: '2 次/年', isNew: false },
+        { service: '体检服务', item: '体检套餐', provider: 'XX体检中心', available: '1 次/年', isNew: false },
+        { service: '重疾关怀服务', item: '重疾关怀', provider: 'XX康复服务', available: '1 次/年', isNew: true }
       ],
 
       // ==================== 场景二数据源 ====================
@@ -704,39 +703,39 @@ export default {
         }
       ],
       scene2NewPolicies: [
-        {code: 'R1001', name: '分红年金保险A款', premium: '400,000', ratio: '5%', points: '20,000'},
-        {code: 'R2001', name: '终身寿险（尊享版）', premium: '100,000', ratio: '10%', points: '10,000'}
+        { code: 'R1001', name: '分红年金保险A款', premium: '400,000', ratio: '5%', points: '20,000' },
+        { code: 'R2001', name: '终身寿险（尊享版）', premium: '100,000', ratio: '10%', points: '10,000' }
       ],
       scene2CurrentEquities: [
-        {service: '视频医生服务', item: '视频医生', provider: 'XX健康管理', available: '不限次', used: '2'},
-        {service: '体检服务', item: '体检套餐', provider: 'XX体检中心', available: '1 次/年', used: '0'}
+        { service: '视频医生服务', item: '视频医生', provider: 'XX健康管理', available: '不限次', used: '2' },
+        { service: '体检服务', item: '体检套餐', provider: 'XX体检中心', available: '1 次/年', used: '0' }
       ],
       scene2AfterEquities: [
-        {service: '视频医生服务', item: '视频医生', provider: 'XX健康管理', times: '不限次'},
-        {service: '专家问诊服务', item: '专家问诊', provider: 'XX医院互联网医院', times: '不限次'},
-        {service: '体检服务', item: '体检套餐', provider: 'XX体检中心', times: '2 次/年'},
-        {service: '重疾关怀服务', item: '重疾关怀', provider: 'XX康复服务', times: '1 次/年'},
-        {service: '二选一服务 (A/B)', item: '二选一体检', provider: 'XX健康管理', times: '10 次/年'},
-        {service: '道路救援服务', item: '道路救援', provider: 'XX救援服务', times: '3 次/年'}
+        { service: '视频医生服务', item: '视频医生', provider: 'XX健康管理', times: '不限次' },
+        { service: '专家问诊服务', item: '专家问诊', provider: 'XX医院互联网医院', times: '不限次' },
+        { service: '体检服务', item: '体检套餐', provider: 'XX体检中心', times: '2 次/年' },
+        { service: '重疾关怀服务', item: '重疾关怀', provider: 'XX康复服务', times: '1 次/年' },
+        { service: '二选一服务 (A/B)', item: '二选一体检', provider: 'XX健康管理', times: '10 次/年' },
+        { service: '道路救援服务', item: '道路救援', provider: 'XX救援服务', times: '3 次/年' }
       ],
 
       // 弹窗状态与数据
       taskDialogVisible: false,
       activeTaskTab: 'record',
-      taskQueryForm: {applicant: '', dateRange: []},
+      taskQueryForm: { applicant: '', dateRange: [] },
       taskRecordData: [],
       taskTotal: 0,
       taskPageNum: 1,
       taskPageSize: 10,
 
-      detailQueryForm: {custName: '', idNo: '', taskNo: ''},
+      detailQueryForm: { custName: '', idNo: '', taskNo: '' },
       taskDetailData: [],
       detailTotal: 0,
       detailPageNum: 1,
       detailPageSize: 10,
 
       productDialogVisible: false,
-      productQueryForm: {riskCode: '', riskName: ''},
+      productQueryForm: { riskCode: '', riskName: '' },
       selectedProductCode: '',
       selectedProductRow: null,
       productSelectData: [],
@@ -744,8 +743,6 @@ export default {
       riskPageNum: 1,
       riskPageSize: 10
     };
-  },
-  created() {
   },
   methods: {
     // 解析 JSON 字符串服务项目，避免直接展示 JSON 文本
@@ -828,7 +825,7 @@ export default {
       }
     },
     handleReset() {
-      this.calcForm = {custName: '', idType: 'IDCARD', idNo: ''};
+      this.calcForm = { custName: '', idType: 'IDCARD', idNo: '' };
     },
     handleBatchImport() {
       this.$refs.fileInput.click();
@@ -878,19 +875,19 @@ export default {
         } else {
           // 备用静态数据填充防止接口未就绪时的空展示
           this.productSelectData = [
-            {riskCode: 'R1001', riskName: '分红年金保险A款', type1: '人身保险', type2: '年金保险'},
-            {riskCode: 'R2001', riskName: '终身寿险（尊享版）', type1: '人身保险', type2: '人寿保险'}
+            { riskCode: 'R1001', riskName: '分红年金保险A款', type1: '人身保险', type2: '年金保险' },
+            { riskCode: 'R2001', riskName: '终身寿险（尊享版）', type1: '人身保险', type2: '人寿保险' }
           ];
         }
       }).catch(() => {
         this.productSelectData = [
-          {riskCode: 'R1001', riskName: '分红年金保险A款', type1: '人身保险', type2: '年金保险'},
-          {riskCode: 'R2001', riskName: '终身寿险（尊享版）', type1: '人身保险', type2: '人寿保险'}
+          { riskCode: 'R1001', riskName: '分红年金保险A款', type1: '人身保险', type2: '年金保险' },
+          { riskCode: 'R2001', riskName: '终身寿险（尊享版）', type1: '人身保险', type2: '人寿保险' }
         ];
       });
     },
     resetRiskQuery() {
-      this.productQueryForm = {riskCode: '', riskName: ''};
+      this.productQueryForm = { riskCode: '', riskName: '' };
       this.fetchRiskPage();
     },
     handleSelectRowChange(row) {
@@ -942,19 +939,19 @@ export default {
           this.taskRecordData = data;
         } else {
           this.taskRecordData = [
-            {trialTime: '2026-09-10 14:20', cnt: 186, operator: '张三', status: 'DONE'},
-            {trialTime: '2026-09-11 09:05', cnt: 2340, operator: '张三', status: 'RUNNING'}
+            { trialTime: '2026-09-10 14:20', cnt: 186, operator: '张三', status: 'DONE' },
+            { trialTime: '2026-09-11 09:05', cnt: 2340, operator: '张三', status: 'RUNNING' }
           ];
         }
       }).catch(() => {
         this.taskRecordData = [
-          {trialTime: '2026-09-10 14:20', cnt: 186, operator: '张三', status: 'DONE'},
-          {trialTime: '2026-09-11 09:05', cnt: 2340, operator: '张三', status: 'RUNNING'}
+          { trialTime: '2026-09-10 14:20', cnt: 186, operator: '张三', status: 'DONE' },
+          { trialTime: '2026-09-11 09:05', cnt: 2340, operator: '张三', status: 'RUNNING' }
         ];
       });
     },
     resetTaskQuery() {
-      this.taskQueryForm = {applicant: '', dateRange: []};
+      this.taskQueryForm = { applicant: '', dateRange: [] };
       this.fetchTaskPage();
     },
     // 试算明细列表接口调用
@@ -1003,7 +1000,7 @@ export default {
       });
     },
     resetDetailQuery() {
-      this.detailQueryForm = {custName: '', idNo: '', taskNo: ''};
+      this.detailQueryForm = { custName: '', idNo: '', taskNo: '' };
       this.fetchDetailItemPage();
     },
     viewTaskDetail(taskNo) {
