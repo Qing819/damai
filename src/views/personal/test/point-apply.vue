@@ -83,15 +83,15 @@
           <el-table-column prop="idNo" label="证件号码" width="160" show-overflow-tooltip />
           <el-table-column prop="adjustType" label="调整类型" width="90" align="center">
             <template slot-scope="scope">
-              <span :class="scope.row.adjustType === '加分' ? 'text-success' : 'text-danger'">
-                {{ scope.row.adjustType || '—' }}
+              <span :class="isAddAdjust(scope.row.adjustType) ? 'text-success' : 'text-danger'">
+                {{ formatAdjustType(scope.row.adjustType) }}
               </span>
             </template>
           </el-table-column>
           <el-table-column prop="adjustAmt" label="调整积分额度" width="120" align="right">
             <template slot-scope="scope">
               <strong :class="scope.row.adjustType === '加分' ? 'text-success' : 'text-danger'">
-                {{ scope.row.adjustType === '加分' ? '+' : '-' }} {{ scope.row.adjustAmt | formatNumber }}
+                {{ isAddAdjust(scope.row.adjustType) ? '+' : '-' }} {{ scope.row.adjustAmt | formatNumber }}
               </strong>
             </template>
           </el-table-column>
@@ -669,6 +669,15 @@ export default {
     formatStatus(status) {
       if (!status) return '—'
       return this.statusMap[status] || status
+    },
+
+    formatAdjustType(type) {
+      if (!type) return '—'
+      return { ADD: '加分', SUB: '减分', '加分': '加分', '减分': '减分' }[type] || type
+    },
+
+    isAddAdjust(type) {
+      return type === 'ADD' || type === '加分'
     },
 
     // 根据状态输出对应的 Element UI Tag 标签类型
