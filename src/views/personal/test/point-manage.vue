@@ -237,7 +237,7 @@
 
 <script>
 import * as echarts from 'echarts'
-import { getCustPointListApi } from 'api/test/point'
+import { getCustPointListApi, exportCustListApi } from 'api/test/point'
 
 export default {
   name: 'CustomerPoints',
@@ -533,8 +533,30 @@ export default {
       this.fetchTableData()
     },
 
-    handleExport() {
-      this.$message.success('触发导出逻辑')
+    async handleExport() {
+      try {
+        const params = {
+          pointSystem: this.queryForm.point_system,
+          custId: this.queryForm.cust_id,
+          custName: this.queryForm.cust_name,
+          grade: this.queryForm.current_grade,
+          channel: this.queryForm.channel,
+          orgName: this.queryForm.org_name,
+          idType: this.queryForm.id_type,
+          idNo: this.queryForm.id_no,
+          mobile: this.queryForm.mobile
+        }
+        const blob = await exportCustListApi(params)
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = '客户积分列表.xlsx'
+        link.click()
+        window.URL.revokeObjectURL(url)
+        this.$message.success('导出成功')
+      } catch (error) {
+        this.$message.error('导出失败')
+      }
     },
 
     handleDetail(row) {
