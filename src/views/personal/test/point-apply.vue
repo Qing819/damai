@@ -162,32 +162,32 @@
             <el-input v-model="customerSearchKey" placeholder="请输入客户号、姓名或证件号" style="width: 260px" />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" icon="el-icon-search" @click="hasSearchedCustomer = true">查询</el-button>
-            <el-button icon="el-icon-refresh">重置</el-button>
+            <el-button type="primary" icon="el-icon-search" :loading="customerLoading" @click="handleCustomerSearch">查询</el-button>
+            <el-button icon="el-icon-refresh" @click="resetCustomerSearch">重置</el-button>
           </el-form-item>
           <span class="tip-text">输入客户号 / 姓名 / 证件号查询后，展示客户积分明细与调整操作</span>
         </el-form>
       </el-card>
 
       <!-- 客户信息（查询后展示） -->
-      <el-card v-if="hasSearchedCustomer" shadow="never" class="section-card">
+      <el-card v-if="hasSearchedCustomer && customerInfo" shadow="never" class="section-card">
         <div slot="header" class="card-header">
           <span class="header-title">客户信息</span>
         </div>
         <el-row :gutter="20" class="customer-info-row">
-          <el-col :span="6">客户号：<strong>CU202401001</strong></el-col>
-          <el-col :span="5">客户姓名：<strong>张伟</strong></el-col>
-          <el-col :span="7">证件号：<strong>110101199001011234</strong></el-col>
-          <el-col :span="6">客户等级：<el-tag size="mini" type="warning">四星（新V）</el-tag></el-col>
-          <el-col :span="6">服务机构：<strong>北京分公司</strong></el-col>
+          <el-col :span="6">客户号：<strong>{{ customerInfo.custId }}</strong></el-col>
+          <el-col :span="5">客户姓名：<strong>{{ customerInfo.custName || '—' }}</strong></el-col>
+          <el-col :span="7">证件号：<strong>{{ customerInfo.idNo || '—' }}</strong></el-col>
+          <el-col :span="6">客户等级：<el-tag size="mini" type="warning">{{ customerInfo.gradeName || '—' }}</el-tag></el-col>
+          <el-col :span="6">服务机构：<strong>{{ customerInfo.orgName || '—' }}</strong></el-col>
           <el-col :span="12">
-            当前积分总额：<span class="points-badge">86,500</span> 积分
+            当前积分总额：<span class="points-badge">{{ customerInfo.currentPoint | formatNumber }}</span> 积分
           </el-col>
         </el-row>
       </el-card>
 
       <!-- 左右两栏布局 -->
-      <el-row v-if="hasSearchedCustomer" :gutter="16" style="margin-top: 16px;">
+      <el-row v-if="hasSearchedCustomer && customerInfo" :gutter="16" style="margin-top: 16px;">
         <!-- 左侧：积分明细 -->
         <el-col :span="11">
           <el-card shadow="never">
@@ -548,7 +548,7 @@
 </template>
 
 <script>
-import { getPointAdjustPageApi, getPointAdjustDetailApi } from '@/api/test/point'
+import { getPointAdjustPageApi, getPointAdjustDetailApi, getCustPointDetailApi } from '@/api/test/point'
 
 export default {
   name: 'PointsManagement',
@@ -561,8 +561,10 @@ export default {
   data() {
     return {
       currentView: 'list',
-      hasSearchedCustomer: true,
+      hasSearchedCustomer: false,
       customerSearchKey: '',
+      customerLoading: false,
+      customerInfo: null,
       loading: false,
       detailLoading: false,
 
@@ -603,10 +605,7 @@ export default {
 
       // 积分明细测试数据
       detailFilter: {startDate: '', endDate: '', source: '', type: ''},
-      pointsDetailList: [
-        {date: '2026-08-20', source: '期交保费', type: '保费积分', amount: '+ 8,000', remark: '保单 P202400566'},
-        {date: '2026-08-12', source: '连续交费奖励', type: '忠诚积分', amount: '+ 1,500', remark: '连续交费第 6 年'}
-      ],
+      pointsDetailList: [],
 
       moreDetailDialogVisible: false,
       moreDetailFilter: {startDate: '', endDate: '', source: '', type: ''},
@@ -659,6 +658,49 @@ export default {
     this.fetchPageList()
   },
   methods: {
+    async handleCustomerSearch() {
+      const custId = String(this.customerSearchKey || '').trim()
+      if (!custId) {
+        this.$message.warning('请输入客户号')
+        return
+      }
+      this.customerLoading = true
+      try {
+        const res = await getCustPointDetailApi(custId)
+        const data = res?.data || res?.body?.data || {}
+        const profile = data.profile || data.customer || data
+        this.customerInfo = {
+          custId: profile.custId || custId,
+          custName: profile.custName || profile.name,
+          idNo: profile.idNo || profile.idNumber,
+          gradeName: profile.gradeName || profile.grade,
+          orgName: profile.orgName || profile.serviceOrg,
+          currentPoint: (data.pointSummary || {}).current_point != null
+            ? data.pointSummary.current_point
+            : (profile.currentPoint || 0)
+        }
+        this.pointsDetailList = (data.pointTraces || []).map(item => ({
+          date: item.occurTime || item.changeTime || item.createTime,
+          source: item.sourceName || item.source || '—',
+          type: item.pointTypeName || item.pointType || '—',
+          amount: `${item.direction === 'SUB' ? '-' : '+'} ${Math.abs(item.pointAmt || 0)}`,
+          remark: item.remark || item.reasonName || '—'
+        }))
+        this.hasSearchedCustomer = true
+      } catch (err) {
+        this.customerInfo = null
+        this.hasSearchedCustomer = false
+        this.$message.error('客户查询失败，请检查客户号')
+      } finally {
+        this.customerLoading = false
+      }
+    },
+    resetCustomerSearch() {
+      this.customerSearchKey = ''
+      this.customerInfo = null
+      this.pointsDetailList = []
+      this.hasSearchedCustomer = false
+    },
     // 转换证件类型中文显示 (规范 1.8)
     formatIdType(code) {
       if (!code) return '—'
