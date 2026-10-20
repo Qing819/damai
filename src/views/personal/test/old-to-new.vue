@@ -313,7 +313,7 @@ import {
   preUpdateEffectApi,
   switchApplyBatchRemoveApi,
   getSwitchApplyPageApi,
-  switchApplyDetailApi,
+  switchApplyDetailApi
 } from '@/api/test';
 
 export default {
@@ -403,6 +403,14 @@ export default {
     this.fetchPageData();
   },
   methods: {
+    isApiSuccess(res) {
+      return res?.header?.statusCode === '000000' || res?.code === 200 || res?.success === true || res?.data !== undefined
+    },
+
+    getApiData(res) {
+      return res?.data !== undefined ? res.data : res?.body?.data
+    },
+
     // 4.17.15 获取分页列表
     async fetchPageData() {
       this.loading = true;
@@ -466,12 +474,12 @@ export default {
       this.addDialogVisible = true;
     },
     submitSingleAdd() {
-      this.$refs.addFormRef.validate(async (valid) => {
+      this.$refs.addFormRef.validate(async valid => {
         if (!valid) return;
         this.addLoading = true;
         try {
           const res = await switchApplyApi(this.addForm);
-          if (res.header && res.header.statusCode === '000000') {
+          if (this.isApiSuccess(res)) {
             this.$message.success('新增切换申请成功');
             this.addDialogVisible = false;
             this.fetchPageData();
@@ -509,8 +517,8 @@ export default {
       this.importLoading = true;
       try {
         const res = await importCsvApi(this.selectedFile);
-        if (res.header && res.header.statusCode === '000000') {
-          const data = res.body.data;
+        if (this.isApiSuccess(res)) {
+          const data = this.getApiData(res) || {};
           this.$message.success(`导入成功！共 ${data.total} 条，成功 ${data.success} 条，失败 ${data.fail} 条`);
           this.importDialogVisible = false;
           this.fetchPageData();
@@ -561,8 +569,8 @@ export default {
       try {
         const ids = this.selectedRows.map(row => row.id || row.applyNo);
         const res = await preUpdateEffectApi({ ids, effectiveDate: this.batchEffectiveDate });
-        if (res.header && res.header.statusCode === '000000') {
-          this.$message.success(`成功更新 ${res.body.data} 条数据的生效日期`);
+        if (this.isApiSuccess(res)) {
+          this.$message.success(`成功更新 ${this.getApiData(res) || 0} 条数据的生效日期`);
           this.batchEditVisible = false;
           this.fetchPageData();
         } else {
@@ -583,16 +591,16 @@ export default {
       }
       this.$confirm(`确定要移除选中的 ${this.selectedRows.length} 条记录吗？`, '提示', {
         type: 'warning'
-      }).then(async () => {
+      }).then(async() => {
         const ids = this.selectedRows.map(row => row.id || row.applyNo);
         const res = await switchApplyBatchRemoveApi({ ids });
-        if (res.header && res.header.statusCode === '000000') {
-          this.$message.success(`成功移除 ${res.body.data} 条记录`);
+        if (this.isApiSuccess(res)) {
+          this.$message.success(`成功移除 ${this.getApiData(res) || 0} 条记录`);
           this.fetchPageData();
         } else {
           this.$message.error(res.header ? res.header.message : '批量移除失败');
         }
-      }).catch(() => {});
+      }).catch(() => null);
     },
 
     // 4.17.16 查看详情与轨迹
