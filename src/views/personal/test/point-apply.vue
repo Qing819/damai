@@ -548,7 +548,14 @@
 </template>
 
 <script>
-import { getPointAdjustPageApi, getPointAdjustDetailApi, getCustPointDetailApi } from '@/api/test/point'
+import {
+  getPointAdjustPageApi,
+  getPointAdjustDetailApi,
+  getCustPointDetailApi,
+  submitPointAdjustApi,
+  modifyPointAdjustApi,
+  deletePointAdjustApi
+} from '@/api/test/point'
 
 export default {
   name: 'PointsManagement',
@@ -880,8 +887,14 @@ export default {
     handleDelete(row) {
       this.$confirm(`确认删除客户【${row.custName}】的此条调整申请记录？`, '提示', {
         type: 'warning'
-      }).then(() => {
-        this.$message.success('删除成功')
+      }).then(async () => {
+        try {
+          await deletePointAdjustApi(row.id || row.applyNo)
+          this.$message.success('删除成功')
+          this.fetchPageList()
+        } catch (err) {
+          this.$message.error('删除失败')
+        }
       }).catch(() => {
       })
     },
@@ -890,10 +903,15 @@ export default {
         if (valid) {
           this.$confirm(`确认提交调整申请？`, '二次确认', {
             type: 'info'
-          }).then(() => {
-            this.$message.success('提交成功！')
-            this.currentView = 'list'
-            this.fetchPageList()
+          }).then(async () => {
+            try {
+              await submitPointAdjustApi(this.adjustForm)
+              this.$message.success('提交成功！')
+              this.currentView = 'list'
+              this.fetchPageList()
+            } catch (err) {
+              this.$message.error('提交失败')
+            }
           })
         }
       })
@@ -902,10 +920,15 @@ export default {
       this.$refs.adjustForm.resetFields()
       this.adjustForm.attachment = ''
     },
-    saveEdit() {
-      this.$message.success('修改成功并已重新提交！')
-      this.editDialogVisible = false
-      this.fetchPageList()
+    async saveEdit() {
+      try {
+        await modifyPointAdjustApi(this.editForm)
+        this.$message.success('修改成功并已重新提交！')
+        this.editDialogVisible = false
+        this.fetchPageList()
+      } catch (err) {
+        this.$message.error('修改失败')
+      }
     }
   }
 }
