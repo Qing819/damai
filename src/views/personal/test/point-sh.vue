@@ -312,8 +312,8 @@ export default {
         custName: '',
         custId: '',
         status: '',
-        dateFrom: '2026-08-01',
-        dateTo: '2026-08-23'
+        dateFrom: '',
+        dateTo: ''
       },
       pageNum: 1,
       pageSize: 10,
