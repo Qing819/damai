@@ -617,7 +617,7 @@ export default {
   data() {
     return {
       currentScene: 'scene1',
-      hasCalculated: true, // 默认开启展示试算结果以对比图效果
+      hasCalculated: false,
 
       calcForm: {
         custName: '王芳',
@@ -746,8 +746,6 @@ export default {
     };
   },
   created() {
-    // 默认加载一次单客户试算（场景一）
-    this.handleRunCalc();
   },
   methods: {
     // 解析 JSON 字符串服务项目，避免直接展示 JSON 文本
@@ -797,6 +795,8 @@ export default {
           }
         }).catch(err => {
           console.error(err);
+          this.resultData = {};
+          this.hasCalculated = false;
           this.$message.error('试算请求失败');
         });
       } else {
@@ -821,6 +821,8 @@ export default {
           }
         }).catch(err => {
           console.error(err);
+          this.resultData = {};
+          this.hasCalculated = false;
           this.$message.error('加保试算请求失败');
         });
       }
