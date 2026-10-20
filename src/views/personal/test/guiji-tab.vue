@@ -274,7 +274,7 @@
 </template>
 
 <script>
-import { getSwitchRecordPageApi, getSwitchRecordDetailApi } from '@/api/test';
+import { getSwitchRecordPageApi, getSwitchRecordDetailApi, switchApplyExportApi } from '@/api/test';
 
 export default {
   name: 'RuleSwitchTrack',
@@ -290,7 +290,7 @@ export default {
         idCard: '',
         org: '',
         status: '',
-        dateRange: ['2026-08-01', '2026-08-23']
+        dateRange: []
       },
       tableData: [],
       total: 0,
@@ -386,7 +386,7 @@ export default {
               rights: item.benefit_name || '—',
               project: this.parseItemsJson(item.items_json),
               provider: item.supplier || '—',
-              times: item.freq_unlimited === 1 ? '不限次' : (item.freq_count ? `${item.freq_count} 次` : '—')
+              times: item.freq_unlimited === 1 ? '不限次' : item.freq_count ? `${item.freq_count} 次` : '—'
             }));
           } else {
             this.newRightsData = [];
@@ -440,11 +440,11 @@ export default {
     formatGrade(grade, isNew = false) {
       if (!grade) return '—';
       const gradeMap = {
-        'YIXING': '一星',
-        'ERXING': '二星',
-        'SANXING': '三星',
-        'SIXING': '四星',
-        'WUXING': '五星'
+        YIXING: '一星',
+        ERXING: '二星',
+        SANXING: '三星',
+        SIXING: '四星',
+        WUXING: '五星'
       };
       const name = gradeMap[grade] || grade;
       return isNew ? `${name} (新V)` : name;
@@ -468,8 +468,29 @@ export default {
       this.handleSearch();
     },
 
-    handleExport() {
-      this.$message.success('已导出当前条件数据');
+    async handleExport() {
+      try {
+        const params = {
+          customerNo: this.queryForm.customerNo,
+          name: this.queryForm.name,
+          id_type: this.queryForm.id_type,
+          idCard: this.queryForm.idCard,
+          org: this.queryForm.org,
+          status: this.queryForm.status,
+          startDate: this.queryForm.dateRange?.[0],
+          endDate: this.queryForm.dateRange?.[1]
+        };
+        const blob = await switchApplyExportApi(params);
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = '规则切换轨迹.xlsx';
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.$message.success('导出成功');
+      } catch (error) {
+        this.$message.error('导出失败');
+      }
     },
 
     handleCurrentChange(page) {
