@@ -220,7 +220,7 @@
             <el-col :span="12" v-if="detailData.productName">产品：<strong>{{ detailData.productName }}</strong></el-col>
 
             <el-col :span="12" v-if="isPolicyPointType(detailData.pointType)">
-              保单生效日期：<strong>{{ detailData.policyEffectiveDate || '2024-03-12' }}</strong>
+              保单生效日期：<strong>{{ detailData.policyEffectiveDate || '—' }}</strong>
             </el-col>
           </el-row>
         </div>
@@ -345,7 +345,7 @@ export default {
   data() {
     return {
       loading: false,
-      dateRange: ['2026-08-01', '2026-08-23'],
+      dateRange: [],
       detailDialogVisible: false,
       detailData: null,
 
@@ -374,8 +374,8 @@ export default {
         operateType: '',
         pointType: '',
         direction: '',
-        dateFrom: '2026-08-01',
-        dateTo: '2026-08-23',
+        dateFrom: '',
+        dateTo: '',
         pageNum: 1,
         pageSize: 10
       },
@@ -425,7 +425,7 @@ export default {
     formatPointType(code) {
       if (!code) return '—'
       const name = this.pointTypeMap[code]
-      return name ? `${name} (${code})` : code
+      return name || code
     },
 
     getPointTypeTagType(code) {
