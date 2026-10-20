@@ -349,11 +349,11 @@
             <el-descriptions-item label="客户">{{ detailData.custName || '—' }}（{{ detailData.custId || '—' }}）</el-descriptions-item>
             <el-descriptions-item label="证件信息">{{ formatIdType(detailData.idType) }} / {{ detailData.idNo || '—' }}</el-descriptions-item>
             <el-descriptions-item label="调整类型">
-              <span :class="detailData.adjustType === '加分' ? 'text-success' : 'text-danger'">{{ detailData.adjustType || '—' }}</span>
+              <span :class="isAddAdjust(detailData.adjustType) ? 'text-success' : 'text-danger'">{{ formatAdjustType(detailData.adjustType) }}</span>
             </el-descriptions-item>
             <el-descriptions-item label="调整积分额度">
-              <strong :class="detailData.adjustType === '加分' ? 'text-success' : 'text-danger'">
-                {{ detailData.adjustType === '加分' ? '+' : '-' }}{{ detailData.adjustAmt | formatNumber }}
+              <strong :class="isAddAdjust(detailData.adjustType) ? 'text-success' : 'text-danger'">
+                {{ isAddAdjust(detailData.adjustType) ? '+' : '-' }}{{ detailData.adjustAmt | formatNumber }}
               </strong>
             </el-descriptions-item>
             <el-descriptions-item label="调整原因">{{ detailData.reasonName || '—' }}</el-descriptions-item>
