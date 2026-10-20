@@ -332,7 +332,7 @@
 </template>
 
 <script>
-import { getPointTracePageApi, getPointTraceSummaryApi } from '@/api/test/point'
+import { getPointTracePageApi, getPointTraceSummaryApi, exportTraceApi } from '@/api/test/point'
 
 export default {
   name: 'PointTraceList',
@@ -511,8 +511,19 @@ export default {
       this.handleQuery()
     },
 
-    handleExport() {
-      this.$message.success('已发起导出任务，请稍后查看！')
+    async handleExport() {
+      try {
+        const blob = await exportTraceApi(this.queryParams)
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = '积分轨迹列表.xlsx'
+        link.click()
+        window.URL.revokeObjectURL(url)
+        this.$message.success('导出成功')
+      } catch (err) {
+        this.$message.error('导出失败')
+      }
     },
 
     handleSizeChange(val) {

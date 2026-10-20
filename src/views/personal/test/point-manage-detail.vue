@@ -299,7 +299,7 @@
 </template>
 
 <script>
-import { getCustPointDetailApi, getPointTraceSummaryApi } from '@/api/test/point'
+import { getCustPointDetailApi, getPointTraceSummaryApi, exportTraceApi } from '@/api/test/point'
 
 export default {
   name: 'CustomerPointDetailDialog',
@@ -490,8 +490,19 @@ export default {
       }
     },
 
-    handleExport() {
-      this.$message.success('导出任务已提交！')
+    async handleExport() {
+      try {
+        const blob = await exportTraceApi({ custId: this.currentCustId })
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `客户${this.currentCustId || ''}积分轨迹.xlsx`
+        link.click()
+        window.URL.revokeObjectURL(url)
+        this.$message.success('导出成功')
+      } catch (err) {
+        this.$message.error('导出失败')
+      }
     },
 
     // 点击轨迹列表的“查看详情”
