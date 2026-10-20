@@ -94,7 +94,7 @@
               <el-table-column label="积分类型" width="120" align="center">
                 <template slot-scope="{row}">
                   <el-tag size="mini" :type="getPointTypeTagType(row.point_type)" effect="light">
-                    {{ row.point_type || '—' }}
+                    {{ formatPointType(row.point_type) }}
                   </el-tag>
                 </template>
               </el-table-column>
@@ -217,7 +217,7 @@
             <el-col :span="12">
               积分类型：
               <el-tag size="mini" :type="getPointTypeTagType(traceDetailData.point_type)" effect="light">
-                {{ traceDetailData.point_type }}
+                {{ formatPointType(traceDetailData.point_type) }}
               </el-tag>
             </el-col>
             <el-col :span="12">
@@ -265,7 +265,7 @@
             <el-col :span="12">
               积分类型：
               <el-tag size="mini" :type="getPointTypeTagType(traceDetailData.point_type)" effect="light">
-                {{ traceDetailData.point_type }}
+                {{ formatPointType(traceDetailData.point_type) }}
               </el-tag>
             </el-col>
             <el-col :span="12">触发规则：<strong>{{ traceDetailData.rule_name || '期交实收保费积分规则 (R-001)' }}</strong></el-col>
@@ -395,6 +395,16 @@ export default {
 
     isAddDirection(direction) {
       return direction === 'ADD' || direction === '加分'
+    },
+
+    formatPointType(type) {
+      const typeMap = {
+        PREMIUM: '保费积分',
+        LOYALTY: '忠诚积分',
+        PENSION: '养老协同积分',
+        MANUAL: '人工调整'
+      }
+      return typeMap[type] || type || '—'
     },
 
     formatDirection(direction) {
