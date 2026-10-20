@@ -161,7 +161,7 @@
         <el-table-column prop="current_grade" label="客户等级" width="100" align="center">
           <template slot-scope="scope">
             <el-tag :class="['tag-level', 'tag-' + getLevelCode(scope.row.current_grade)]" size="small" effect="plain">
-              {{ scope.row.current_grade }}
+              {{ formatGrade(scope.row.current_grade) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -315,7 +315,7 @@ export default {
           padding: [8, 12],
           textStyle: { color: '#ffffff' },
           extraCssText: 'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); border-radius: 6px;',
-          formatter: (params) => {
+          formatter: params => {
             const percent = ((params.value / totalNum) * 100).toFixed(1)
             return `
               <div style="font-weight: bold; margin-bottom: 4px; font-size: 13px;">${params.name}</div>
@@ -364,7 +364,7 @@ export default {
           padding: [8, 12],
           textStyle: { color: '#ffffff' },
           extraCssText: 'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); border-radius: 6px;',
-          formatter: (params) => {
+          formatter: params => {
             const percent = totalNew ? ((params.value / totalNew) * 100).toFixed(1) : '0.0'
             return `
               <div style="font-weight: bold; margin-bottom: 4px; font-size: 13px;">${params.name}</div>
@@ -417,7 +417,7 @@ export default {
           padding: [8, 12],
           textStyle: { color: '#ffffff' },
           extraCssText: 'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); border-radius: 6px;',
-          formatter: (params) => {
+          formatter: params => {
             const percent = totalOld ? ((params.value / totalOld) * 100).toFixed(1) : '0.0'
             return `
               <div style="font-weight: bold; margin-bottom: 4px; font-size: 13px;">${params.name}</div>
@@ -510,6 +510,18 @@ export default {
       if (grade.includes('卓越')) return 'zhuoyue'
       if (grade.includes('尊耀')) return 'zunyao'
       return 'default'
+    },
+
+    formatGrade(grade) {
+      const gradeMap = {
+        PUXING: '普星',
+        SANXING: '三星',
+        SIXING: '四星',
+        WUXING: '五星',
+        ZHUOYUE: '卓越',
+        ZUNYAO: '尊耀'
+      }
+      return gradeMap[grade] || grade || '—'
     },
 
     handleSearch() {
