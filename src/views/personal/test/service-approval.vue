@@ -62,17 +62,17 @@
           <el-col :span="6">
             <el-form-item label="状态" prop="status">
               <el-select v-model="queryForm.status" placeholder="请选择状态" clearable style="width: 100%">
-                <el-option label="全部状态" value="all"></el-option>
-                <el-option label="待审核" value="pending"></el-option>
-                <el-option label="已通过" value="approved"></el-option>
-                <el-option label="已驳回" value="rejected"></el-option>
+                <el-option label="全部状态" value=""></el-option>
+                <el-option label="待审核" value="PENDING"></el-option>
+                <el-option label="已通过" value="APPROVED"></el-option>
+                <el-option label="已驳回" value="REJECTED"></el-option>
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="6">
             <el-form-item label="申请人" prop="applicant">
               <el-select v-model="queryForm.applicant" placeholder="请选择申请人" clearable style="width: 100%">
-                <el-option label="全部申请人" value="all"></el-option>
+                <el-option label="全部申请人" value=""></el-option>
                 <el-option label="张三" value="zhangsan"></el-option>
                 <el-option label="李四" value="lisi"></el-option>
               </el-select>
