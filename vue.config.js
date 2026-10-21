@@ -1,6 +1,6 @@
 const path = require('path');
 const { name } = require('./package');
-const CompressionPlugin = require("compression-webpack-plugin");
+const CompressionPlugin = require('compression-webpack-plugin');
 
 function resolve(dir) {
   return path.join(__dirname, dir);
@@ -26,16 +26,16 @@ module.exports = {
       'Access-Control-Allow-Origin': '*'
     },
     proxy: {
-      "/api": {
-        //target: "http://172.16.43.186:8080",
-        //target: "http://172.16.43.156:38080",
-        target: "http://localhost:8002",
+      '/api': {
+        // target: "http://172.16.43.186:8080",
+        // target: "http://172.16.43.156:38080",
+        target: 'http://localhost:8002',
         changeOrigin: true,
         pathRewrite: {
-          "^/api": ""
+          '^/api': ''
         }
       }
-    },
+    }
   },
   lintOnSave: false,
   // 自定义webpack配置
@@ -70,23 +70,23 @@ module.exports = {
   },
   chainWebpack: config => {
     config.module.rule('svg')
-        .exclude.add(resolve('src/icons'))
-        .end()
+      .exclude.add(resolve('src/icons'))
+      .end()
     // 设置svg-sprite-loader处理icons目录中的svg
     config.module
-        .rule('icons')
-        .test(/\.svg$/)
-        .include.add(resolve('src/icons'))
-        .end()
-        .use('svg-sprite-loader')
-        .loader('svg-sprite-loader')
-        .options({ symbolId: 'icon-[name]' })
-        .end()
+      .rule('icons')
+      .test(/\.svg$/)
+      .include.add(resolve('src/icons'))
+      .end()
+      .use('svg-sprite-loader')
+      .loader('svg-sprite-loader')
+      .options({ symbolId: 'icon-[name]' })
+      .end()
     config.plugin('html')
-        .tap(args => {
-          args[0].title= title
-          return args
-        })
+      .tap(args => {
+        args[0].title = title
+        return args
+      })
   },
   pwa: {
     iconPaths: {
@@ -94,7 +94,7 @@ module.exports = {
       favicon16: 'favicon.ico',
       appleTouchIcon: 'favicon.ico',
       maskIcon: 'favicon.ico',
-      msTileImage: 'favicon.ico',
+      msTileImage: 'favicon.ico'
     }
   }
 };

@@ -117,7 +117,7 @@ const REPORT_UUIDS = {
   handleExportCross: 'd1865e10-bb77-45be-a179-6ab081cc5e1e', // 跨渠道迁移客户明细
   handleExportAllValid: '498f36f3-9651-48b9-8b2f-9723a8edf7d1', // 全量可分配有效客户明细
   handleExportTermination: '30e0b6aa-af21-402d-999b-8401660c7c69', // 个险终止纯孤单客户明细
-  handleExportAllAlloc: '533f9864-7348-4105-a6ba-e83f83027670', // 全量可分配客户明细
+  handleExportAllAlloc: '533f9864-7348-4105-a6ba-e83f83027670' // 全量可分配客户明细
 }
 
 
@@ -179,7 +179,7 @@ export default {
   },
   created() {
     this.getUserId(),
-        this.getUserInfoOrganization()
+    this.getUserInfoOrganization()
     this.getUserCode();
     this.getUserCookie()
   },
@@ -211,9 +211,9 @@ export default {
         })
         // this.getList()
       })
-          .catch(() => {
-            console.log('取消')
-          })
+        .catch(() => {
+          console.log('取消')
+        })
     },
     handleExportCommand(command) {
       const uuid = REPORT_UUIDS[command]
@@ -262,9 +262,9 @@ export default {
           this.$refs.table.doLayout()
         })
       })
-          .finally(() => {
-            this.loading = false
-          });
+        .finally(() => {
+          this.loading = false
+        });
     },
     // 序号
     indexMethods(index) {
@@ -340,11 +340,11 @@ export default {
         formData.append('integralCode', this.formData.integralCode)
         this.progressVisible = true;
         importIntegrationRule(
-            formData,
-            progressEvent => {
-              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-              this.progressNum = percentCompleted > 90 ? 90 : percentCompleted
-            }
+          formData,
+          progressEvent => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            this.progressNum = percentCompleted > 90 ? 90 : percentCompleted
+          }
         ).then(res => {
           if (res.result) {
             this.progressNum = 100

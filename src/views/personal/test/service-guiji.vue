@@ -278,11 +278,11 @@
 
 <script>
 import {
-  getBenefitAnnualPageApi,  // 4.16.31 年初台账接口（已导入，按需要使用）
-  exportBenefitTraceApi,    // 4.16.30 轨迹导出 Excel
-  getBenefitTraceStatsApi,  // 4.16.28 本期统计
-  getBenefitTracePageApi,   // 4.16.27 轨迹分页
-  getBenefitTraceDetailApi  // 4.16.29 轨迹详情
+  getBenefitAnnualPageApi, // 4.16.31 年初台账接口（已导入，按需要使用）
+  exportBenefitTraceApi, // 4.16.30 轨迹导出 Excel
+  getBenefitTraceStatsApi, // 4.16.28 本期统计
+  getBenefitTracePageApi, // 4.16.27 轨迹分页
+  getBenefitTraceDetailApi // 4.16.29 轨迹详情
 } from '@/api/test/index.js'
 
 export default {
@@ -304,14 +304,14 @@ export default {
         dateRange: []
       },
       statCards: [
-        {title: '总轨迹数', value: '0', color: '#2b58f0'},
-        {title: '等级变动调整', value: '0', color: '#18a058'},
-        {title: '人工调整', value: '0', color: '#303133'},
-        {title: '使用扣减', value: '0', color: '#d03050'},
-        {title: '失效扣减', value: '0', color: '#e6a23c'},
-        {title: '扣减回退', value: '0', color: '#18a058'},
-        {title: '转出', value: '0', color: '#909399'},
-        {title: '转入', value: '0', color: '#2b58f0'}
+        { title: '总轨迹数', value: '0', color: '#2b58f0' },
+        { title: '等级变动调整', value: '0', color: '#18a058' },
+        { title: '人工调整', value: '0', color: '#303133' },
+        { title: '使用扣减', value: '0', color: '#d03050' },
+        { title: '失效扣减', value: '0', color: '#e6a23c' },
+        { title: '扣减回退', value: '0', color: '#18a058' },
+        { title: '转出', value: '0', color: '#909399' },
+        { title: '转入', value: '0', color: '#2b58f0' }
       ],
       total: 0,
       currentPage: 1,
@@ -328,7 +328,7 @@ export default {
   methods: {
     // 构造请求参数
     buildQueryParams() {
-      const {dateRange, ...rest} = this.queryForm;
+      const { dateRange, ...rest } = this.queryForm;
       const params = {
         ...rest,
         pageNum: this.currentPage,
@@ -347,8 +347,8 @@ export default {
       try {
         const params = this.buildQueryParams();
         const res = await getBenefitTracePageApi(params);
-        if (res ) {
-          const {list, total} = res.data;
+        if (res) {
+          const { list, total } = res.data;
           this.tableData = list || [];
           this.total = total || 0;
         }
@@ -368,8 +368,8 @@ export default {
           params.dateTo = this.queryForm.dateRange[1];
         }
         const res = await getBenefitTraceStatsApi(params);
-        if (res ) {
-          const {total, byAction} = res.data;
+        if (res) {
+          const { total, byAction } = res.data;
           const actions = byAction || {};
           this.statCards[0].value = total || 0;
           this.statCards[1].value = actions.GRADE_CHANGE || 0;
@@ -395,7 +395,7 @@ export default {
 
         const res = await exportBenefitTraceApi(params);
 
-        const blob = new Blob([res], {type: 'application/vnd.ms-excel'});
+        const blob = new Blob([res], { type: 'application/vnd.ms-excel' });
         const downloadElement = document.createElement('a');
         const href = window.URL.createObjectURL(blob);
         downloadElement.href = href;
@@ -415,13 +415,13 @@ export default {
 
     // 4. 查看详情 (4.16.29 轨迹详情)
     async handleViewDetail(row) {
-      this.currentDetail = {...row};
+      this.currentDetail = { ...row };
       this.detailVisible = true;
       this.detailLoading = true;
       try {
-        console.log("id",row.id)
+        console.log('id', row.id)
         const res = await getBenefitTraceDetailApi(row.id || row.traceNo);
-        if (res ) {
+        if (res) {
           this.currentDetail = res.data;
         }
       } catch (error) {

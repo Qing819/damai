@@ -305,7 +305,7 @@ export default {
         { title: '时效要求', content: 'T+1 同步处理' }
       ],
       pensionRules: [
-        { title: '标识字段', content: "hcflag = 'Y' (养老协同标识)" },
+        { title: '标识字段', content: 'hcflag = \'Y\' (养老协同标识)' },
         { title: '产品范围', content: '不以产品划定范围，按保单识别' },
         { title: '结果精度', content: '保留整数 (四舍五入)' },
         { title: '轨迹可查', content: '养老协同产品额度外积分轨迹可查询' },

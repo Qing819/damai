@@ -368,9 +368,9 @@ export default {
       gradeConfigList: [],
 
       // 字典下拉列表数据存储[cite: 1, 2, 3]
-      orgOptions: [],           // ⑤ 适用地区机构[cite: 1]
-      idTypeOptions: [],        // ⑥ 适用身份[cite: 2]
-      orderChannelOptions: [],  // ⑦ 订单申请途径[cite: 3]
+      orgOptions: [], // ⑤ 适用地区机构[cite: 1]
+      idTypeOptions: [], // ⑥ 适用身份[cite: 2]
+      orderChannelOptions: [], // ⑦ 订单申请途径[cite: 3]
 
       // 1. 编辑/新增弹窗数据
       editDialogVisible: false,
@@ -565,7 +565,7 @@ export default {
 
           const projectItems = parsedItems.map(p => {
             const rule = parsedItemRules.find(r => r.cat === p.cat && r.name === p.name) || {};
-            let itemChannels = rule.orderChannels || parsedChannels;
+            const itemChannels = rule.orderChannels || parsedChannels;
             return {
               cat: p.cat,
               name: p.name,
@@ -631,8 +631,8 @@ export default {
             freqCount: 1,
             needOrder: true,
             orderChannels: this.orderChannelOptions.length > 0 ? [this.orderChannelOptions[0].code || this.orderChannelOptions[0]] : [],
-          needAudit: false
-        }));
+            needAudit: false
+          }));
 
           this.editForm.rightsList.push({
             benefitCode: item.benefitCode,
@@ -641,9 +641,9 @@ export default {
             supplier: item.supplier,
             signOrg: item.signOrg,
             regions: this.orgOptions.length > 0 ? [this.orgOptions[0]] : [],
-          identities: this.idTypeOptions.length > 0 ? [this.idTypeOptions[0]] : [],
-          items: subItems
-        });
+            identities: this.idTypeOptions.length > 0 ? [this.idTypeOptions[0]] : [],
+            items: subItems
+          });
         }
       });
       this.selectRightsDialogVisible = false;
@@ -697,7 +697,7 @@ export default {
             needOrder: firstItem.needOrder !== undefined ? firstItem.needOrder : 1,
             orderChannels: firstItem.orderChannels || [],
             needAudit: firstItem.needAudit !== undefined ? firstItem.needAudit : 0,
-            itemRules: itemRules
+            itemRules
           };
         })
       };
@@ -774,7 +774,7 @@ export default {
             if (Array.isArray(channels)) {
               displayChannels = channels.map(code => {
                 const found = this.orderChannelOptions.find(c => (c.code || c) === code);
-                return found ? (found.name || found) : code;
+                return found ? found.name || found : code;
               });
             }
 
@@ -783,14 +783,14 @@ export default {
               benefitName: rule.benefitName,
               kind: rule.kind,
               category: cat,
-              itemName: itemName,
+              itemName,
               supplier: rule.supplier,
               area: rule.regionsJson ? JSON.parse(rule.regionsJson).join('、') : '—',
               identity: rule.identitiesJson ? JSON.parse(rule.identitiesJson).join('、') : '—',
               frequency: freqStr,
-              needOrder: (nOrder === 1 || nOrder === true) ? '是' : '否',
+              needOrder: nOrder === 1 || nOrder === true ? '是' : '否',
               orderChannel: displayChannels.length > 0 ? displayChannels.join('、') : '—',
-              needAudit: (nAudit === 1 || nAudit === true) ? '是' : '否'
+              needAudit: nAudit === 1 || nAudit === true ? '是' : '否'
             });
           };
 

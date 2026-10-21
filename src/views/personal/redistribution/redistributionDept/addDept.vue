@@ -463,7 +463,7 @@ export default {
     handleCurrentChange(val) {
       this.pageNum = val
       this.getTableData();
-    },
+    }
   }
 };
 </script>

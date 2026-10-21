@@ -16,29 +16,29 @@ Vue.use(FullScreenLoad)
 Vue.config.productionTip = false
 Vue.prototype.$echarts = echarts
 // 路由守卫
-router.beforeEach(async (to, from, next) => {
-    // try {
-        Vue.prototype.$fullScreenLoading.show()
-        // await getUserToken()
-        try {
-            await store.dispatch('setIntegrationTypeList')
-        } catch (error) {
-            throw error
-        }
-        next()
-    // } catch (error) {
-    //     throw error
-    // }
+router.beforeEach(async(to, from, next) => {
+  // try {
+  Vue.prototype.$fullScreenLoading.show()
+  // await getUserToken()
+  try {
+    await store.dispatch('setIntegrationTypeList')
+  } catch (error) {
+    throw error
+  }
+  next()
+  // } catch (error) {
+  //     throw error
+  // }
 })
 
 router.afterEach((to, from) => {
-    Vue.prototype.$fullScreenLoading.hide()
+  Vue.prototype.$fullScreenLoading.hide()
 })
 
 new Vue({
-    router,
-    store,
-    render: h => h(App)
+  router,
+  store,
+  render: h => h(App)
 }).$mount('#point-system');
 
 

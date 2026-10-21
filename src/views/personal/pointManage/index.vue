@@ -326,11 +326,9 @@ export default {
     handleSummarySearch() {
       this.tableLoading = true;
       setTimeout(() => {
-        this.summaryTableData = this.summaryDataMock.filter(item => {
-          return (!this.summaryForm.custName || item.cust_name.includes(this.summaryForm.custName)) &&
+        this.summaryTableData = this.summaryDataMock.filter(item => (!this.summaryForm.custName || item.cust_name.includes(this.summaryForm.custName)) &&
               (!this.summaryForm.custId || item.cust_id.includes(this.summaryForm.custId)) &&
-              (!this.summaryForm.phoneNumber || item.phone_number.includes(this.summaryForm.phoneNumber))
-        })
+              (!this.summaryForm.phoneNumber || item.phone_number.includes(this.summaryForm.phoneNumber)))
         this.summaryTotal = this.summaryTableData.length
         this.tableLoading = false
       }, 300)

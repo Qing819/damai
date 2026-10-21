@@ -84,12 +84,10 @@ const tableData = ref([
 ])
 
 // 表格合并单元格逻辑（如果后续需要合并行可扩展，当前按行展示）
-const objectSpanMethod = ({ row, column, rowIndex, columnIndex }) => {
-  return {
-    rowspan: 1,
-    colspan: 1
-  }
-}
+const objectSpanMethod = ({ row, column, rowIndex, columnIndex }) => ({
+  rowspan: 1,
+  colspan: 1
+})
 </script>
 
 <style scoped>

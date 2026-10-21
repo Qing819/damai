@@ -139,7 +139,7 @@ export default {
   },
   created() {
     this.getUserId(),
-        this.getUserInfoOrganization()
+    this.getUserInfoOrganization()
     this.getUserCookie()
   },
   methods: {
@@ -225,9 +225,9 @@ export default {
         })
         // this.getList()
       })
-          .catch(() => {
-            console.log('取消')
-          })
+        .catch(() => {
+          console.log('取消')
+        })
     },
     async getUserId() {
       const res = await getUser()
@@ -261,9 +261,9 @@ export default {
           this.$refs.table.doLayout()
         })
       })
-          .finally(() => {
-            this.loading = false
-          });
+        .finally(() => {
+          this.loading = false
+        });
     },
     // 序号
     indexMethods(index) {
@@ -326,11 +326,11 @@ export default {
         formData.append('integralCode', this.formData.integralCode)
         this.progressVisible = true;
         importIntegrationRuleAgent(
-            formData,
-            progressEvent => {
-              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-              this.progressNum = percentCompleted > 90 ? 90 : percentCompleted
-            }
+          formData,
+          progressEvent => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            this.progressNum = percentCompleted > 90 ? 90 : percentCompleted
+          }
         ).then(res => {
           if (res.result) {
             this.progressNum = 100

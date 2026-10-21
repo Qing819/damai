@@ -468,7 +468,7 @@ import {
   getCustCurrentPointApi,
   submitPointAdjustApi,
   getPointTracePageApi
-} from "@/api/test/point"
+} from '@/api/test/point'
 
 export default {
   name: 'PointsManagement',
@@ -518,10 +518,10 @@ export default {
         attachment: ''
       },
       adjustRules: {
-        direction: [{required: true, message: '请选择调整方向', trigger: 'change'}],
-        pointAmt: [{required: true, message: '请输入积分额度', trigger: 'blur'}],
-        pointType: [{required: true, message: '请选择积分类型', trigger: 'change'}],
-        oaNo: [{required: true, message: '请输入OA流水号', trigger: 'blur'}]
+        direction: [{ required: true, message: '请选择调整方向', trigger: 'change' }],
+        pointAmt: [{ required: true, message: '请输入积分额度', trigger: 'blur' }],
+        pointType: [{ required: true, message: '请选择积分类型', trigger: 'change' }],
+        oaNo: [{ required: true, message: '请输入OA流水号', trigger: 'blur' }]
       },
 
       // 弹窗状态管理
@@ -555,7 +555,7 @@ export default {
           this.searchForm.total = res.data.total || 0
         }
       } catch (err) {
-        console.error("获取积分轨迹列表失败:", err)
+        console.error('获取积分轨迹列表失败:', err)
       } finally {
         this.loading = false
       }
@@ -590,7 +590,7 @@ export default {
 
     async handleSearchCustomer() {
       if (!this.customerSearchKey) {
-        this.$message.warning("请输入客户号")
+        this.$message.warning('请输入客户号')
         return
       }
       const custId = this.customerSearchKey.trim()
@@ -608,21 +608,21 @@ export default {
           this.hasSearchedCustomer = true
         }
       } catch (e) {
-        console.error("获取当前积分失败:", e)
+        console.error('获取当前积分失败:', e)
       }
     },
 
     submitAdjust() {
-      this.$refs.adjustForm.validate(async (valid) => {
+      this.$refs.adjustForm.validate(async valid => {
         if (!valid) return
         const changeSymbol = this.adjustForm.direction === 'ADD' ? '+' : '-'
         const changeTxt = `${changeSymbol}${this.adjustForm.pointAmt}`
 
         this.$confirm(
-            `客户当前积分：${this.currentCustomerPoint}，确认要调整 【${changeTxt}】 积分吗？`,
-            '二次确认',
-            {confirmButtonText: '确认提交', cancelButtonText: '取消', type: 'warning'}
-        ).then(async () => {
+          `客户当前积分：${this.currentCustomerPoint}，确认要调整 【${changeTxt}】 积分吗？`,
+          '二次确认',
+          { confirmButtonText: '确认提交', cancelButtonText: '取消', type: 'warning' }
+        ).then(async() => {
           this.submitting = true
           try {
             const res = await submitPointAdjustApi(this.adjustForm)
@@ -671,7 +671,7 @@ export default {
     },
 
     submitEdit() {
-      this.$refs.editFormRef.validate((valid) => {
+      this.$refs.editFormRef.validate(valid => {
         if (!valid) return
         this.$message.success('修改申请保存成功并重新提交！')
         this.editDialogVisible = false

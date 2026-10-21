@@ -435,7 +435,7 @@ export default {
     // 4.2.3 打开弹窗并获取申请详情
     async openAuditModal(row) {
       this.dialogVisible = true
-      this.currentRow = {...row} // 先展示行内部数据
+      this.currentRow = { ...row } // 先展示行内部数据
       this.auditRemark = ''
       this.detailLoading = true
 
