@@ -797,6 +797,10 @@ export default {
           this.$message.error('试算请求失败');
         });
       } else {
+        if (!this.productList.length) {
+          this.$message.warning('请至少选择一项加保或购新险种');
+          return;
+        }
         // 场景二：调用加保试算接口
         const payload = {
           custName: this.calcForm.custName,
