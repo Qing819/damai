@@ -316,10 +316,7 @@ export default {
     // 转换等级编码/名称展示
     formatGradeCode(code) {
       if (!code) return '-'
-      if (this.gradeCodeMap[code]) {
-        return `${this.gradeCodeMap[code]} (${code})`
-      }
-      return code
+      return this.gradeCodeMap[code] || code
     },
 
     // 判断是否为失效状态
@@ -375,7 +372,7 @@ export default {
         const res = await getGradeTraceSummaryApi()
         const data = this.unpackData(res)
         if (data && typeof data === 'object') {
-          this.summaryData = {...this.summaryData, ...data}
+          this.summaryData = { ...this.summaryData, ...data }
         }
       } catch (error) {
         console.error('获取汇总数据失败:', error)
