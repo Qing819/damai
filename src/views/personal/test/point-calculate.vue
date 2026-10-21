@@ -873,17 +873,10 @@ export default {
           this.productSelectData = data.list;
           this.riskTotal = data.total || 0;
         } else {
-          // 备用静态数据填充防止接口未就绪时的空展示
-          this.productSelectData = [
-            { riskCode: 'R1001', riskName: '分红年金保险A款', type1: '人身保险', type2: '年金保险' },
-            { riskCode: 'R2001', riskName: '终身寿险（尊享版）', type1: '人身保险', type2: '人寿保险' }
-          ];
+          this.productSelectData = [];
         }
       }).catch(() => {
-        this.productSelectData = [
-          { riskCode: 'R1001', riskName: '分红年金保险A款', type1: '人身保险', type2: '年金保险' },
-          { riskCode: 'R2001', riskName: '终身寿险（尊享版）', type1: '人身保险', type2: '人寿保险' }
-        ];
+        this.productSelectData = [];
       });
     },
     resetRiskQuery() {
