@@ -179,6 +179,15 @@
                   >
                     作废
                   </el-button>
+                  <el-button
+                      v-else-if="scope.row.displayStatus === 'PENDING_EFFECTIVE' || scope.row.status === 'PENDING'"
+                      type="text"
+                      size="small"
+                      class="btn-danger-text"
+                      @click="handleDeleteVersion(scope.row)"
+                  >
+                    删除
+                  </el-button>
                   <span v-else>-</span>
                 </template>
               </el-table-column>
@@ -589,6 +598,16 @@ export default {
         this.$message.error('作废操作失败')
       } finally {
         this.submitLoading = false
+      }
+    },
+    async handleDeleteVersion(row) {
+      try {
+        await this.$confirm(`确认删除待生效版本【${row.versionNo}】吗？`, '提示', { type: 'warning' })
+        await deleteGradeConfigVersionApi(row.id)
+        this.$message.success('版本删除成功')
+        await this.initData()
+      } catch (err) {
+        if (err !== 'cancel' && err !== 'close') this.$message.error('版本删除失败')
       }
     }
   }
