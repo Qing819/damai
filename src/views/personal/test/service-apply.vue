@@ -399,12 +399,13 @@
 
 <script>
 import {
-  serviceAdjustApplyApi,        // 4.16.20 提交权益调整申请
-  getBenefitAdjustPageApi,      // 4.16.21 权益调整申请分页
-  benefitAdjustModifyApi,       // 4.16.22 修改并重新提交
-  deleteBenefitAdjustApi,       // 4.16.23 删除申请
+  serviceAdjustApplyApi, // 4.16.20 提交权益调整申请
+  getBenefitAdjustPageApi, // 4.16.21 权益调整申请分页
+  benefitAdjustModifyApi, // 4.16.22 修改并重新提交
+  deleteBenefitAdjustApi, // 4.16.23 删除申请
   getBenefitAdjustWorkbenchApi, // 4.16.24 前台权益调整工作台
-  getBenefitAdjustDetailApi     // 4.16.25 申请详情
+  getBenefitAdjustDetailApi, // 4.16.25 申请详情
+  getBenefitItemsApi
 } from 'api/test';
 
 export default {
@@ -465,12 +466,12 @@ export default {
       },
 
       reasonMap: {
-        'REASON01': '等级权益补发',
-        'REASON02': '系统故障补发',
-        'REASON03': '历史权益修正',
-        'REASON04': '客户投诉补偿',
-        'REASON05': '权益派发错误',
-        'REASON06': '其他原因'
+        REASON01: '等级权益补发',
+        REASON02: '系统故障补发',
+        REASON03: '历史权益修正',
+        REASON04: '客户投诉补偿',
+        REASON05: '权益派发错误',
+        REASON06: '其他原因'
       },
 
       // 4. 二级选择权益弹窗
@@ -478,12 +479,7 @@ export default {
       selectBenefitVisible: false,
       searchBenefitKey: '',
       selectedBenefitsToAdd: [],
-      availableBenefits: [
-        {benefitCode: 'QY0001', benefitName: '体检服务', kind: '健康服务', supplier: 'XX体检中心'},
-        {benefitCode: 'QY0002', benefitName: '视频医生服务', kind: '线上问诊', supplier: 'XX健康管理'},
-        {benefitCode: 'QY0003', benefitName: '专家问诊服务', kind: '线上问诊', supplier: 'XX医院互联网医院'},
-        {benefitCode: 'QY0004', benefitName: '重疾关怀服务', kind: '重疾服务', supplier: 'XX康复服务'}
-      ]
+      availableBenefits: []
     };
   },
   computed: {
@@ -491,7 +487,7 @@ export default {
       if (!this.searchBenefitKey) return this.availableBenefits;
       const k = this.searchBenefitKey.toLowerCase();
       return this.availableBenefits.filter(item =>
-          item.benefitCode.toLowerCase().includes(k) ||
+        item.benefitCode.toLowerCase().includes(k) ||
           item.benefitName.toLowerCase().includes(k)
       );
     }
@@ -518,7 +514,7 @@ export default {
           dateTo: this.queryForm.dateRange && this.queryForm.dateRange[1] ? this.queryForm.dateRange[1] : undefined
         };
         const res = await getBenefitAdjustPageApi(params);
-        if (res &&  res.data) {
+        if (res && res.data) {
           this.tableData = res.data.list || [];
           this.total = res.data.total || 0;
         }
@@ -639,7 +635,7 @@ export default {
     async handleEdit(row) {
       try {
         const res = await getBenefitAdjustDetailApi(row.id || row.applyNo);
-        const data = (res && res.body && res.body.data) ? res.body.data : row;
+        const data = res && res.body && res.body.data ? res.body.data : row;
 
         this.editForm.id = data.id || row.id;
         this.editForm.applyNo = data.applyNo || row.applyNo;
@@ -726,7 +722,7 @@ export default {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(async () => {
+      }).then(async() => {
         try {
           await deleteBenefitAdjustApi(row.id || row.applyNo);
           this.$message.success('删除成功');
@@ -748,9 +744,16 @@ export default {
     },
 
     // 选择权益辅助弹窗控制
-    openSelectBenefit(mode) {
+    async openSelectBenefit(mode) {
       this.currentSelectMode = mode;
       this.searchBenefitKey = '';
+      try {
+        const res = await getBenefitItemsApi({ keyword: '' });
+        this.availableBenefits = res?.body?.data || res?.data || [];
+      } catch (error) {
+        this.availableBenefits = [];
+        this.$message.error('获取权益字典失败');
+      }
       this.selectBenefitVisible = true;
     },
     removeBenefit(mode, index) {
@@ -778,7 +781,7 @@ export default {
       const targetList = this.currentSelectMode === 'apply' ? this.applyForm.selectedBenefits : this.editForm.selectedBenefits;
       this.selectedBenefitsToAdd.forEach(item => {
         if (!this.isAlreadyAdded(item.benefitCode)) {
-          targetList.push({...item});
+          targetList.push({ ...item });
         }
       });
       this.$message.success(`成功添加 ${this.selectedBenefitsToAdd.length} 项权益`);
