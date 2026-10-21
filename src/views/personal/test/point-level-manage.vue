@@ -350,7 +350,10 @@ import {
   getGradeConfigVersionsApi,
   getGradeConfigBandsApi,
   addGradeConfigVersionApi,
-  saveGradeConfigBandApi
+  saveGradeConfigBandApi,
+  voidGradeConfigVersionApi,
+  deleteGradeConfigVersionApi,
+  deleteGradeConfigBandApi
 } from '@/api/test/index'
 
 export default {
@@ -493,6 +496,7 @@ export default {
           return
         }
         await Promise.all(rows.map(row => saveGradeConfigBandApi({
+          id: row.id,
           versionId: this.currentVersionId,
           gradeName: row.gradeName,
           displayGradeName: row.displayGradeName,
@@ -513,12 +517,27 @@ export default {
 
     // 编辑与删除单条分档
     handleEditSingle(row) {
-      this.$message.info(`编辑分档：${row.gradeName}`)
+      this.batchRows = [{
+        id: row.id,
+        gradeName: row.gradeName || row.grade_code || '',
+        displayGradeName: row.displayGradeName || row.gradeName || '',
+        minPoint: row.minPoint == null ? '0' : String(row.minPoint),
+        minBoundary: row.minBoundary || '含',
+        maxPoint: row.maxPoint == null ? '' : String(row.maxPoint),
+        maxBoundary: row.maxBoundary || '不含'
+      }]
+      this.dialogBatchVisible = true
     },
-    handleDeleteSingle(row) {
+    async handleDeleteSingle(row) {
       this.$confirm(`确认删除分档【${row.gradeName}】吗？`, '提示', { type: 'warning' })
-        .then(() => {
-          this.$message.success('删除成功')
+        .then(async() => {
+          try {
+            await deleteGradeConfigBandApi(row.id)
+            this.$message.success('删除成功')
+            await this.fetchBands(this.currentVersionId)
+          } catch (err) {
+            this.$message.error('删除失败，请检查分档连续性')
+          }
         })
         .catch(() => null)
     },
@@ -560,7 +579,9 @@ export default {
       }
       this.submitLoading = true
       try {
-        // 调用作废 API...
+        await voidGradeConfigVersionApi(this.obsoleteForm.id, {
+          voidDate: this.obsoleteForm.expireDate
+        })
         this.$message.success('版本作废成功')
         this.dialogObsoleteVisible = false
         await this.initData()
