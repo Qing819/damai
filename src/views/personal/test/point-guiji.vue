@@ -248,15 +248,15 @@
                 {{ formatDirection(detailData.direction) }}
               </span>
             </el-col>
-            <el-col :span="12">
+            <el-col :span="12" class="adjustment-amount-row">
               调整积分额度：
               <span :class="isAddDirection(detailData.direction) ? 'text-green' : 'text-red'" class="font-bold">
                 {{ isAddDirection(detailData.direction) ? '+' : '-' }} {{ Math.abs(detailData.pointAmt || 0) | formatNumber }}
               </span>
             </el-col>
             <el-col :span="12" v-if="detailData.oaNo">OA流水号：<strong>{{ detailData.oaNo }}</strong></el-col>
-            <el-col :span="24">调整原因：<strong>{{ detailData.reason || '—' }}</strong></el-col>
-            <el-col :span="24" v-if="detailData.detailRemark">详细说明：<span>{{ detailData.detailRemark }}</span></el-col>
+            <el-col :span="12">调整原因：<strong>{{ detailData.reason || '—' }}</strong></el-col>
+            <el-col :span="12" v-if="detailData.detailRemark">详细说明：<span>{{ detailData.detailRemark }}</span></el-col>
             <el-col :span="12">积分有效期：<strong>{{ detailData.validEndDate ? `自然年 (至当年${detailData.validEndDate})` : '长期有效' }}</strong></el-col>
             <el-col :span="12">操作人：<strong>{{ detailData.operator }}</strong></el-col>
             <el-col :span="12">操作时间：<strong>{{ detailData.operateTime }}</strong></el-col>
@@ -394,7 +394,7 @@ export default {
       return [
         { title: '本期加分总额', value: this.summaryData.add_total, color: '#67c23a' },
         { title: '本期减分总额', value: this.summaryData.reduce_total, color: '#f56c6c' },
-        { title: '本期净变化', value: this.summaryData.net_change, color: '#409eff' },
+        { title: '本期净变化', value: this.summaryData.net_change, color: '#6383ff' },
         { title: '轨迹总笔数', value: this.summaryData.total, color: '#909399' }
       ]
     }
@@ -453,7 +453,27 @@ export default {
         const res = await getPointTracePageApi(this.queryParams)
         if (res && res.data) {
           const data = res.data || {}
-          this.traceList = data.list || []
+          this.traceList = (data.list || []).map(item => ({
+            ...item,
+            traceId: item.trace_id || item.traceId,
+            custId: item.cust_id || item.custId,
+            custName: item.cust_name || item.custName,
+            certType: item.id_type || item.cert_type || item.certType,
+            certNo: item.id_no || item.cert_no || item.certNo,
+            orgName: item.org_name || item.orgName,
+            operateType: item.operate_type || item.operateType,
+            pointType: item.point_type || item.pointType,
+            direction: item.direction,
+            pointAmt: item.point_amt !== undefined ? item.point_amt : item.pointAmt,
+            beforePoint: item.before_point !== undefined ? item.before_point : item.beforePoint,
+            afterPoint: item.after_point !== undefined ? item.after_point : item.afterPoint,
+            validEndDate: item.valid_end_date || item.validEndDate,
+            policyNo: item.policy_no || item.policyNo,
+            oaNo: item.oa_no || item.oaNo,
+            reason: item.reason,
+            operator: item.operator,
+            operateTime: item.operate_time || item.operateTime
+          }))
           this.total = data.total || 0
         } else {
           this.$message.error(res?.header?.message || '获取积分轨迹列表失败')
@@ -590,7 +610,7 @@ export default {
 
 .summary-box {
   border: 1px solid #e4e7ed;
-  border-top: 3px solid #409eff;
+  border-top: 3px solid #6383ff;
   border-radius: 4px;
   padding: 14px 16px;
   background: #ffffff;
@@ -624,7 +644,7 @@ export default {
 
 .text-green { color: #67c23a; }
 .text-red { color: #f56c6c; }
-.text-primary { color: #409eff; }
+.text-primary { color: #6383ff; }
 
 .pagination-container {
   margin-top: 16px;
@@ -648,7 +668,7 @@ export default {
   font-weight: bold;
   color: #303133;
   padding-left: 8px;
-  border-left: 3px solid #409eff;
+  border-left: 3px solid #6383ff;
   margin-bottom: 12px;
   display: flex;
   align-items: center;
@@ -669,6 +689,10 @@ export default {
 
 .info-row strong {
   color: #303133;
+}
+
+.info-row .adjustment-amount-row {
+  clear: left;
 }
 
 .change-card {
@@ -699,7 +723,7 @@ export default {
 
 .change-arrow {
   font-size: 20px;
-  color: #409eff;
+  color: #6383ff;
   margin: 0 32px;
 }
 

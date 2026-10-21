@@ -793,7 +793,7 @@ export default {
 .action-split { margin: 0 4px; color: #e8e8e8; }
 
 .customer-info-row .el-col { margin-bottom: 8px; font-size: 13px; color: #606266; }
-.points-badge { font-size: 18px; font-weight: bold; color: #409eff; }
+.points-badge { font-size: 18px; font-weight: bold; color: #6383ff; }
 .form-tip, .tip-text { font-size: 12px; color: #909399; margin-left: 10px; }
 
 .pagination-container { display: flex; justify-content: flex-end; margin-top: 16px; }

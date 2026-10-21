@@ -1,90 +1,96 @@
 <template>
   <div class="customer-points-container">
+    <div class="page-heading">
+      <div class="breadcrumb">积分管理 <span>/</span> 客户积分管理</div>
+      <h1>客户积分管理</h1>
+      <p>全量客户积分综合管理：按条件筛选客户，查看客户积分汇总与各类型积分明细，追溯积分、等级、权益三类轨迹</p>
+    </div>
     <!-- 顶部筛选表单 -->
     <el-card class="filter-card" shadow="never">
-      <el-form :model="queryForm" label-width="80px" size="small">
-        <!-- 第一行（4列） -->
+      <el-form :model="queryForm" label-width="0" size="small" class="prototype-filter-form">
+        <!-- 原型布局：第一行四个下拉 + 客户号/姓名 -->
         <el-row :gutter="20">
-          <el-col :span="6">
-            <el-form-item label="积分体系">
+          <el-col :span="4">
+            <el-form-item>
               <el-select v-model="queryForm.point_system" placeholder="全部积分体系" clearable style="width: 100%;">
-                <el-option label="新积分体系" value="新积分体系" />
-                <el-option label="老积分体系" value="老积分体系" />
+                <el-option label="新积分体系" value="V2_2027" />
+                <el-option label="老积分体系" value="V1_LEGACY" />
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="6">
-            <el-form-item label="客户级别">
+          <el-col :span="4">
+            <el-form-item>
               <el-select v-model="queryForm.current_grade" placeholder="全部客户等级" clearable style="width: 100%;">
-                <el-option label="普星" value="普星" />
-                <el-option label="三星" value="三星" />
-                <el-option label="四星" value="四星" />
-                <el-option label="五星" value="五星" />
-                <el-option label="卓越" value="卓越" />
-                <el-option label="尊耀" value="尊耀" />
+                <el-option label="普星" value="PUXING" />
+                <el-option label="三星" value="SANXING" />
+                <el-option label="四星" value="SIXING" />
+                <el-option label="五星" value="WUXING" />
+                <el-option label="卓越" value="ZHUOYUE" />
+                <el-option label="尊耀" value="ZUNYAO" />
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="6">
-            <el-form-item label="所属渠道">
+          <el-col :span="4">
+            <el-form-item>
               <el-select v-model="queryForm.channel" placeholder="全部所属渠道" clearable style="width: 100%;">
-                <el-option label="个险" value="个险" />
-                <el-option label="银保" value="银保" />
-                <el-option label="经代" value="经代" />
-                <el-option label="网电销" value="网电销" />
+                <el-option label="个险渠道" value="INDIVIDUAL" />
+                <el-option label="银保渠道" value="BANCA" />
+                <el-option label="经代渠道" value="INTERMEDIARY" />
+                <el-option label="电销/网销渠道" value="E_SALES" />
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="6">
-            <el-form-item label="服务机构">
+          <el-col :span="4">
+            <el-form-item>
               <el-select v-model="queryForm.org_name" placeholder="全部服务机构" clearable style="width: 100%;">
+                <el-option label="总公司" value="总公司" />
                 <el-option label="天津分公司" value="天津分公司" />
                 <el-option label="北京分公司" value="北京分公司" />
+                <el-option label="河北分公司" value="河北分公司" />
+                <el-option label="山西分公司" value="山西分公司" />
+                <el-option label="辽宁分公司" value="辽宁分公司" />
+                <el-option label="大连分公司" value="大连分公司" />
                 <el-option label="江苏分公司" value="江苏分公司" />
                 <el-option label="上海分公司" value="上海分公司" />
               </el-select>
             </el-form-item>
           </el-col>
+          <el-col :span="4">
+            <el-form-item>
+              <el-input v-model="queryForm.cust_id" placeholder="客户号" clearable />
+            </el-form-item>
+          </el-col>
+          <el-col :span="4">
+            <el-form-item>
+              <el-input v-model="queryForm.cust_name" placeholder="客户姓名" clearable />
+            </el-form-item>
+          </el-col>
         </el-row>
 
-        <!-- 第二行（4列） -->
+        <!-- 原型布局：第二行证件类型/证件号/手机号 + 操作按钮 -->
         <el-row :gutter="20">
-          <el-col :span="6">
-            <el-form-item label="客户号">
-              <el-input v-model="queryForm.cust_id" placeholder="请输入客户号" clearable />
-            </el-form-item>
-          </el-col>
-          <el-col :span="6">
-            <el-form-item label="客户姓名">
-              <el-input v-model="queryForm.cust_name" placeholder="请输入客户姓名" clearable />
-            </el-form-item>
-          </el-col>
-          <el-col :span="6">
-            <el-form-item label="证件类型">
+          <el-col :span="4">
+            <el-form-item>
               <el-select v-model="queryForm.id_type" placeholder="全部证件类型" clearable style="width: 100%;">
-                <el-option label="身份证" value="身份证" />
-                <el-option label="护照" value="护照" />
-                <el-option label="港澳居民来往内地通行证" value="港澳居民来往内地通行证" />
+                <el-option label="居民身份证" value="IDCARD" />
+                <el-option label="中国护照" value="PASSPORT" />
+                <el-option label="港澳居民来往内地通行证" value="HKMO_PASS" />
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="6">
-            <el-form-item label="证件号码">
-              <el-input v-model="queryForm.id_no" placeholder="请输入证件号码" clearable />
+          <el-col :span="4">
+            <el-form-item>
+              <el-input v-model="queryForm.id_no" placeholder="证件号码" clearable />
             </el-form-item>
           </el-col>
-        </el-row>
-
-        <!-- 第三行（1列输入框 + 右侧按钮区） -->
-        <el-row :gutter="20">
-          <el-col :span="6">
-            <el-form-item label="手机号码">
-              <el-input v-model="queryForm.mobile" placeholder="请输入手机号码" clearable />
+          <el-col :span="4">
+            <el-form-item>
+              <el-input v-model="queryForm.mobile" placeholder="手机号码" clearable />
             </el-form-item>
           </el-col>
-          <el-col :span="18" class="btn-container">
+          <el-col :span="12" class="btn-container">
+            <el-button class="btn-search" size="mini" type="primary" icon="el-icon-search" @click="handleSearch">查 询</el-button>
             <el-button class="btn-reset" size="mini" icon="el-icon-refresh" @click="handleReset">重 置</el-button>
-            <el-button class="btn-search" size="mini" type="primary" icon="el-icon-search" @click="handleSearch">搜 索</el-button>
             <el-button icon="el-icon-download" size="mini" @click="handleExport">导 出</el-button>
           </el-col>
         </el-row>
@@ -147,8 +153,8 @@
         <el-table-column prop="seq" label="序号" width="55" align="center" />
         <el-table-column prop="point_system" label="客户积分体系" width="110" align="center">
           <template slot-scope="scope">
-            <span :class="['system-tag', scope.row.point_system === '老积分体系' ? 'system-old' : 'system-new']">
-              {{ scope.row.point_system || '新积分体系' }}
+            <span :class="['system-tag', isLegacySystem(scope.row) ? 'system-old' : 'system-new']">
+              {{ formatSystem(scope.row) }}
             </span>
           </template>
         </el-table-column>
@@ -207,7 +213,7 @@
         <el-table-column prop="agent" label="代理人" width="90" show-overflow-tooltip />
         <el-table-column label="操作" width="140" fixed="right" align="center">
           <template slot-scope="scope">
-            <template v-if="scope.row.point_system === '老积分体系'">
+            <template v-if="isLegacySystem(scope.row)">
               <el-button type="text" size="small" @click="handlePointDetail(scope.row)">积分详情</el-button>
               <el-button type="text" size="small" @click="handleRightDetail(scope.row)">权益详情</el-button>
             </template>
@@ -237,7 +243,7 @@
 
 <script>
 import * as echarts from 'echarts'
-import { getCustPointListApi, exportCustListApi } from 'api/test/point'
+import { getCustPointListApi, getCustPointStatsApi, exportCustListApi } from 'api/test/point'
 
 export default {
   name: 'CustomerPoints',
@@ -247,8 +253,9 @@ export default {
       // 顶部三个统计卡片的数据
       totalStats: {
         total: 0,
-        newSystem: { count: 6, percent: 60.0 },
-        oldSystem: { count: 4, percent: 40.0 }
+        newSystem: { count: 0, percent: 0 },
+        oldSystem: { count: 0, percent: 0 },
+        grades: { V2_2027: {}, V1_LEGACY: {} }
       },
       // 保存 ECharts 实例以便后续 dispose 和 resize
       chartInstances: [],
@@ -305,7 +312,7 @@ export default {
       const chart = echarts.init(this.$refs.totalChartRef)
       this.chartInstances.push(chart)
 
-      const totalNum = 10 // 总人数
+      const totalNum = this.totalStats.total || 1
 
       const option = {
         tooltip: {
@@ -338,8 +345,8 @@ export default {
             type: 'bar',
             barWidth: 28,
             data: [
-              { name: '新积分体系', value: 6, itemStyle: { color: '#43a047' } },
-              { name: '老积分体系', value: 4, itemStyle: { color: '#4a77e6' } }
+              { name: '新积分体系', value: this.totalStats.newSystem.count, itemStyle: { color: '#43a047' } },
+              { name: '老积分体系', value: this.totalStats.oldSystem.count, itemStyle: { color: '#4a77e6' } }
             ],
             itemStyle: { borderRadius: [2, 2, 0, 0] }
           }
@@ -354,7 +361,8 @@ export default {
       const chart = echarts.init(this.$refs.newChartRef)
       this.chartInstances.push(chart)
 
-      const totalNew = 6 // 新积分体系总人数
+      const totalNew = this.totalStats.newSystem.count || 1
+      const grades = this.totalStats.grades.V2_2027 || {}
 
       const option = {
         tooltip: {
@@ -387,12 +395,12 @@ export default {
             type: 'bar',
             barWidth: 20,
             data: [
-              { name: '普星', value: 0 },
-              { name: '三星', value: 1 },
-              { name: '四星', value: 2 },
-              { name: '五星', value: 2 },
-              { name: '卓越', value: 1 },
-              { name: '尊耀', value: 0 }
+              { name: '普星', value: grades.PUXING || 0 },
+              { name: '三星', value: grades.SANXING || 0 },
+              { name: '四星', value: grades.SIXING || 0 },
+              { name: '五星', value: grades.WUXING || 0 },
+              { name: '卓越', value: grades.ZHUOYUE || 0 },
+              { name: '尊耀', value: grades.ZUNYAO || 0 }
             ],
             itemStyle: { color: '#43a047', borderRadius: [2, 2, 0, 0] }
           }
@@ -407,7 +415,8 @@ export default {
       const chart = echarts.init(this.$refs.oldChartRef)
       this.chartInstances.push(chart)
 
-      const totalOld = 4 // 老积分体系总人数
+      const totalOld = this.totalStats.oldSystem.count || 1
+      const grades = this.totalStats.grades.V1_LEGACY || {}
 
       const option = {
         tooltip: {
@@ -440,11 +449,11 @@ export default {
             type: 'bar',
             barWidth: 20,
             data: [
-              { name: '普星', value: 1 },
-              { name: '三星', value: 1 },
-              { name: '四星', value: 1 },
-              { name: '五星', value: 0 },
-              { name: '卓越', value: 1 }
+              { name: '普星', value: grades.PUXING || 0 },
+              { name: '三星', value: grades.SANXING || 0 },
+              { name: '四星', value: grades.SIXING || 0 },
+              { name: '五星', value: grades.WUXING || 0 },
+              { name: '卓越', value: grades.ZHUOYUE || 0 }
             ],
             itemStyle: { color: '#4a77e6', borderRadius: [2, 2, 0, 0] }
           }
@@ -463,7 +472,7 @@ export default {
       this.loading = true
       try {
         const params = {
-          pointSystem: this.queryForm.point_system,
+          ruleVersionTag: this.queryForm.point_system,
           custId: this.queryForm.cust_id,
           custName: this.queryForm.cust_name,
           grade: this.queryForm.current_grade,
@@ -476,7 +485,35 @@ export default {
           pageSize: this.page.pageSize
         }
 
-        const res = await getCustPointListApi(params)
+        const [res, statsRes] = await Promise.all([
+          getCustPointListApi(params),
+          getCustPointStatsApi({
+            ruleVersionTag: this.queryForm.point_system,
+            grade: this.queryForm.current_grade,
+            channel: this.queryForm.channel,
+            orgName: this.queryForm.org_name,
+            idType: this.queryForm.id_type,
+            idNo: this.queryForm.id_no,
+            mobile: this.queryForm.mobile,
+            custId: this.queryForm.cust_id,
+            custName: this.queryForm.cust_name
+          })
+        ])
+
+        const stats = statsRes && (statsRes.data || statsRes.body?.data)
+        if (stats) {
+          const total = Number(stats.total || 0)
+          const byVersion = stats.byVersion || {}
+          this.totalStats.total = total
+          this.totalStats.newSystem.count = Number(byVersion.V2_2027 || 0)
+          this.totalStats.oldSystem.count = Number(byVersion.V1_LEGACY || 0)
+          this.totalStats.newSystem.percent = total ? (this.totalStats.newSystem.count / total * 100).toFixed(1) : 0
+          this.totalStats.oldSystem.percent = total ? (this.totalStats.oldSystem.count / total * 100).toFixed(1) : 0
+          this.totalStats.grades = stats.gradeByVersion || { V2_2027: {}, V1_LEGACY: {} }
+          this.chartInstances.forEach(instance => instance && instance.dispose())
+          this.chartInstances = []
+          this.$nextTick(() => this.initCharts())
+        }
 
         if (res && res.data) {
           const bodyData = res.data || {}
@@ -487,6 +524,7 @@ export default {
           const list = bodyData.list || []
           this.tableData = list.map((item, index) => ({
             ...item,
+            point_system: item.point_system || (item.rule_version_tag === 'V1_LEGACY' ? '老积分体系' : item.rule_version_tag === 'V2_2027' ? '新积分体系' : ''),
             seq: (this.page.currentPage - 1) * this.page.pageSize + index + 1
           }))
         } else {
@@ -524,6 +562,16 @@ export default {
       return gradeMap[grade] || grade || '—'
     },
 
+    isLegacySystem(row) {
+      return row.point_system === '老积分体系' || row.rule_version_tag === 'V1_LEGACY'
+    },
+
+    formatSystem(row) {
+      if (this.isLegacySystem(row)) return '老积分体系'
+      if (row.point_system === '新积分体系' || row.rule_version_tag === 'V2_2027') return '新积分体系'
+      return row.point_system || row.rule_version_tag || '—'
+    },
+
     handleSearch() {
       this.page.currentPage = 1
       this.fetchTableData()
@@ -548,7 +596,7 @@ export default {
     async handleExport() {
       try {
         const params = {
-          pointSystem: this.queryForm.point_system,
+          ruleVersionTag: this.queryForm.point_system,
           custId: this.queryForm.cust_id,
           custName: this.queryForm.cust_name,
           grade: this.queryForm.current_grade,
@@ -579,11 +627,17 @@ export default {
     },
 
     handlePointDetail(row) {
-      this.$message.info(`查看客户 ${row.cust_name} 的积分详情`)
+      this.$router.push({
+        path: '/personal/oldPointDetail',
+        query: { custId: row.cust_id }
+      })
     },
 
     handleRightDetail(row) {
-      this.$message.info(`查看客户 ${row.cust_name} 的权益详情`)
+      this.$router.push({
+        path: '/personal/oldBenefitDetail',
+        query: { custId: row.cust_id }
+      })
     },
 
     handleSizeChange(val) {
@@ -607,34 +661,113 @@ export default {
   min-height: 100vh;
 }
 
+.page-heading {
+  margin: 2px 0 16px;
+}
+.breadcrumb {
+  color: #909399;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+.breadcrumb span {
+  margin: 0 8px;
+  color: #c0c4cc;
+}
+.page-heading h1 {
+  margin: 0 0 8px;
+  color: #303133;
+  font-size: 22px;
+  line-height: 1.3;
+}
+.page-heading p {
+  margin: 0;
+  color: #909399;
+  font-size: 13px;
+}
+
 .filter-card {
   margin-bottom: 16px;
+  border: 1px solid #e1e5ec;
+  background: #fff;
 }
 
 .filter-card ::v-deep .el-card__body {
-  padding: 18px 20px 12px 20px;
+  padding: 16px 18px 10px;
+}
+.prototype-filter-form ::v-deep .el-form-item {
+  margin-bottom: 12px;
+}
+.prototype-filter-form ::v-deep .el-input__inner,
+.prototype-filter-form ::v-deep .el-select .el-input__inner {
+  height: 40px;
+  line-height: 40px;
+  border-radius: 3px;
+  color: #606266;
+  border-color: #cfd5df;
+  background: #fff;
+}
+.prototype-filter-form ::v-deep .el-input__inner::placeholder {
+  color: #a8afb9;
+}
+.prototype-filter-form ::v-deep .el-input__inner:hover,
+.prototype-filter-form ::v-deep .el-select:hover .el-input__inner {
+  border-color: #7f98c6;
+}
+.prototype-filter-form ::v-deep .el-input.is-focus .el-input__inner,
+.prototype-filter-form ::v-deep .el-select .el-input.is-focus .el-input__inner {
+  border-color: #4b69a6;
+}
+.prototype-filter-form ::v-deep .el-form-item__content {
+  margin-left: 0 !important;
 }
 
 .btn-container {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   align-items: center;
   gap: 12px;
-  padding-bottom: 18px;
+  padding-bottom: 12px;
+  padding-left: 24px;
+}
+.prototype-filter-form .btn-container .el-button {
+  height: 40px;
+  line-height: 38px;
+  padding: 0 17px;
+  font-size: 13px;
+  border-radius: 3px;
+}
+.prototype-filter-form .btn-container .el-button i {
+  line-height: 1;
+  vertical-align: -1px;
 }
 
 .btn-reset {
-  background-color: #eef3fe;
-  color: #5b8ff9;
-  border-color: #d0e1fd;
+  background-color: #f2f5fb;
+  color: #526b9f;
+  border-color: #aebfdf;
 }
 .btn-reset:hover {
-  background-color: #dbe7ff;
+  background-color: #e0e9fb;
 }
 
 .btn-search {
-  background-color: #5b8ff9;
-  border-color: #5b8ff9;
+  background-color: #4f6fae;
+  border-color: #4f6fae;
+}
+.btn-search:hover,
+.btn-search:focus {
+  background-color: #405e98;
+  border-color: #405e98;
+}
+.btn-container > .el-button:not(.btn-reset):not(.btn-search) {
+  color: #526b9f;
+  border-color: #8fa6cf;
+  background: #fff;
+}
+.btn-container > .el-button:not(.btn-reset):not(.btn-search):hover {
+  color: #3f5b94;
+  border-color: #4b69a6;
+  background: #f6f8fc;
 }
 
 /* 统计卡片栅格样式 */

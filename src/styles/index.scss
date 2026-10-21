@@ -6,6 +6,46 @@
 @import './page.scss'; 
 @import './textarea.scss'; 
 @import './form.scss'; 
+
+// 保留 Element UI default 按钮原生样式，避免页面局部样式覆盖。
+#point-system .el-button.el-button--default:not(.is-disabled) {
+  color: #606266;
+  border-color: #dcdfe6;
+  background-color: #fff;
+}
+
+#point-system .el-button.el-button--default:not(.is-disabled):hover,
+#point-system .el-button.el-button--default:not(.is-disabled):focus {
+  color: #6383ff;
+  border-color: #c6e2ff;
+  background-color: #ecf5ff;
+}
+
+#point-system .el-button.el-button--default:not(.is-disabled):active {
+  color: #3a8ee6;
+  border-color: #3a8ee6;
+  background-color: #fff;
+}
+
+#point-system .el-button.el-button--primary:not(.is-disabled) {
+  color: #fff;
+  border-color: #4f6fae;
+  background-color: #4f6fae;
+}
+
+#point-system .el-button.el-button--primary:not(.is-disabled):hover,
+#point-system .el-button.el-button--primary:not(.is-disabled):focus {
+  color: #fff;
+  border-color: #405e98;
+  background-color: #405e98;
+}
+
+#point-system .el-button.el-button--primary:not(.is-disabled):active {
+  color: #fff;
+  border-color: #38558b;
+  background-color: #38558b;
+}
+
 html{
   height: 100%;
   width: 100%;
@@ -27,6 +67,22 @@ body {
   color: #29303e;
   overflow: hidden;
 }
+// 全局滚动条：默认隐藏，悬停到可滚动区域时显示，保留原有滚动能力。
+*,
+html,
+body,
+#point-system {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+*:hover,
+html:hover,
+body:hover,
+#point-system:hover {
+  scrollbar-color: rgb(220, 223, 230) transparent;
+}
+
 *{
   &::-webkit-scrollbar {
     height: 6px;
@@ -34,11 +90,12 @@ body {
   }
 
   &::-webkit-scrollbar-track {
-    background-color: #fff;
+    background-color: transparent;
   }
 
   &::-webkit-scrollbar-thumb {
-    background-color: rgb(220, 223, 230);
+    background-color: transparent;
+    border-radius: 3px;
   }
   &::-webkit-scrollbar-thumb:vertical {
     border-radius: 3px;
@@ -49,6 +106,10 @@ body {
 
   &::-webkit-scrollbar-thumb:hover {
     background-color: $--color-primary;
+  }
+
+  &:hover::-webkit-scrollbar-thumb {
+    background-color: rgb(220, 223, 230);
   }
 }
 // svg禁用类名

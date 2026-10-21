@@ -13,6 +13,15 @@ export function getCustPointListApi(params) {
   });
 }
 
+// 客户积分管理顶部统计卡
+export function getCustPointStatsApi(params) {
+  return fetch({
+    url: '/platform/point/cust/stats',
+    method: 'get',
+    params
+  })
+}
+
 // 2. 客户积分详情（含三类轨迹）
 export function getCustPointDetailApi(custId) {
   return fetch({
@@ -97,6 +106,15 @@ export function getCustCurrentPointApi(custId) {
     url: `/platform/point/adjust/current/${custId}`,
     method: 'get'
   });
+}
+
+// 客户候选搜索：客户号精确，姓名/证件号模糊，最多返回 20 条
+export function searchCustomerProfileApi(keyword) {
+  return fetch({
+    url: '/profile/v2/search',
+    method: 'get',
+    params: { keyword }
+  })
 }
 
 // 12. 客户积分流水分页（前台）
@@ -189,4 +207,20 @@ export function getPointTraceByPolicyApi(policyNo) {
     url: `/platform/point/trace/by-policy/${policyNo}`,
     method: 'get'
   });
+}
+
+export function getOldPointTracePageApi(params) {
+  return fetch({
+    url: '/platform/point/old/trace/page',
+    method: 'get',
+    params
+  })
+}
+
+export function getOldBenefitListApi(custId) {
+  return fetch({
+    url: '/platform/point/old/benefit/list',
+    method: 'get',
+    params: { custId }
+  })
 }

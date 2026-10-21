@@ -1,1 +1,0 @@
-(window["webpackJsonp_point"]=window["webpackJsonp_point"]||[]).push([["chunk-2d207bb1"],{a27a:function(n,t,o){"use strict";o.r(t);var s=function(){var n=this,t=n._self._c;return t("div",{staticClass:"container"},[n._v("积分兑换规则配置")])},a=[],c={components:{}},i=c,e=o("2877"),u=Object(e["a"])(i,s,a,!1,null,null,null);t["default"]=u.exports}}]);

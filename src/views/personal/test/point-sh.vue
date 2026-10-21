@@ -30,6 +30,21 @@
           <el-input v-model="searchForm.custId" placeholder="请输入客户号" style="width: 140px" clearable />
         </el-form-item>
 
+        <el-form-item label="调整类型">
+          <el-select v-model="searchForm.adjustType" placeholder="全部调整类型" style="width: 130px" clearable>
+            <el-option label="加分" value="ADD" />
+            <el-option label="减分" value="SUB" />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="服务机构">
+          <el-input v-model="searchForm.orgName" placeholder="请输入服务机构" style="width: 150px" clearable />
+        </el-form-item>
+
+        <el-form-item label="申请人">
+          <el-input v-model="searchForm.applicant" placeholder="请输入申请人" style="width: 130px" clearable />
+        </el-form-item>
+
         <el-form-item label="审核状态">
           <el-select v-model="searchForm.status" placeholder="请选择" style="width: 130px" clearable>
             <el-option label="全部状态" value="" />
@@ -95,7 +110,7 @@
 
         <el-table-column prop="adjustType" label="调整类型" width="80" align="center">
           <template slot-scope="scope">
-            <span :class="isAddAdjust(scope.row.adjustType) ? 'text-success' : 'text-danger'">
+            <span>
               {{ formatAdjustType(scope.row.adjustType) }}
             </span>
           </template>
@@ -103,7 +118,7 @@
 
         <el-table-column prop="adjustAmt" label="调整积分额度" width="110" align="center">
           <template slot-scope="scope">
-            <strong :class="isAddAdjust(scope.row.adjustType) ? 'text-success' : 'text-danger'">
+            <strong >
               {{ isAddAdjust(scope.row.adjustType) ? '+' : '-' }} {{ scope.row.adjustAmt }}
             </strong>
           </template>
@@ -311,6 +326,9 @@ export default {
         idNo: '',
         custName: '',
         custId: '',
+        adjustType: '',
+        orgName: '',
+        applicant: '',
         status: '',
         dateFrom: '',
         dateTo: ''
@@ -424,6 +442,9 @@ export default {
         idNo: '',
         custName: '',
         custId: '',
+        adjustType: '',
+        orgName: '',
+        applicant: '',
         status: '',
         dateFrom: '',
         dateTo: ''
@@ -462,11 +483,15 @@ export default {
 
       this.submitLoading = true
       try {
+        const id = this.currentRow.id || this.currentRow.applyId
+        if (!id) {
+          this.$message.error('申请主键缺失，无法提交审核')
+          return
+        }
         const payload = {
-          id: this.currentRow.id,
+          id,
           result: resultCode, // 传入规范编码：APPROVED / REJECTED
-          opinion: this.auditRemark,
-          auditor: '李四' // 默认审核人
+          opinion: this.auditRemark || ''
         }
 
         await auditPointAdjustApi(payload)
@@ -617,7 +642,7 @@ export default {
 
 .arrow-icon {
   font-size: 20px;
-  color: #409eff;
+  color: #6383ff;
 }
 
 .desc-text {

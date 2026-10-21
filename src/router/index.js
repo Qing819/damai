@@ -99,6 +99,14 @@ const routes = [
     component: _import('personal/test/point-manage-detail')
   },
   {
+    path: '/personal/oldPointDetail',
+    component: _import('personal/test/old-point-detail')
+  },
+  {
+    path: '/personal/oldBenefitDetail',
+    component: _import('personal/test/old-benefit-detail')
+  },
+  {
     path: '/personal/guiji',
     component: _import('personal/test/point-guiji')
   },
