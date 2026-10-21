@@ -938,16 +938,10 @@ export default {
         } else if (Array.isArray(data)) {
           this.taskRecordData = data;
         } else {
-          this.taskRecordData = [
-            { trialTime: '2026-09-10 14:20', cnt: 186, operator: '张三', status: 'DONE' },
-            { trialTime: '2026-09-11 09:05', cnt: 2340, operator: '张三', status: 'RUNNING' }
-          ];
+          this.taskRecordData = [];
         }
       }).catch(() => {
-        this.taskRecordData = [
-          { trialTime: '2026-09-10 14:20', cnt: 186, operator: '张三', status: 'DONE' },
-          { trialTime: '2026-09-11 09:05', cnt: 2340, operator: '张三', status: 'RUNNING' }
-        ];
+        this.taskRecordData = [];
       });
     },
     resetTaskQuery() {
@@ -971,32 +965,10 @@ export default {
         } else if (Array.isArray(data)) {
           this.taskDetailData = data;
         } else {
-          this.taskDetailData = [
-            {
-              custName: '王芳',
-              custId: '1002',
-              idType: '身份证',
-              idNo: '110101199202002028',
-              oldPoint: '20,100',
-              oldGrade: 'SANXING',
-              newPoint: '21,000',
-              newGrade: 'SANXING'
-            }
-          ];
+          this.taskDetailData = [];
         }
       }).catch(() => {
-        this.taskDetailData = [
-          {
-            custName: '王芳',
-            custId: '1002',
-            idType: '身份证',
-            idNo: '110101199202002028',
-            oldPoint: '20,100',
-            oldGrade: 'SANXING',
-            newPoint: '21,000',
-            newGrade: 'SANXING'
-          }
-        ];
+        this.taskDetailData = [];
       });
     },
     resetDetailQuery() {

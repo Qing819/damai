@@ -236,7 +236,7 @@
 
             <div class="table-sub-footer">
               <el-button size="mini" @click="moreDetailDialogVisible = true">加载更多</el-button>
-              <span>共 32 条积分流水</span>
+              <span>共 {{ pointsDetailList.length }} 条积分流水</span>
             </div>
           </el-card>
         </el-col>
