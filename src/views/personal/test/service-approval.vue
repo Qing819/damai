@@ -111,6 +111,7 @@
 
       <el-table
           :data="tableData"
+          v-loading="loading"
           style="width: 100%"
           border
           stripe
@@ -275,7 +276,7 @@
 </template>
 
 <script>
-import { getBenefitAdjustDetailApi, passBenefitAdjustApi } from '@/api/test';
+import { getBenefitAdjustDetailApi, getBenefitAdjustPageApi, passBenefitAdjustApi } from '@/api/test';
 
 export default {
   name: 'BenefitAdjustmentApproval',
@@ -290,47 +291,13 @@ export default {
         benefit: '',
         status: '',
         applicant: '',
-        dateRange: ['2026-08-01', '2026-08-23']
+        dateRange: []
       },
-      total: 12,
+      total: 0,
       currentPage: 1,
       pageSize: 10,
-      tableData: [
-        {
-          id: 1,
-          applyNo: 'BEN20260823001',
-          customer: '张伟 (CU202401001)',
-          idType: '居民身份证',
-          idCard: '110101198710******',
-          org: '天津分公司',
-          benefitId: 'QY0002',
-          benefitName: '视频医生服务',
-          reason: '等级权益补发',
-          policyNo: 'P202400566',
-          oaSn: 'OA20260823001',
-          applicant: '张三',
-          applyTime: '2026-08-23 09:12',
-          status: 'pending',
-          approveTime: ''
-        },
-        {
-          id: 2,
-          applyNo: 'BEN20260824003',
-          customer: '李娜 (CU202401032)',
-          idType: '居民身份证',
-          idCard: '110101199006******',
-          org: '北京分公司',
-          benefitId: 'QY0001、QY0005',
-          benefitName: '体检服务、二选一服务（A / B）',
-          reason: '客户投诉补偿',
-          policyNo: '',
-          oaSn: 'OA20260824003',
-          applicant: '李四',
-          applyTime: '2026-08-24 10:20',
-          status: 'pending',
-          approveTime: ''
-        }
-      ],
+      tableData: [],
+      loading: false,
 
       // 弹窗相关控制变量
       dialogVisible: false,
@@ -345,12 +312,47 @@ export default {
       projectTableData: []
     };
   },
+  mounted() {
+    this.fetchTableData();
+  },
   methods: {
+    async fetchTableData() {
+      this.loading = true;
+      try {
+        const params = {
+          pageNum: this.currentPage,
+          pageSize: this.pageSize,
+          idType: this.queryForm.idType || undefined,
+          idNo: this.queryForm.idCard || undefined,
+          custName: this.queryForm.customerName || undefined,
+          custId: this.queryForm.customerNo || undefined,
+          orgName: this.queryForm.org || undefined,
+          benefitCode: this.queryForm.benefit || undefined,
+          status: this.queryForm.status || undefined,
+          applicant: this.queryForm.applicant || undefined,
+          dateFrom: this.queryForm.dateRange[0] || undefined,
+          dateTo: this.queryForm.dateRange[1] || undefined
+        };
+        const res = await getBenefitAdjustPageApi(params);
+        const data = res?.body?.data || res?.data || {};
+        this.tableData = data.list || [];
+        this.total = data.total || 0;
+      } catch (error) {
+        this.tableData = [];
+        this.total = 0;
+        this.$message.error('获取权益审批列表失败');
+      } finally {
+        this.loading = false;
+      }
+    },
     handleSearch() {
-      console.log('查询条件:', this.queryForm);
+      this.currentPage = 1;
+      this.fetchTableData();
     },
     handleReset() {
       this.$refs.queryFormRef.resetFields();
+      this.currentPage = 1;
+      this.fetchTableData();
     },
     // 打开审批弹窗
     async handleApprove(row) {
@@ -370,7 +372,7 @@ export default {
     async fetchDetail(row) {
       this.dialogLoading = true;
       // 先用当前行数据保底兜底
-      this.currentDetail = {...row};
+      this.currentDetail = { ...row };
       this.benefitTableData = [];
       this.projectTableData = [];
 
@@ -402,7 +404,7 @@ export default {
 
       const params = {
         id: this.currentDetail.id,
-        result: result, // 'APPROVED' 或 'REJECTED'
+        result, // 'APPROVED' 或 'REJECTED'
         opinion: this.approvalRemark // 驳回时必填意见
       };
 
@@ -431,9 +433,11 @@ export default {
     },
     handleSizeChange(val) {
       this.pageSize = val;
+      this.fetchTableData();
     },
     handleCurrentChange(val) {
       this.currentPage = val;
+      this.fetchTableData();
     }
   }
 };
