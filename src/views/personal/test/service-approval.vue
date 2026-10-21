@@ -434,7 +434,7 @@ export default {
             this.currentDetail.approveTime = auditData?.auditTime || new Date().toLocaleString();
           }
           this.dialogVisible = false;
-          // 此处可刷新主列表：this.handleSearch()
+          await this.fetchTableData();
         } else {
           this.$message.error(res?.header?.message || '操作失败');
         }
