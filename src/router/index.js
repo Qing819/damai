@@ -85,7 +85,7 @@ const routes = [
     path: '/business/elementConfig',
     component: _import('business/elementConfig/index')
   },
-    //积分调整
+  // 积分调整
   {
     path: '/personal/test',
     component: _import('personal/test/index')
@@ -128,14 +128,17 @@ const routes = [
   },
   {
     path: '/personal/serviceApply',
+    alias: '/personal/service-apply',
     component: _import('personal/test/service-apply')
   },
   {
     path: '/personal/serviceApproval',
+    alias: '/personal/service-approval',
     component: _import('personal/test/service-approval')
   },
   {
     path: '/personal/serviceGuiJi',
+    alias: '/personal/service-guiji',
     component: _import('personal/test/service-guiji')
   },
   {
