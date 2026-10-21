@@ -335,7 +335,20 @@ export default {
         };
         const res = await getBenefitAdjustPageApi(params);
         const data = res?.body?.data || res?.data || {};
-        this.tableData = data.list || [];
+        this.tableData = (data.list || []).map(item => ({
+          ...item,
+          customer: `${item.custName || '-'} (${item.custId || '-'})`,
+          idCard: item.idNo || '-',
+          org: item.orgName || '-',
+          benefitId: item.benefitCodes || '-',
+          benefitName: item.benefitNames || '-',
+          reason: item.reasonName || '-',
+          policyNo: item.policyNo || '',
+          oaSn: item.oaNo || '-',
+          applicant: item.applicant || '-',
+          status: String(item.status || '').toLowerCase(),
+          approveTime: item.auditTime || ''
+        }));
         this.total = data.total || 0;
       } catch (error) {
         this.tableData = [];
