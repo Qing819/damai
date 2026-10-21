@@ -590,7 +590,7 @@ export default {
       },
 
       // 4.2.2 分页查询表单
-      dateRange: ['2026-08-01', '2026-08-23'],
+      dateRange: [],
       searchForm: {
         custId: '',
         custName: '',
@@ -598,8 +598,8 @@ export default {
         idNo: '',
         adjustType: '',
         status: '',
-        dateFrom: '2026-08-01',
-        dateTo: '2026-08-23',
+        dateFrom: '',
+        dateTo: '',
         pageNum: 1,
         pageSize: 10
       },
@@ -750,7 +750,13 @@ export default {
     async fetchPageList() {
       this.loading = true
       try {
-        const res = await getPointAdjustPageApi(this.searchForm)
+        // 空筛选项不传给后端，避免部分实现将空字符串转换为无效查询条件。
+        const params = Object.keys(this.searchForm).reduce((result, key) => {
+          const value = this.searchForm[key]
+          if (value !== '' && value !== null && value !== undefined) result[key] = value
+          return result
+        }, {})
+        const res = await getPointAdjustPageApi(params)
         if (res && res.data) {
           const data = res.data || {}
           this.recordList = data.list || []
