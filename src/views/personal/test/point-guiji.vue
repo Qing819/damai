@@ -1,5 +1,11 @@
 <template>
   <div class="app-container">
+    <div class="page-heading">
+      <div class="breadcrumb">积分管理 <span>/</span> 积分轨迹</div>
+      <h1>积分轨迹</h1>
+      <p>查询客户积分流水与调整轨迹，全过程可追溯</p>
+    </div>
+
     <!-- 1. 筛选查询表单 -->
     <el-card class="filter-container" shadow="never">
       <el-form
@@ -9,7 +15,7 @@
           size="small"
           label-width="100px"
           label-position="right"
-          class="compact-query-form"
+          class="compact-query-form prototype-filter-form"
       >
         <el-form-item label="客户号" prop="custId">
           <el-input v-model.trim="queryParams.custId" placeholder="请输入客户号" clearable @keyup.enter.native="handleQuery" class="form-item-input" />
@@ -24,38 +30,63 @@
         </el-form-item>
 
         <el-form-item label="服务归属机构" prop="orgName">
-          <el-select v-model="queryParams.orgName" placeholder="请选择机构" clearable class="form-item-input">
-            <el-option label="天津分公司" value="天津分公司" />
+          <el-select v-model="queryParams.orgName" placeholder="全部服务归属机构" clearable class="form-item-input">
+            <el-option label="全部服务归属机构" value="" />
+            <el-option label="总公司" value="总公司" />
             <el-option label="北京分公司" value="北京分公司" />
-            <el-option label="江苏分公司" value="江苏分公司" />
+            <el-option label="天津分公司" value="天津分公司" />
+            <el-option label="河北分公司" value="河北分公司" />
+            <el-option label="山西分公司" value="山西分公司" />
+            <el-option label="辽宁分公司" value="辽宁分公司" />
+            <el-option label="大连分公司" value="大连分公司" />
+            <el-option label="陕西分公司" value="陕西分公司" />
+            <el-option label="湖北分公司" value="湖北分公司" />
+            <el-option label="四川分公司" value="四川分公司" />
             <el-option label="上海分公司" value="上海分公司" />
+            <el-option label="江苏分公司" value="江苏分公司" />
+            <el-option label="浙江分公司" value="浙江分公司" />
+            <el-option label="苏州分公司" value="苏州分公司" />
+            <el-option label="宁波分公司" value="宁波分公司" />
+            <el-option label="安徽分公司" value="安徽分公司" />
+            <el-option label="河南分公司" value="河南分公司" />
+            <el-option label="湖南分公司" value="湖南分公司" />
+            <el-option label="黑龙江分公司" value="黑龙江分公司" />
+            <el-option label="深圳分公司" value="深圳分公司" />
+            <el-option label="广东分公司" value="广东分公司" />
+            <el-option label="山东分公司" value="山东分公司" />
+            <el-option label="福建分公司" value="福建分公司" />
+            <el-option label="重庆分公司" value="重庆分公司" />
+            <el-option label="广西分公司" value="广西分公司" />
           </el-select>
         </el-form-item>
 
         <el-form-item label="操作类型" prop="operateType">
-          <el-select v-model="queryParams.operateType" placeholder="请选择" clearable class="form-item-input">
+          <el-select v-model="queryParams.operateType" placeholder="全部操作类型" clearable class="form-item-input">
+            <el-option label="全部操作类型" value="" />
             <el-option
                 v-for="(name, code) in operateTypeMap"
                 :key="code"
-                :label="`${name} (${code})`"
+                :label="name"
                 :value="code"
             />
           </el-select>
         </el-form-item>
 
         <el-form-item label="积分类型" prop="pointType">
-          <el-select v-model="queryParams.pointType" placeholder="请选择" clearable class="form-item-input">
+          <el-select v-model="queryParams.pointType" placeholder="全部积分类型" clearable class="form-item-input">
+            <el-option label="全部积分类型" value="" />
             <el-option
                 v-for="(name, code) in pointTypeMap"
                 :key="code"
-                :label="`${name} (${code})`"
+                :label="name"
                 :value="code"
             />
           </el-select>
         </el-form-item>
 
         <el-form-item label="方向" prop="direction">
-          <el-select v-model="queryParams.direction" placeholder="请选择" clearable class="form-item-input">
+          <el-select v-model="queryParams.direction" placeholder="全部方向" clearable class="form-item-input">
+            <el-option label="全部方向" value="" />
             <el-option label="加分" value="ADD" />
             <el-option label="减分" value="SUB" />
           </el-select>
@@ -76,9 +107,9 @@
 
         <!-- 按钮组 -->
         <el-form-item class="search-btn-group">
-          <el-button type="primary" icon="el-icon-search" @click="handleQuery">查 询</el-button>
-          <el-button icon="el-icon-refresh" @click="resetQuery">重 置</el-button>
-          <el-button icon="el-icon-download" @click="handleExport">导 出</el-button>
+          <el-button class="btn-search" type="primary" @click="handleQuery">查询</el-button>
+          <el-button class="btn-reset" @click="resetQuery">重置</el-button>
+          <el-button class="btn-export" @click="handleExport">导出</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -88,7 +119,7 @@
       <el-col :span="6" v-for="(card, index) in summaryCards" :key="index">
         <div class="summary-box" :style="{ 'border-top-color': card.color }">
           <div class="box-label">{{ card.title }}</div>
-          <div class="box-value" :style="{ color: card.color }">{{ card.value | formatNumber }}</div>
+          <div class="box-value" :style="{ color: card.color }">{{ formatSummaryValue(card.value, index) }}</div>
         </div>
       </el-col>
     </el-row>
@@ -103,7 +134,7 @@
           v-loading="loading"
           :data="traceList"
           stripe
-          size="small"
+          size="mini"
           header-row-class-name="custom-header"
           style="width: 100%"
       >
@@ -129,7 +160,7 @@
 
         <el-table-column label="积分类型" min-width="120" align="center">
           <template slot-scope="{row}">
-            <el-tag size="mini" :type="getPointTypeTagType(row.pointType)" effect="light">
+            <el-tag size="mini" :class="getPointTypeClass(row.pointType)" effect="light">
               {{ formatPointType(row.pointType) }}
             </el-tag>
           </template>
@@ -160,7 +191,7 @@
         </el-table-column>
 
         <el-table-column prop="validEndDate" label="积分有效期" min-width="110" align="center">
-          <template slot-scope="{row}">{{ row.validEndDate || '—' }}</template>
+          <template slot-scope="{row}">{{ formatDateOnly(row.validEndDate) }}</template>
         </el-table-column>
 
         <el-table-column prop="policyNo" label="关联保单号" min-width="120" align="center">
@@ -257,7 +288,7 @@
             <el-col :span="12" v-if="detailData.oaNo">OA流水号：<strong>{{ detailData.oaNo }}</strong></el-col>
             <el-col :span="12">调整原因：<strong>{{ detailData.reason || '—' }}</strong></el-col>
             <el-col :span="12" v-if="detailData.detailRemark">详细说明：<span>{{ detailData.detailRemark }}</span></el-col>
-            <el-col :span="12">积分有效期：<strong>{{ detailData.validEndDate ? `自然年 (至当年${detailData.validEndDate})` : '长期有效' }}</strong></el-col>
+            <el-col :span="12">积分有效期：<strong>{{ detailData.validEndDate ? `自然年（至当年${formatDateOnly(detailData.validEndDate)}）` : '长期有效' }}</strong></el-col>
             <el-col :span="12">操作人：<strong>{{ detailData.operator }}</strong></el-col>
             <el-col :span="12">操作时间：<strong>{{ detailData.operateTime }}</strong></el-col>
           </el-row>
@@ -325,14 +356,14 @@
       </div>
 
       <div slot="footer" class="dialog-footer">
-        <el-button size="small" @click="detailDialogVisible = false">关 闭</el-button>
+        <el-button size="small" @click="detailDialogVisible = false">关闭</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import { getPointTracePageApi, getPointTraceSummaryApi, exportTraceApi } from '@/api/test/point'
+import { getPointTracePageApi, getPointTraceSummaryApi, getPointTraceDetailApi, exportTraceApi } from '@/api/test/point'
 
 export default {
   name: 'PointTraceList',
@@ -394,8 +425,8 @@ export default {
       return [
         { title: '本期加分总额', value: this.summaryData.add_total, color: '#67c23a' },
         { title: '本期减分总额', value: this.summaryData.reduce_total, color: '#f56c6c' },
-        { title: '本期净变化', value: this.summaryData.net_change, color: '#6383ff' },
-        { title: '轨迹总笔数', value: this.summaryData.total, color: '#909399' }
+        { title: '本期净变化', value: this.summaryData.net_change, color: '#4f6fae' },
+        { title: '轨迹总数', value: this.summaryData.total, color: '#909399' }
       ]
     }
   },
@@ -428,10 +459,28 @@ export default {
       return name || code
     },
 
+    formatDateOnly(value) {
+      if (!value) return '—'
+      return String(value).split('T')[0].split(' ')[0]
+    },
+
+    formatSummaryValue(value, index) {
+      const formatted = this.$options.filters.formatNumber(value)
+      return index < 3 && Number(value || 0) > 0 ? `+${formatted}` : formatted
+    },
+
     getPointTypeTagType(code) {
       if (code === 'MANUAL' || code === '人工调整') return 'warning'
       if (code === 'PENSION' || code === '养老协同积分') return 'purple'
       return 'primary'
+    },
+
+    getPointTypeClass(code) {
+      if (code === 'PREMIUM' || code === '保费积分') return 'point-type-premium'
+      if (code === 'PENSION' || code === '养老协同积分') return 'point-type-pension'
+      if (code === 'LOYALTY' || code === '忠诚积分') return 'point-type-loyalty'
+      if (code === 'MANUAL' || code === '人工调整') return 'point-type-manual'
+      return 'point-type-default'
     },
 
     async loadData() {
@@ -453,27 +502,7 @@ export default {
         const res = await getPointTracePageApi(this.queryParams)
         if (res && res.data) {
           const data = res.data || {}
-          this.traceList = (data.list || []).map(item => ({
-            ...item,
-            traceId: item.trace_id || item.traceId,
-            custId: item.cust_id || item.custId,
-            custName: item.cust_name || item.custName,
-            certType: item.id_type || item.cert_type || item.certType,
-            certNo: item.id_no || item.cert_no || item.certNo,
-            orgName: item.org_name || item.orgName,
-            operateType: item.operate_type || item.operateType,
-            pointType: item.point_type || item.pointType,
-            direction: item.direction,
-            pointAmt: item.point_amt !== undefined ? item.point_amt : item.pointAmt,
-            beforePoint: item.before_point !== undefined ? item.before_point : item.beforePoint,
-            afterPoint: item.after_point !== undefined ? item.after_point : item.afterPoint,
-            validEndDate: item.valid_end_date || item.validEndDate,
-            policyNo: item.policy_no || item.policyNo,
-            oaNo: item.oa_no || item.oaNo,
-            reason: item.reason,
-            operator: item.operator,
-            operateTime: item.operate_time || item.operateTime
-          }))
+          this.traceList = (data.list || []).map(this.normalizeTraceItem)
           this.total = data.total || 0
         } else {
           this.$message.error(res?.header?.message || '获取积分轨迹列表失败')
@@ -491,7 +520,13 @@ export default {
         }
         const res = await getPointTraceSummaryApi(params)
         if (res && res.data) {
-          this.summaryData = res.data || { add_total: 0, reduce_total: 0, net_change: 0, total: 0 }
+          const data = res.data || {}
+          this.summaryData = {
+            add_total: data.add_total !== undefined ? data.add_total : (data.addTotal || 0),
+            reduce_total: data.reduce_total !== undefined ? data.reduce_total : (data.reduceTotal || 0),
+            net_change: data.net_change !== undefined ? data.net_change : (data.netChange || 0),
+            total: data.total !== undefined ? data.total : (data.totalCount || 0)
+          }
         }
       } catch (err) {
         console.error('获取统计数据发生异常:', err)
@@ -533,7 +568,8 @@ export default {
 
     async handleExport() {
       try {
-        const blob = await exportTraceApi(this.queryParams)
+        const { pageNum, pageSize, ...exportParams } = this.queryParams
+        const blob = await exportTraceApi(exportParams)
         const url = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
@@ -556,9 +592,60 @@ export default {
       this.fetchTracePage()
     },
 
-    handleViewDetail(row) {
+    normalizeTraceItem(item) {
+      return {
+        ...item,
+        traceId: item.trace_id || item.traceId,
+        custId: item.cust_id || item.custId,
+        custName: item.cust_name || item.custName,
+        certType: item.id_type || item.cert_type || item.certType,
+        certNo: item.id_no || item.cert_no || item.certNo,
+        orgName: item.org_name || item.orgName,
+        operateType: item.operate_type || item.operateType,
+        pointType: item.point_type || item.pointType,
+        direction: item.direction,
+        pointAmt: item.point_amt !== undefined ? item.point_amt : item.pointAmt,
+        beforePoint: item.before_point !== undefined ? item.before_point : item.beforePoint,
+        afterPoint: item.after_point !== undefined ? item.after_point : item.afterPoint,
+        validEndDate: item.valid_end_date || item.validEndDate,
+        policyNo: item.policy_no || item.policyNo,
+        oaNo: item.oa_no || item.oaNo,
+        reason: item.reason || item.reason_name || item.reasonName,
+        operator: item.operator,
+        operateTime: item.operate_time || item.operateTime,
+        riskCode: item.risk_code || item.riskCode,
+        productName: item.product_name || item.productName,
+        policyEffectiveDate: item.policy_effective_date || item.policyEffectiveDate,
+        attachmentName: item.attachment_name || item.attachmentName,
+        detailRemark: item.detail_remark || item.detailRemark,
+        applyNo: item.apply_no || item.applyNo,
+        approver: item.approver,
+        approveTime: item.approve_time || item.approveTime,
+        approveRemark: item.approve_remark || item.approveRemark,
+        ruleName: item.rule_name || item.ruleName,
+        ruleVersion: item.rule_version || item.ruleVersion,
+        payRecordNo: item.pay_record_no || item.payRecordNo,
+        payInterval: item.pay_interval || item.payInterval,
+        payYears: item.pay_years !== undefined ? item.pay_years : item.payYears,
+        payCount: item.pay_count !== undefined ? item.pay_count : item.payCount,
+        payAmt: item.pay_amt !== undefined ? item.pay_amt : item.payAmt,
+        calcFactor: item.calc_factor || item.calcFactor
+      }
+    },
+
+    async handleViewDetail(row) {
       this.detailData = { ...row }
       this.detailDialogVisible = true
+      try {
+        const res = await getPointTraceDetailApi(row.traceId)
+        const detail = res?.data || res?.body?.data || res
+        if (detail && typeof detail === 'object') {
+          this.detailData = this.normalizeTraceItem({ ...row, ...detail })
+        }
+      } catch (err) {
+        console.error('获取轨迹详情发生异常:', err)
+        this.$message.error('获取轨迹详情失败')
+      }
     }
   }
 }
@@ -567,12 +654,48 @@ export default {
 <style scoped>
 .app-container {
   padding: 16px;
-  background-color: #f0f2f5;
+  background-color: #f5f7fa;
   min-height: calc(100vh - 84px);
+}
+
+.page-heading {
+  margin: 2px 0 16px;
+}
+
+.breadcrumb {
+  color: #909399;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.breadcrumb span {
+  margin: 0 8px;
+  color: #c0c4cc;
+}
+
+.page-heading h1 {
+  margin: 0 0 8px;
+  color: #333a45;
+  font-size: 21px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.page-heading p {
+  margin: 0;
+  color: #5a6472;
+  font-size: 13px;
 }
 
 .filter-container {
   margin-bottom: 16px;
+}
+
+.filter-container,
+.table-container {
+  border: 1px solid #e1e5ec;
+  border-radius: 4px;
+  background: #fff;
 }
 
 .filter-container ::v-deep .el-card__body {
@@ -586,9 +709,42 @@ export default {
 }
 
 .compact-query-form ::v-deep .el-form-item__label {
-  font-weight: normal;
-  color: #606266;
-  padding-right: 8px;
+  display: none;
+}
+
+.compact-query-form ::v-deep .el-form-item__content {
+  margin-left: 0 !important;
+}
+
+.prototype-filter-form ::v-deep .el-input__inner,
+.prototype-filter-form ::v-deep .el-select .el-input__inner,
+.prototype-filter-form ::v-deep .el-date-editor.el-input__inner {
+  height: 40px;
+  line-height: normal;
+  border-color: #c9cfd8;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.prototype-filter-form ::v-deep .el-button {
+  width: 62px;
+  height: 36px;
+  line-height: normal;
+  padding: 0 16px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.prototype-filter-form ::v-deep .btn-search {
+  background: #4472c4 !important;
+  border-color: #4472c4 !important;
+}
+
+.prototype-filter-form ::v-deep .btn-reset,
+.prototype-filter-form ::v-deep .btn-export {
+  color: #4472c4 !important;
+  background: #fff !important;
+  border-color: #4472c4 !important;
 }
 
 /* 固定组件宽度，防止被强行拉伸或挤压 */
@@ -610,7 +766,7 @@ export default {
 
 .summary-box {
   border: 1px solid #e4e7ed;
-  border-top: 3px solid #6383ff;
+  border-top: 3px solid #4f6fae;
   border-radius: 4px;
   padding: 14px 16px;
   background: #ffffff;
@@ -632,10 +788,29 @@ export default {
   background: #ffffff;
 }
 
+.filter-container ::v-deep .el-card__body {
+  padding: 16px 18px 10px;
+}
+
+.table-container ::v-deep .el-card__header {
+  padding: 14px 18px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.table-container ::v-deep .el-card__body {
+  padding: 16px 18px;
+}
+
 .table-header-title {
   font-size: 15px;
   font-weight: bold;
-  color: #303133;
+  color: #333a45;
+}
+
+.table-container ::v-deep .el-table .el-button--text {
+  padding: 0 4px;
+  color: #4472c4;
+  font-size: 12px;
 }
 
 .font-bold {
@@ -644,7 +819,37 @@ export default {
 
 .text-green { color: #67c23a; }
 .text-red { color: #f56c6c; }
-.text-primary { color: #6383ff; }
+.text-primary { color: #4f6fae; }
+
+.point-type-premium {
+  color: #409eff !important;
+  background-color: #ecf5ff !important;
+  border-color: #b3d8ff !important;
+}
+
+.point-type-pension {
+  color: #9c27b0 !important;
+  background-color: #f3e5f5 !important;
+  border-color: #ce93d8 !important;
+}
+
+.point-type-loyalty {
+  color: #67c23a !important;
+  background-color: #f0f9eb !important;
+  border-color: #c2e7b0 !important;
+}
+
+.point-type-manual {
+  color: #e6a23c !important;
+  background-color: #fdf6ec !important;
+  border-color: #f5dab1 !important;
+}
+
+.point-type-default {
+  color: #606266 !important;
+  background-color: #f4f4f5 !important;
+  border-color: #d3d4d6 !important;
+}
 
 .pagination-container {
   margin-top: 16px;

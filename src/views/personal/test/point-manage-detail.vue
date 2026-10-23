@@ -49,7 +49,7 @@
       <!-- 3. 权益现状 -->
       <div class="section-card">
         <div class="section-title">权益现状</div>
-        <el-table :data="benefitsData" header-row-class-name="custom-header" border size="small">
+        <el-table :data="benefitsData" header-row-class-name="custom-header" border size="mini">
           <el-table-column prop="benefit_name" label="服务项目" align="center" />
           <el-table-column label="可使用次数" align="center">
             <template slot-scope="{row}">
@@ -77,7 +77,7 @@
         <el-tabs v-model="activeTab" type="card" class="custom-tabs">
           <!-- 积分轨迹 -->
           <el-tab-pane label="积分轨迹" name="points">
-            <el-table :data="pointsTrack" header-row-class-name="custom-header" border size="small">
+            <el-table :data="pointsTrack" header-row-class-name="custom-header" border size="mini">
               <el-table-column label="操作类型" width="100" align="center">
                 <template slot-scope="{row}">
                   <el-tag size="mini" :type="['SYSTEM', '系统调整'].includes(row.operate_type) ? 'success' : 'info'">
@@ -112,7 +112,9 @@
               <el-table-column prop="policy_no" label="关联保单号" align="center">
                 <template slot-scope="{row}">{{ row.policy_no || '—' }}</template>
               </el-table-column>
-              <el-table-column prop="valid_end_date" label="积分有效期" align="center" />
+              <el-table-column prop="valid_end_date" label="积分有效期" align="center">
+                <template slot-scope="{row}">{{ formatDateOnly(row.valid_end_date) }}</template>
+              </el-table-column>
               <el-table-column prop="before_point" label="调整前积分" align="right" />
               <el-table-column prop="after_point" label="调整后积分" align="right" />
               <el-table-column prop="oa_no" label="OA流水号" align="center" />
@@ -129,35 +131,74 @@
 
           <!-- 等级变化轨迹 -->
           <el-tab-pane label="等级变化轨迹" name="level">
-            <el-table :data="levelTrack" header-row-class-name="custom-header" border size="small">
-              <el-table-column prop="trace_no" label="轨迹编号" align="center" />
-              <el-table-column prop="cust_name" label="客户姓名" align="center" />
+            <el-table :data="levelTrack" header-row-class-name="custom-header" border size="mini">
+              <el-table-column label="服务归属机构" align="center">
+                <template slot-scope="{row}">{{ row.org_name || row.orgName || '—' }}</template>
+              </el-table-column>
+              <el-table-column label="业务渠道" align="center">
+                <template slot-scope="{row}">{{ row.channel || row.channel_name || row.channelName || '—' }}</template>
+              </el-table-column>
               <el-table-column label="变化类型" align="center">
                 <template slot-scope="{row}">
-                  <el-tag size="mini" type="info">{{ row.change_type || '—' }}</el-tag>
+                  <el-tag size="mini" type="info">{{ row.change_type || row.changeType || '—' }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="grade_before" label="变化前等级" align="center" />
-              <el-table-column prop="grade_after" label="变化后等级" align="center" />
-              <el-table-column label="变化时积分" align="center">
-                <template slot-scope="{row}">{{ row.change_point | formatNumber }}</template>
+              <el-table-column label="变化前等级" align="center">
+                <template slot-scope="{row}">{{ formatGrade(row.grade_before || row.gradeBefore) }}</template>
               </el-table-column>
-              <el-table-column prop="change_time" label="变化时间" align="center" />
+              <el-table-column label="变化后等级" align="center">
+                <template slot-scope="{row}">{{ formatGrade(row.grade_after || row.gradeAfter) }}</template>
+              </el-table-column>
+              <el-table-column label="变化时积分" align="center">
+                <template slot-scope="{row}">{{ (row.change_point !== undefined ? row.change_point : row.changePoint) | formatNumber }}</template>
+              </el-table-column>
+              <el-table-column label="变化原因" align="center" show-overflow-tooltip>
+                <template slot-scope="{row}">{{ row.change_reason || row.changeReason || row.reason || '—' }}</template>
+              </el-table-column>
+              <el-table-column label="变化时间" align="center">
+                <template slot-scope="{row}">{{ row.change_time || row.changeTime || '—' }}</template>
+              </el-table-column>
+              <el-table-column label="操作" width="90" fixed="right" align="center">
+                <template slot-scope="{row}">
+                  <el-button type="text" size="small" @click="handleGradeDetail(row)">查看详情</el-button>
+                </template>
+              </el-table-column>
             </el-table>
           </el-tab-pane>
 
           <!-- 权益轨迹 -->
           <el-tab-pane label="权益轨迹" name="benefitTrack">
-            <el-table :data="benefitTrackData" header-row-class-name="custom-header" border size="small">
-              <el-table-column prop="usage_no" label="使用编号" align="center" />
-              <el-table-column prop="benefit_name" label="权益项" align="center" />
-              <el-table-column prop="use_time" label="使用时间" align="center" />
-              <el-table-column prop="use_count" label="本次使用次数" align="center" />
-              <el-table-column prop="use_channel" label="使用渠道" align="center" />
-              <el-table-column prop="supplier" label="服务供应商" align="center" />
-              <el-table-column label="剩余次数" align="center">
+            <el-table :data="benefitTrackData" header-row-class-name="custom-header" border size="mini">
+              <el-table-column label="权益动作" align="center">
+                <template slot-scope="{row}">{{ row.action || row.action_name || row.actionName || '—' }}</template>
+              </el-table-column>
+              <el-table-column label="权益名称" align="center">
+                <template slot-scope="{row}">{{ row.benefit_name || row.benefitName || '—' }}</template>
+              </el-table-column>
+              <el-table-column label="服务供应商" align="center">
+                <template slot-scope="{row}">{{ row.supplier || '—' }}</template>
+              </el-table-column>
+              <el-table-column label="服务类型" align="center">
+                <template slot-scope="{row}">{{ row.kind || row.service_type || row.serviceType || '—' }}</template>
+              </el-table-column>
+              <el-table-column label="有效期" align="center">
+                <template slot-scope="{row}">{{ formatDateOnly(row.valid_to || row.validTo || row.expire_time) }}</template>
+              </el-table-column>
+              <el-table-column label="动作时间" align="center">
+                <template slot-scope="{row}">{{ row.action_time || row.actionTime || row.use_time || row.useTime || '—' }}</template>
+              </el-table-column>
+              <el-table-column label="次数" align="center">
+                <template slot-scope="{row}">{{ formatBenefitCount(row.count_change !== undefined ? row.count_change : row.countChange) }}</template>
+              </el-table-column>
+              <el-table-column label="已使用/剩余" align="center">
+                <template slot-scope="{row}">{{ row.used_count !== undefined ? row.used_count : (row.usedCount || 0) }} / {{ row.remain_count !== undefined ? (row.remain_count === null ? '不限' : row.remain_count) : (row.remainCount === null || row.remainCount === undefined ? '不限' : row.remainCount) }}</template>
+              </el-table-column>
+              <el-table-column label="次数状态" align="center">
+                <template slot-scope="{row}">{{ row.count_status || row.countStatus || '正常' }}</template>
+              </el-table-column>
+              <el-table-column label="操作" width="80" fixed="right" align="center">
                 <template slot-scope="{row}">
-                  {{ row.remain_count !== null && row.remain_count !== undefined ? row.remain_count : '不限' }}
+                  <el-button type="text" size="small" @click="handleBenefitDetail(row)">详情</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -222,7 +263,7 @@
                 {{ formatDirection(traceDetailData.direction) }}
               </span>
             </el-col>
-            <el-col :span="12" class="adjustment-amount-row">
+            <el-col :span="12">
               调整积分额度：
               <span :class="isAddDirection(traceDetailData.direction) ? 'text-green' : 'text-red'" class="font-bold">
                 {{ isAddDirection(traceDetailData.direction) ? '+' : '-' }} {{ Math.abs(traceDetailData.point_amt || 0) | formatNumber }}
@@ -230,7 +271,7 @@
             </el-col>
             <el-col :span="12" v-if="traceDetailData.oa_no">OA流水号：<strong>{{ traceDetailData.oa_no }}</strong></el-col>
             <el-col :span="12">调整原因：<strong>{{ traceDetailData.reason || traceDetailData.rule_name || '—' }}</strong></el-col>
-            <el-col :span="12">积分有效期：<strong>{{ traceDetailData.valid_end_date ? `自然年 (至当年${traceDetailData.valid_end_date})` : '长期有效' }}</strong></el-col>
+            <el-col :span="12">积分有效期：<strong>{{ traceDetailData.valid_end_date ? `自然年（至当年${formatDateOnly(traceDetailData.valid_end_date)}）` : '长期有效' }}</strong></el-col>
             <el-col :span="12">操作人：<strong>{{ traceDetailData.operator || '系统' }}</strong></el-col>
             <el-col :span="12">操作时间：<strong>{{ traceDetailData.operate_time }}</strong></el-col>
           </el-row>
@@ -285,10 +326,113 @@
             {{ traceDetailData.attachment_name }}
           </el-link>
         </div>
+
+        <!-- 审批信息区 (人工调整专属) -->
+        <div class="detail-section" v-if="['MANUAL', '人工调整'].includes(traceDetailData.operate_type)">
+          <div class="section-title">
+            审批信息 <span class="sub-tip">人工调整需审批通过后生效</span>
+          </div>
+          <el-row :gutter="12" class="info-row">
+            <el-col :span="12">申请单号：<strong>{{ traceDetailData.apply_no || 'ADJ20260823001' }}</strong></el-col>
+            <el-col :span="12">审核人：<strong>{{ traceDetailData.approver || '李四' }}</strong></el-col>
+            <el-col :span="12" v-if="traceDetailData.approve_time">审核时间：<strong>{{ traceDetailData.approve_time }}</strong></el-col>
+            <el-col :span="24" v-if="traceDetailData.approve_remark">审核意见：<strong>{{ traceDetailData.approve_remark }}</strong></el-col>
+          </el-row>
+        </div>
       </div>
 
       <div slot="footer" class="dialog-footer">
-        <el-button size="small" @click="innerTraceDetailVisible = false">关 闭</el-button>
+        <el-button size="small" @click="innerTraceDetailVisible = false">关闭</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 等级变化详情弹框 -->
+    <el-dialog
+        title="等级变化详情"
+        :visible.sync="gradeDetailDialogVisible"
+        width="600px"
+        append-to-body
+        custom-class="detail-dialog grade-detail-dialog"
+    >
+      <div class="dialog-content" v-if="gradeDetailData">
+        <div class="detail-section">
+          <div class="section-title">基本信息</div>
+          <el-descriptions :column="2" size="small" class="grade-descriptions">
+            <el-descriptions-item label="变化记录号">{{ gradeDetailData.trace_no || gradeDetailData.traceNo || gradeDetailData.record_no || gradeDetailData.recordNo || '—' }}</el-descriptions-item>
+            <el-descriptions-item label="客户">{{ gradeDetailData.cust_name || gradeDetailData.custName || userInfo.cust_name || '—' }}（{{ gradeDetailData.cust_id || gradeDetailData.custId || userInfo.cust_id || '—' }}）</el-descriptions-item>
+            <el-descriptions-item label="身份证号">{{ gradeDetailData.id_no || gradeDetailData.idNo || userInfo.id_no || '—' }}</el-descriptions-item>
+            <el-descriptions-item label="服务归属机构">{{ gradeDetailData.org_name || gradeDetailData.orgName || '—' }}</el-descriptions-item>
+            <el-descriptions-item label="业务渠道">{{ gradeDetailData.channel || gradeDetailData.channel_name || gradeDetailData.channelName || '—' }}</el-descriptions-item>
+            <el-descriptions-item label="变化类型">{{ formatChangeType(gradeDetailData.change_type || gradeDetailData.changeType) }}</el-descriptions-item>
+            <el-descriptions-item label="变化时积分">{{ (gradeDetailData.change_point !== undefined ? gradeDetailData.change_point : gradeDetailData.changePoint) | formatNumber }}</el-descriptions-item>
+            <el-descriptions-item label="变化原因">{{ gradeDetailData.change_reason || gradeDetailData.changeReason || gradeDetailData.reason || '—' }}</el-descriptions-item>
+            <el-descriptions-item label="变化时间">{{ gradeDetailData.change_time || gradeDetailData.changeTime || '—' }}</el-descriptions-item>
+            <el-descriptions-item label="操作人">{{ gradeDetailData.operator || '系统' }}</el-descriptions-item>
+            <el-descriptions-item label="等级生效日期">{{ gradeDetailData.effective_date || gradeDetailData.effectiveDate || gradeDetailData.change_time || gradeDetailData.changeTime || '—' }}</el-descriptions-item>
+          </el-descriptions>
+        </div>
+
+        <div class="detail-section">
+          <div class="section-title">等级变化</div>
+          <div class="grade-change-card">
+            <span class="grade-change-item">变化前等级：<span class="grade-status grade-status-before">{{ formatGrade(gradeDetailData.grade_before || gradeDetailData.gradeBefore) }}</span></span>
+            <span class="grade-change-arrow">→</span>
+            <span class="grade-change-item">变化后等级：<span class="grade-status grade-status-after">{{ formatGrade(gradeDetailData.grade_after || gradeDetailData.gradeAfter) }}</span></span>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="section-title">变动说明</div>
+          <div class="grade-note">{{ gradeDetailData.note || `类型：${formatChangeType(gradeDetailData.change_type || gradeDetailData.changeType)}，等级从 ${formatGrade(gradeDetailData.grade_before || gradeDetailData.gradeBefore)} 调整至 ${formatGrade(gradeDetailData.grade_after || gradeDetailData.gradeAfter)}` }}</div>
+        </div>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button size="small" @click="gradeDetailDialogVisible = false">关闭</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 权益使用详情弹框 -->
+    <el-dialog
+        title="权益使用详情"
+        :visible.sync="benefitDetailDialogVisible"
+        width="680px"
+        append-to-body
+        custom-class="detail-dialog benefit-detail-dialog"
+    >
+      <div class="dialog-content" v-if="benefitDetailData">
+        <div class="detail-section">
+          <div class="section-title">权益信息</div>
+          <el-row :gutter="12" class="info-row">
+            <el-col :span="12">客户：<strong>{{ benefitDetailData.custName || benefitDetailData.cust_name || userInfo.cust_name || '—' }}（{{ benefitDetailData.custId || benefitDetailData.cust_id || userInfo.cust_id || '—' }}）</strong></el-col>
+            <el-col :span="12">服务项目：<strong>{{ benefitDetailData.benefitName || benefitDetailData.benefit_name || '—' }}</strong></el-col>
+            <el-col :span="12">服务供应商：<strong>{{ benefitDetailData.supplier || '—' }}</strong></el-col>
+            <el-col :span="12">服务类型：<strong>{{ benefitDetailData.kind || benefitDetailData.serviceType || benefitDetailData.service_type || '—' }}</strong></el-col>
+            <el-col :span="12">有效期：<strong>{{ formatDateOnly(benefitDetailData.validTo || benefitDetailData.valid_to || benefitDetailData.expire_time) }}</strong></el-col>
+            <el-col :span="12">次数状态：<strong>{{ benefitDetailData.countStatus || benefitDetailData.count_status || '正常' }}</strong></el-col>
+          </el-row>
+        </div>
+
+        <div class="detail-section">
+          <div class="section-title">本次使用</div>
+          <el-row :gutter="12" class="info-row">
+            <el-col :span="12">权益动作：<strong>{{ benefitDetailData.action || benefitDetailData.actionName || benefitDetailData.action_name || '—' }}</strong></el-col>
+            <el-col :span="12">动作时间：<strong>{{ benefitDetailData.actionTime || benefitDetailData.action_time || '—' }}</strong></el-col>
+            <el-col :span="12">本次次数：<strong>{{ formatBenefitCount(benefitDetailData.countChange !== undefined ? benefitDetailData.countChange : benefitDetailData.count_change) }}</strong></el-col>
+            <el-col :span="12">已使用 / 剩余：<strong>{{ benefitDetailData.usedCount !== undefined ? benefitDetailData.usedCount : (benefitDetailData.used_count || 0) }} / {{ benefitDetailData.remainCount === null || benefitDetailData.remain_count === null ? '不限' : (benefitDetailData.remainCount !== undefined ? benefitDetailData.remainCount : (benefitDetailData.remain_count !== undefined ? benefitDetailData.remain_count : '不限')) }}</strong></el-col>
+          </el-row>
+        </div>
+
+        <div class="detail-section">
+          <div class="section-title">次数变化</div>
+          <div class="benefit-change-card">
+            <span>变化前剩余：<strong>{{ benefitDetailData.beforeRemain || benefitDetailData.before_remain || '不限' }}</strong></span>
+            <span class="grade-change-arrow">→</span>
+            <span>变化后剩余：<strong>{{ benefitDetailData.afterRemain || benefitDetailData.after_remain || '不限' }}</strong></span>
+          </div>
+        </div>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button size="small" @click="benefitDetailDialogVisible = false">关闭</el-button>
       </div>
     </el-dialog>
   </div>
@@ -296,6 +440,8 @@
 
 <script>
 import { getCustPointDetailApi, getPointTraceSummaryApi, getPointTraceDetailApi, exportTraceApi } from '@/api/test/point'
+import { getGradeTraceDetailApi } from '@/api/test/index'
+import { getBenefitTraceDetailApi } from '@/api/test/index'
 
 export default {
   name: 'CustomerPointDetailDialog',
@@ -320,6 +466,10 @@ export default {
       // 轨迹二级详情弹窗控制
       innerTraceDetailVisible: false,
       traceDetailData: null,
+      gradeDetailDialogVisible: false,
+      gradeDetailData: null,
+      benefitDetailDialogVisible: false,
+      benefitDetailData: null,
 
       directionMap: {
         ADD: '加分',
@@ -345,8 +495,8 @@ export default {
       return [
         { title: '本期加分总额', value: this.traceSummary.add_total, color: '#67c23a' },
         { title: '本期减分总额', value: this.traceSummary.reduce_total, color: '#f56c6c' },
-        { title: '本期净变化', value: this.traceSummary.net_change, color: '#6383ff' },
-        { title: '轨迹总笔数', value: this.traceSummary.total, color: '#909399' }
+        { title: '本期净变化', value: this.traceSummary.net_change, color: '#4f6fae' },
+        { title: '轨迹总数', value: this.traceSummary.total, color: '#909399' }
       ]
     },
     pointsSummaryList() {
@@ -414,9 +564,30 @@ export default {
       return gradeMap[grade] || grade || '—'
     },
 
+    formatChangeType(type) {
+      const typeMap = {
+        UPGRADE: '升星',
+        DOWNGRADE: '降星',
+        INVALID: '失效',
+        ANNUAL: '年度评定',
+        SWITCH: '规则切换'
+      }
+      return typeMap[type] || type || '—'
+    },
+
+    formatBenefitCount(value) {
+      if (value === null || value === undefined || value === '') return '—'
+      return Number(value) > 0 ? `+${value}` : String(value)
+    },
+
     formatDirection(direction) {
       if (!direction) return '—'
       return this.directionMap[direction] || direction
+    },
+
+    formatDateOnly(value) {
+      if (!value) return '—'
+      return String(value).split('T')[0].split(' ')[0]
     },
 
     formatOperateType(type) {
@@ -454,7 +625,13 @@ export default {
       try {
         const res = await getPointTraceSummaryApi()
         if (res && res.data) {
-          this.traceSummary = res.data || { add_total: 0, reduce_total: 0, net_change: 0, total: 0 }
+          const data = res.data || {}
+          this.traceSummary = {
+            add_total: data.add_total !== undefined ? data.add_total : (data.addTotal || 0),
+            reduce_total: data.reduce_total !== undefined ? data.reduce_total : (data.reduceTotal || 0),
+            net_change: data.net_change !== undefined ? data.net_change : (data.netChange || 0),
+            total: data.total !== undefined ? data.total : (data.totalCount || 0)
+          }
         }
       } catch (err) {
         console.error('获取积分轨迹统计失败:', err)
@@ -539,11 +716,52 @@ export default {
           this.traceDetailData.pay_record_no = detail.pay_no || detail.pay_record_no
           this.traceDetailData.calc_factor = detail.calc_coefficient !== undefined ? detail.calc_coefficient : detail.calc_factor
           this.traceDetailData.attachment_name = detail.attachment || detail.attachment_name
-          this.traceDetailData.apply = res.data.apply || null
+          const apply = res.data.apply || detail.apply || {}
+          this.traceDetailData.apply = apply
+          this.traceDetailData.apply_no = apply.apply_no || apply.applyNo || this.traceDetailData.apply_no
+          this.traceDetailData.approver = apply.approver || apply.approver_name || this.traceDetailData.approver
+          this.traceDetailData.approve_time = apply.approve_time || apply.approveTime || this.traceDetailData.approve_time
+          this.traceDetailData.approve_remark = apply.approve_remark || apply.approveRemark || apply.approval_comment || this.traceDetailData.approve_remark
         }
       } catch (err) {
         console.error('获取积分轨迹详情失败:', err)
         this.$message.error('获取轨迹详情失败，请稍后重试')
+      }
+    },
+
+    async handleGradeDetail(row) {
+      this.gradeDetailData = { ...row }
+      this.gradeDetailDialogVisible = true
+      const traceNo = row.trace_no || row.traceNo || row.record_no || row.recordNo
+      if (!traceNo) return
+
+      try {
+        const res = await getGradeTraceDetailApi(traceNo)
+        const detail = res?.data || res?.body?.data || res
+        if (detail && typeof detail === 'object') {
+          this.gradeDetailData = { ...row, ...detail }
+        }
+      } catch (err) {
+        console.error('获取等级变化详情失败:', err)
+        this.$message.error('获取等级变化详情失败')
+      }
+    },
+
+    async handleBenefitDetail(row) {
+      this.benefitDetailData = { ...row }
+      this.benefitDetailDialogVisible = true
+      const traceId = row.id || row.traceNo || row.trace_no
+      if (!traceId) return
+
+      try {
+        const res = await getBenefitTraceDetailApi(traceId)
+        const detail = res?.data || res?.body?.data || res
+        if (detail && typeof detail === 'object') {
+          this.benefitDetailData = { ...row, ...detail }
+        }
+      } catch (err) {
+        console.error('获取权益使用详情失败:', err)
+        this.$message.error('获取权益使用详情失败')
       }
     }
   }
@@ -613,22 +831,24 @@ export default {
 }
 
 .section-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: bold;
-  color: #303133;
+  color: #333a45;
+  border-left: 3px solid #409eff;
+  padding-left: 8px;
   margin-bottom: 12px;
 }
 
 .main-title {
   font-size: 16px;
-  border-left: 4px solid #6383ff;
+  border-left: 4px solid #409eff;
   padding-left: 8px;
   margin-bottom: 16px;
 }
 
 .points-box {
   border: 1px solid #dcdfe6;
-  border-top: 3px solid #6383ff;
+  border-top: 3px solid #4f6fae;
   border-radius: 4px;
   padding: 12px 16px;
   background: #fff;
@@ -647,7 +867,7 @@ export default {
 }
 
 .box-value.highlight {
-  color: #6383ff;
+  color: #4f6fae;
 }
 
 .custom-header th {
@@ -658,7 +878,7 @@ export default {
 
 .text-green { color: #67c23a; }
 .text-red { color: #f56c6c; }
-.text-primary { color: #6383ff; }
+.text-primary { color: #4f6fae; }
 .font-bold { font-weight: bold; }
 
 .page-footer {
@@ -705,7 +925,7 @@ export default {
   font-weight: bold;
   color: #2f5496;
   padding-left: 8px;
-  border-left: 3px solid #4472c4;
+  border-left: 3px solid #409eff;
   margin-bottom: 12px;
   display: flex;
   align-items: center;
@@ -760,7 +980,84 @@ export default {
 
 .change-arrow {
   font-size: 20px;
-  color: #6383ff;
+  color: #4f6fae;
   margin: 0 32px;
+}
+
+.grade-detail-dialog ::v-deep .el-dialog__body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.grade-descriptions ::v-deep .el-descriptions-item__label,
+.grade-descriptions ::v-deep .el-descriptions-item__content {
+  font-size: 13px;
+}
+
+.grade-change-card {
+  padding: 15px;
+  background: #f4f4f5;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #606266;
+  font-size: 13px;
+}
+
+.grade-change-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.grade-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+.grade-status-before {
+  color: #606266;
+  background: #f4f4f5;
+  border-color: #d3d4d6;
+}
+
+.grade-status-after {
+  color: #409eff;
+  background: #ecf5ff;
+  border-color: #b3d8ff;
+}
+
+.grade-change-arrow {
+  margin: 0 20px;
+  color: #909399;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.grade-note {
+  color: #606266;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.benefit-change-card {
+  padding: 15px;
+  background: #f4f4f5;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #606266;
+  font-size: 13px;
+}
+
+.benefit-change-card strong {
+  color: #303133;
 }
 </style>
