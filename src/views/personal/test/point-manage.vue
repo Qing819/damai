@@ -89,9 +89,9 @@
             </el-form-item>
           </el-col>
           <el-col :span="12" class="btn-container">
-            <el-button class="btn-search" size="mini" type="primary" icon="el-icon-search" @click="handleSearch">查 询</el-button>
-            <el-button class="btn-reset" size="mini" icon="el-icon-refresh" @click="handleReset">重 置</el-button>
-            <el-button icon="el-icon-download" size="mini" @click="handleExport">导 出</el-button>
+            <el-button class="btn-search" size="mini" type="primary" @click="handleSearch">查询</el-button>
+            <el-button class="btn-reset" size="mini" @click="handleReset">重置</el-button>
+            <el-button class="btn-export" size="mini" @click="handleExport">导出</el-button>
           </el-col>
         </el-row>
       </el-form>
@@ -730,34 +730,36 @@ export default {
   padding-left: 24px;
 }
 .prototype-filter-form .btn-container .el-button {
-  height: 40px;
-  line-height: 38px;
-  padding: 0 17px;
-  font-size: 13px;
-  border-radius: 3px;
-}
-.prototype-filter-form .btn-container .el-button i {
-  line-height: 1;
-  vertical-align: -1px;
+  height: 36px;
+  line-height: normal;
+  width: 62px;
+  padding: 0 16px;
+  font-size: 14px;
+  border-radius: 4px;
 }
 
 .btn-reset {
-  background-color: #f2f5fb;
-  color: #526b9f;
-  border-color: #aebfdf;
+  background-color: #fff !important;
+  color: #4472c4 !important;
+  border-color: #4472c4 !important;
 }
 .btn-reset:hover {
-  background-color: #e0e9fb;
+  background-color: #fff;
 }
 
 .btn-search {
-  background-color: #4f6fae;
-  border-color: #4f6fae;
+  background-color: #4472c4 !important;
+  border-color: #4472c4 !important;
 }
 .btn-search:hover,
 .btn-search:focus {
-  background-color: #405e98;
-  border-color: #405e98;
+  background-color: #4472c4;
+  border-color: #4472c4;
+}
+.btn-export {
+  color: #4472c4;
+  border-color: #4472c4;
+  background: #fff;
 }
 .btn-container > .el-button:not(.btn-reset):not(.btn-search) {
   color: #526b9f;

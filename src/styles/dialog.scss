@@ -6,20 +6,14 @@
     height: 44px;
     background: #f5f7fd;
     .el-dialog__title {
-      color: #303133;
-      font-size: 14px;
+      color: #343a44;
+      font-size: 16px;
+      line-height: 24px;
+      font-weight: 600;
+      padding-left: 0;
       display: flex;
       align-items: center;
       // font-weight: 600;
-      &::before {
-        content: '';
-        display: inline-block;
-        width: 4px;
-        height: 12px;
-        border-radius: 2px;
-        background-color: #6383ff;
-        margin-right: 8px;
-      }
     }
     .el-dialog__headerbtn {
       top: 14px;
@@ -37,6 +31,33 @@
   .el-dialog__footer {
     padding: 10px;
   }
+}
+
+/* 弹框内二级分区标题统一使用申请详情样式 */
+.el-dialog .detail-section .section-title,
+.el-dialog .section-block .section-title,
+.el-dialog .detail-table-section .section-title,
+.el-dialog .detail-section-title,
+.el-dialog .dialog-section .section-title,
+.el-dialog .section-title {
+  box-sizing: border-box;
+  padding-left: 8px;
+  margin-bottom: 12px !important;
+  border-left: 3px solid #4472c4 !important;
+  font-size: 14px !important;
+  line-height: 20px;
+  font-weight: bold !important;
+  color: #2f5496 !important;
+}
+
+.el-dialog .detail-section .section-title::before,
+.el-dialog .section-block .section-title::before,
+.el-dialog .detail-table-section .section-title::before,
+.el-dialog .detail-section-title::before,
+.el-dialog .dialog-section .section-title::before,
+.el-dialog .section-title::before {
+  display: none !important;
+  content: none !important;
 }
 
 

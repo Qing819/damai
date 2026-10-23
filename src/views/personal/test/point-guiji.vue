@@ -659,6 +659,34 @@ export default {
 }
 
 /* 详情弹窗样式 */
+::v-deep .detail-dialog .el-dialog {
+  border-radius: 4px;
+  overflow: hidden;
+  font-family: "Microsoft YaHei", Arial, sans-serif;
+}
+
+::v-deep .detail-dialog .el-dialog__header {
+  height: auto;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e4e7ed;
+  background: #fff;
+}
+
+::v-deep .detail-dialog .el-dialog__title {
+  color: #343a44;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  padding-left: 0;
+}
+
+::v-deep .detail-dialog .el-dialog__body {
+  padding: 16px 20px 4px;
+  background: #fff;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
 .detail-section {
   margin-bottom: 20px;
 }
@@ -666,9 +694,9 @@ export default {
 .section-title {
   font-size: 14px;
   font-weight: bold;
-  color: #303133;
+  color: #2f5496;
   padding-left: 8px;
-  border-left: 3px solid #6383ff;
+  border-left: 3px solid #4472c4;
   margin-bottom: 12px;
   display: flex;
   align-items: center;
@@ -723,7 +751,7 @@ export default {
 
 .change-arrow {
   font-size: 20px;
-  color: #6383ff;
+  color: #4472c4;
   margin: 0 32px;
 }
 

@@ -1,4 +1,10 @@
 .el-table {
+  font-size: 12px;
+
+  .el-table__cell {
+    padding: 6px 0;
+  }
+
   .el-table__header-wrapper,
   .el-table__fixed-header-wrapper {
     th {
@@ -7,6 +13,21 @@
     }
   }
 }
+
+/* 统一 small/mini 表格的基础行高，保持与客户积分列表一致 */
+.el-table--small,
+.el-table--mini {
+  font-size: 12px;
+
+  .el-table__cell {
+    padding: 6px 0;
+  }
+}
+
+.el-pagination {
+  font-size: 12px;
+}
+
 .el-table--enable-row-hover .el-table__body tr:hover > td{
   background-color: #fff;
 }
