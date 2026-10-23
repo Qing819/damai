@@ -123,7 +123,7 @@ const objectSpanMethod = ({ row, column, rowIndex, columnIndex }) => ({
   transform: translateY(-50%);
   width: 3px;
   height: 14px;
-  background-color: #409eff;
+  background-color: #6383ff;
   border-radius: 2px;
 }
 
@@ -200,7 +200,7 @@ const objectSpanMethod = ({ row, column, rowIndex, columnIndex }) => ({
 .tag-blue-light {
   background-color: #edf5ff;
   border-color: #d9ecff;
-  color: #409eff;
+  color: #6383ff;
 }
 
 /* 蓝色系 */

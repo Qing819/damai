@@ -867,7 +867,7 @@ export default {
   font-weight: bold;
   color: #303133;
   padding-left: 8px;
-  border-left: 3px solid #409eff;
+  border-left: 3px solid #6383ff;
   margin-bottom: 12px;
 }
 
@@ -879,7 +879,7 @@ export default {
 
 .file-link {
   font-size: 13px;
-  color: #409eff;
+  color: #6383ff;
   cursor: pointer;
 }
 

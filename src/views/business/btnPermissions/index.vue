@@ -108,7 +108,7 @@ export default {
           .title-icon {
             width: 4px;
             height: 12px;
-            background: #6383FF;
+            background: #6383ff;
             border-radius: 2px;
           }
           .title-text {

@@ -428,7 +428,7 @@ export default {
           height: 12px;
           border-radius: 2px;
           margin-right: 8px;
-          background-color: #409eff;
+          background-color: #6383ff;
         }
       }
     }
@@ -479,7 +479,7 @@ export default {
     font-weight: bold;
   }
   .text-primary {
-    color: #409eff;
+    color: #6383ff;
   }
   .text-success {
     color: #67c23a;

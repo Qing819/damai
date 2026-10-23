@@ -480,7 +480,7 @@ export default {
   font-weight: bold;
   margin: 10px 0 15px 0;
   padding-left: 8px;
-  border-left: 4px solid #409eff;
+  border-left: 4px solid #6383ff;
 }
 .sub-title {
   margin-bottom: 15px;

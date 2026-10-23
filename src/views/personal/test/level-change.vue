@@ -185,7 +185,7 @@
     <el-dialog title="等级变化详情" :visible.sync="dialogVisible" width="600px" v-loading="detailLoading">
       <div v-if="currentDetail">
         <!-- 基本信息描述列表 -->
-        <div style="font-weight: bold; margin-bottom: 12px; color: #409EFF; border-left: 3px solid #409EFF; padding-left: 8px;">
+        <div style="font-weight: bold; margin-bottom: 12px; color: #6383ff; border-left: 3px solid #6383ff; padding-left: 8px;">
           基本信息
         </div>
         <el-descriptions :column="2" size="small">
@@ -207,7 +207,7 @@
         </el-descriptions>
 
         <!-- 等级变化指示器 -->
-        <div style="font-weight: bold; margin: 20px 0 12px 0; color: #409EFF; border-left: 3px solid #409EFF; padding-left: 8px;">
+        <div style="font-weight: bold; margin: 20px 0 12px 0; color: #6383ff; border-left: 3px solid #6383ff; padding-left: 8px;">
           等级变化
         </div>
         <div style="background-color: #f4f4f5; padding: 15px; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
@@ -225,7 +225,7 @@
         </div>
 
         <!-- 变动说明 -->
-        <div style="font-weight: bold; margin: 20px 0 8px 0; color: #409EFF; border-left: 3px solid #409EFF; padding-left: 8px;">
+        <div style="font-weight: bold; margin: 20px 0 8px 0; color: #6383ff; border-left: 3px solid #6383ff; padding-left: 8px;">
           变动说明
         </div>
         <div style="font-size: 13px; color: #606266; line-height: 1.6;">

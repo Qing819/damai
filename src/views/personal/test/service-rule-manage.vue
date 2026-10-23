@@ -134,7 +134,7 @@
           <el-form-item label="服务权益" required class="rights-form-item">
             <div class="rights-header-bar">
               <div class="left-rights-info">
-                <span>已选 <b style="color: #409EFF;">{{ editForm.rightsList.length }}</b> 条 · 点击行可展开配置服务项目</span>
+                <span>已选 <b style="color: #6383ff;">{{ editForm.rightsList.length }}</b> 条 · 点击行可展开配置服务项目</span>
                 <el-button-group class="expand-btn-group">
                   <el-button size="mini" icon="el-icon-arrow-down" @click="expandAllRows(true)">全部展开</el-button>
                   <el-button size="mini" icon="el-icon-arrow-up" @click="expandAllRows(false)">全部收起</el-button>
