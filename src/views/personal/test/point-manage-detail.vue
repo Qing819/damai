@@ -1,7 +1,6 @@
 <template>
   <div class="customer-point-detail-page" v-loading="loading">
     <div class="page-heading">
-      <div class="breadcrumb">积分管理 <span>/</span> 客户积分管理 <span>/</span> 客户积分详情</div>
       <div class="heading-row">
         <div>
           <h1>客户积分详情</h1>
@@ -777,17 +776,6 @@ export default {
 
 .page-heading {
   margin-bottom: 18px;
-}
-
-.breadcrumb {
-  margin-bottom: 14px;
-  color: #909399;
-  font-size: 13px;
-}
-
-.breadcrumb span {
-  margin: 0 7px;
-  color: #c0c4cc;
 }
 
 .heading-row {

@@ -1,7 +1,6 @@
 <template>
   <div class="points-management-app">
     <div v-if="currentView === 'list'" class="page-heading">
-      <div class="breadcrumb">积分管理 <span>/</span> 积分调整申请</div>
       <h1>积分调整申请</h1>
       <p>按客户、申请状态和调整类型筛选人工积分调整申请，支持查看、修改和删除被驳回申请</p>
     </div>
@@ -1253,17 +1252,6 @@ export default {
 
 .page-heading {
   margin: 2px 0 16px;
-}
-
-.breadcrumb {
-  color: #909399;
-  font-size: 12px;
-  margin-bottom: 10px;
-}
-
-.breadcrumb span {
-  margin: 0 8px;
-  color: #c0c4cc;
 }
 
 .page-heading h1 {

@@ -1,7 +1,6 @@
 <template>
   <div class="customer-points-container">
     <div class="page-heading">
-      <div class="breadcrumb">积分管理 <span>/</span> 客户积分管理</div>
       <h1>客户积分管理</h1>
       <p>全量客户积分综合管理：按条件筛选客户，查看客户积分汇总与各类型积分明细，追溯积分、等级、权益三类轨迹</p>
     </div>
@@ -663,15 +662,6 @@ export default {
 
 .page-heading {
   margin: 2px 0 16px;
-}
-.breadcrumb {
-  color: #909399;
-  font-size: 12px;
-  margin-bottom: 10px;
-}
-.breadcrumb span {
-  margin: 0 8px;
-  color: #c0c4cc;
 }
 .page-heading h1 {
   margin: 0 0 8px;

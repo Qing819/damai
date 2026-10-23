@@ -2,7 +2,6 @@
   <div class="audit-page-container">
     <!-- 页面标题区 -->
     <div class="page-heading">
-      <div class="breadcrumb">积分管理 <span>/</span> 积分调整审核</div>
       <h1>积分调整审核</h1>
       <p>对待审核的积分调整申请进行审批处理，超过阈值的申请需上级审批后生效</p>
     </div>
@@ -547,17 +546,6 @@ export default {
 
 .page-heading {
   margin: 2px 0 16px;
-}
-
-.breadcrumb {
-  color: #909399;
-  font-size: 12px;
-  margin-bottom: 10px;
-}
-
-.breadcrumb span {
-  margin: 0 8px;
-  color: #c0c4cc;
 }
 
 .page-heading h1 {

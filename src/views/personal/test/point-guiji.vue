@@ -1,7 +1,6 @@
 <template>
   <div class="app-container">
     <div class="page-heading">
-      <div class="breadcrumb">积分管理 <span>/</span> 积分轨迹</div>
       <h1>积分轨迹</h1>
       <p>查询客户积分流水与调整轨迹，全过程可追溯</p>
     </div>
@@ -660,17 +659,6 @@ export default {
 
 .page-heading {
   margin: 2px 0 16px;
-}
-
-.breadcrumb {
-  color: #909399;
-  font-size: 12px;
-  margin-bottom: 10px;
-}
-
-.breadcrumb span {
-  margin: 0 8px;
-  color: #c0c4cc;
 }
 
 .page-heading h1 {
