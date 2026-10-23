@@ -1,14 +1,15 @@
 <template>
   <div class="audit-page-container">
     <!-- 页面标题区 -->
-    <div class="page-header">
-      <h2 class="title">积分调整审核</h2>
-      <p class="subtitle">对待审核的积分调整申请进行审批处理，超过阈值的申请需上级审批后生效</p>
+    <div class="page-heading">
+      <div class="breadcrumb">积分管理 <span>/</span> 积分调整审核</div>
+      <h1>积分调整审核</h1>
+      <p>对待审核的积分调整申请进行审批处理，超过阈值的申请需上级审批后生效</p>
     </div>
 
     <!-- 筛选条件区 -->
     <el-card shadow="never" class="filter-card">
-      <el-form :inline="true" :model="searchForm" size="small" label-width="80px">
+      <el-form :inline="true" :model="searchForm" size="small" class="prototype-filter-form" label-width="80px">
         <el-form-item label="证件类型">
           <el-select v-model="searchForm.idType" placeholder="请选择" style="width: 140px" clearable>
             <el-option label="全部证件类型" value="" />
@@ -30,19 +31,21 @@
           <el-input v-model="searchForm.custId" placeholder="请输入客户号" style="width: 140px" clearable />
         </el-form-item>
 
-        <el-form-item label="调整类型">
-          <el-select v-model="searchForm.adjustType" placeholder="全部调整类型" style="width: 130px" clearable>
-            <el-option label="加分" value="ADD" />
-            <el-option label="减分" value="SUB" />
+        <el-form-item label="服务归属机构">
+          <el-select v-model="searchForm.orgName" placeholder="全部服务归属机构" style="width: 170px" clearable>
+            <el-option label="总公司" value="总公司" />
+            <el-option label="北京分公司" value="北京分公司" />
+            <el-option label="天津分公司" value="天津分公司" />
+            <el-option label="河北分公司" value="河北分公司" />
+            <el-option label="山西分公司" value="山西分公司" />
+            <el-option label="辽宁分公司" value="辽宁分公司" />
+            <el-option label="大连分公司" value="大连分公司" />
+            <el-option label="陕西分公司" value="陕西分公司" />
+            <el-option label="湖北分公司" value="湖北分公司" />
+            <el-option label="四川分公司" value="四川分公司" />
+            <el-option label="上海分公司" value="上海分公司" />
+            <el-option label="江苏分公司" value="江苏分公司" />
           </el-select>
-        </el-form-item>
-
-        <el-form-item label="服务机构">
-          <el-input v-model="searchForm.orgName" placeholder="请输入服务机构" style="width: 150px" clearable />
-        </el-form-item>
-
-        <el-form-item label="申请人">
-          <el-input v-model="searchForm.applicant" placeholder="请输入申请人" style="width: 130px" clearable />
         </el-form-item>
 
         <el-form-item label="审核状态">
@@ -54,7 +57,7 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="申请时间">
+        <el-form-item label="申请日期">
           <div class="date-range-wrapper">
             <el-date-picker
                 v-model="searchForm.dateFrom"
@@ -75,9 +78,13 @@
         </el-form-item>
 
         <!-- 操作按钮 -->
+        <el-form-item label="申请人">
+          <el-input v-model="searchForm.applicant" placeholder="请输入申请人" style="width: 130px" clearable />
+        </el-form-item>
+
         <el-form-item class="form-btn-item">
-          <el-button type="primary" icon="el-icon-search" @click="handleSearch">查 询</el-button>
-          <el-button icon="el-icon-refresh" @click="handleReset">重 置</el-button>
+          <el-button class="btn-search" type="primary" @click="handleSearch">查询</el-button>
+          <el-button class="btn-reset" @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -93,7 +100,8 @@
           :data="tableData"
           border
           style="width: 100%"
-          size="small"
+          stripe
+          size="mini"
       >
         <el-table-column min-width="160" label="客户" show-overflow-tooltip>
           <template slot-scope="scope">
@@ -107,6 +115,8 @@
           </template>
         </el-table-column>
         <el-table-column prop="idNo" label="证件号码" width="160" align="center" />
+
+        <el-table-column prop="orgName" label="服务归属机构" width="120" align="center" show-overflow-tooltip />
 
         <el-table-column prop="adjustType" label="调整类型" width="80" align="center">
           <template slot-scope="scope">
@@ -148,7 +158,7 @@
           <template slot-scope="scope">
             <el-button
                 type="text"
-                size="small"
+                size="mini"
                 @click="openAuditModal(scope.row)"
             >
               {{ isPending(scope.row.status) ? '审核' : '查看' }}
@@ -173,9 +183,10 @@
 
     <!-- 审核 / 查看详情弹窗 -->
     <el-dialog
+        class="audit-detail-dialog"
         title="审核详情"
         :visible.sync="dialogVisible"
-        width="640px"
+        width="660px"
         append-to-body
     >
       <div v-if="currentRow" v-loading="detailLoading" class="dialog-body">
@@ -185,6 +196,7 @@
           <el-descriptions-item label="客户">{{ currentRow.custName }} ({{ currentRow.custId }})</el-descriptions-item>
           <el-descriptions-item label="证件类型">{{ formatIdType(currentRow.idType) }}</el-descriptions-item>
           <el-descriptions-item label="证件号码">{{ currentRow.idNo || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="服务归属机构">{{ currentRow.orgName || '—' }}</el-descriptions-item>
           <el-descriptions-item label="调整类型">{{ formatAdjustType(currentRow.adjustType) }}</el-descriptions-item>
           <el-descriptions-item label="调整积分额度">
             <span :class="isAddAdjust(currentRow.adjustType) ? 'text-success' : 'text-danger'">
@@ -220,7 +232,7 @@
 
         <!-- 详细说明 -->
         <div class="section-block">
-          <div class="section-title">备注说明</div>
+          <div class="section-title">详细说明</div>
           <p class="desc-text">{{ currentRow.remark || '无' }}</p>
         </div>
 
@@ -229,6 +241,7 @@
           <div class="section-title">附件</div>
           <div>
             <el-link type="primary" :underline="false" icon="el-icon-document">{{ currentRow.attachment }}</el-link>
+            <span class="attachment-download-count">（已下载 {{ currentRow.attachmentDownloadCount || currentRow.downloadCount || 0 }} 次）</span>
           </div>
         </div>
 
@@ -267,7 +280,7 @@
 
       <!-- 待审核时显示的底部按钮：按照 1.6 规范传对应编码 -->
       <div v-if="currentRow && isPending(currentRow.status)" slot="footer" class="dialog-footer">
-        <el-button type="danger" plain :loading="submitLoading" @click="handleAuditSubmit('REJECTED')">驳 回</el-button>
+        <el-button type="danger" plain :loading="submitLoading" @click="handleAuditSubmit('REJECTED')">驳回</el-button>
         <el-button type="primary" :loading="submitLoading" @click="handleAuditSubmit('APPROVED')">审核通过</el-button>
       </div>
     </el-dialog>
@@ -291,7 +304,8 @@ export default {
 
       // 证件类型字典 (规范 1.8)
       idTypeMap: {
-        IDCARD: '身份证',
+        IDCARD: '居民身份证',
+        ID_CARD: '居民身份证',
         PASSPORT: '护照',
         OTHER: '其他'
       },
@@ -304,8 +318,8 @@ export default {
 
       // 1.9 有效期类型字典
       validTypeMap: {
-        nat: '自然年（年底清零）',
-        custom: '自定义截止日'
+        nat: '自然年（至当年12月31日）',
+        custom: '指定截止'
       },
 
       // 申请状态编码字典 (规范 1.5)
@@ -357,7 +371,7 @@ export default {
       if (!row || !row.validType) return '—'
       const label = this.validTypeMap[row.validType] || row.validType
       if (row.validType === 'custom') {
-        return row.validEndDate ? `${label}（至 ${row.validEndDate}）` : label
+        return row.validEndDate ? `${label}：${row.validEndDate}` : label
       }
       return label
     },
@@ -523,7 +537,7 @@ export default {
 
 <style scoped>
 .audit-page-container {
-  padding: 20px;
+  padding: 16px;
   background-color: #f5f7fa;
   min-height: 100vh;
 }
@@ -533,17 +547,46 @@ export default {
   margin-bottom: 16px;
 }
 
+.page-heading {
+  margin: 2px 0 16px;
+}
+
+.breadcrumb {
+  color: #909399;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.breadcrumb span {
+  margin: 0 8px;
+  color: #c0c4cc;
+}
+
+.page-heading h1 {
+  margin: 0 0 8px;
+  color: #333a45;
+  font-size: 21px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.page-heading p {
+  margin: 0;
+  color: #5a6472;
+  font-size: 13px;
+}
+
 .page-header .title {
   margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: #303133;
+  font-size: 21px;
+  font-weight: 700;
+  color: #333a45;
 }
 
 .page-header .subtitle {
   margin: 6px 0 0 0;
   font-size: 13px;
-  color: #909399;
+  color: #5a6472;
 }
 
 /* 筛选区容器与表单项间距调整 */
@@ -551,9 +594,29 @@ export default {
   margin-bottom: 16px;
 }
 
+.filter-card,
+.table-card {
+  border: 1px solid #e1e5ec;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.filter-card /deep/ .el-card__body {
+  padding: 16px 18px 10px;
+}
+
+.table-card /deep/ .el-card__header {
+  padding: 14px 18px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.table-card /deep/ .el-card__body {
+  padding: 16px 18px;
+}
+
 .el-form-item {
-  margin-right: 28px !important;
-  margin-bottom: 16px !important;
+  margin-right: 16px !important;
+  margin-bottom: 12px !important;
 }
 
 /* 日期范围分割符 */
@@ -571,6 +634,44 @@ export default {
   margin-left: 10px;
 }
 
+.prototype-filter-form /deep/ .el-form-item__label {
+  display: none;
+}
+
+.prototype-filter-form /deep/ .el-form-item__content {
+  margin-left: 0 !important;
+}
+
+.prototype-filter-form /deep/ .el-input__inner,
+.prototype-filter-form /deep/ .el-select .el-input__inner,
+.prototype-filter-form /deep/ .el-date-editor.el-input__inner {
+  height: 40px;
+  line-height: normal;
+  border-color: #c9cfd8;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.prototype-filter-form /deep/ .el-button {
+  width: 62px;
+  height: 36px;
+  line-height: normal;
+  padding: 0 16px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.prototype-filter-form /deep/ .btn-search {
+  background: #4472c4 !important;
+  border-color: #4472c4 !important;
+}
+
+.prototype-filter-form /deep/ .btn-reset {
+  color: #4472c4 !important;
+  background: #fff !important;
+  border-color: #4472c4 !important;
+}
+
 /* 列表卡片与标题 */
 .table-card {
   margin-bottom: 16px;
@@ -578,8 +679,14 @@ export default {
 
 .table-title {
   font-weight: 600;
-  font-size: 14px;
-  color: #303133;
+  font-size: 15px;
+  color: #333a45;
+}
+
+.table-card /deep/ .el-table .el-button--text {
+  padding: 0 4px;
+  color: #4472c4;
+  font-size: 12px;
 }
 
 /* 状态与文本颜色辅助 */
@@ -595,7 +702,7 @@ export default {
 .pagination-container {
   margin-top: 16px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 /* 弹窗内容与标题 */
@@ -618,7 +725,7 @@ export default {
 
 /* 积分变化卡片 Element 风格 */
 .points-card {
-  background-color: #f8f9fb;
+  background-color: #eaf2ff;
 }
 
 .points-change-wrapper {
@@ -642,7 +749,7 @@ export default {
 
 .arrow-icon {
   font-size: 20px;
-  color: #6383ff;
+  color: #4472c4;
 }
 
 .desc-text {
@@ -656,5 +763,46 @@ export default {
   font-size: 13px;
   color: #606266;
   margin-bottom: 8px;
+}
+
+/* 与积分调整申请的申请详情弹框使用同一滚动容器 */
+.audit-detail-dialog /deep/ .el-dialog {
+  border-radius: 4px;
+  overflow: hidden;
+  font-family: "Microsoft YaHei", Arial, sans-serif;
+}
+
+.audit-detail-dialog /deep/ .el-dialog__header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e4e7ed;
+  background: #fff;
+}
+
+.audit-detail-dialog /deep/ .el-dialog__body {
+  padding: 16px 20px 4px;
+  background: #fff;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.audit-detail-dialog /deep/ .el-dialog__footer {
+  padding: 10px 16px;
+  border-top: 1px solid #e4e7ed;
+  background: #fff;
+}
+
+.audit-detail-dialog /deep/ .el-dialog__headerbtn {
+  top: 16px;
+}
+
+.dialog-body /deep/ .el-descriptions__content {
+  color: #333a45;
+  font-weight: 600;
+}
+
+.attachment-download-count {
+  margin-left: 8px;
+  color: #909399;
+  font-size: 12px;
 }
 </style>
