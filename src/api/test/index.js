@@ -117,10 +117,11 @@ export function getGradeTracePageApi(params) {
 }
 
 // 22. 等级变化统计
-export function getGradeTraceSummaryApi() {
+export function getGradeTraceSummaryApi(params) {
   return fetch({
     url: '/platform/grade/trace/summary',
-    method: 'get'
+    method: 'get',
+    params
   });
 }
 
@@ -520,7 +521,15 @@ export function getPlatformIdTypesApi(params) {
     method: 'get',
     params
   });
-} export function getPlatformOrderChannelApi(params) {
+}
+export function getPlatformChannelsApi(params) {
+  return fetch({
+    url: '/platform/dict/biz/channels',
+    method: 'get',
+    params
+  });
+}
+export function getPlatformOrderChannelApi(params) {
   return fetch({
     url: '/platform/dict/ORDER_CHANNEL',
     method: 'get',
