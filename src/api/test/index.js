@@ -62,6 +62,14 @@ export function saveGradeConfigBandApi(data) {
   });
 }
 
+export function saveGradeConfigBandsBatchApi(data) {
+  return fetch({
+    url: '/platform/grade/config/bands/batch',
+    method: 'post',
+    data
+  });
+}
+
 export function deleteGradeConfigBandApi(id) {
   return fetch({
     url: `/platform/grade/config/band/${id}`,
