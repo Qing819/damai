@@ -1,5 +1,7 @@
 # 服务规则配置核对记录（2026-10-26）
 
+> 历史记录。2026-10-27 已按新清单接通修改记录接口，并修正 v2.7 的00/01布尔口径；最新接口矩阵、真实写入结果和后端问题见同目录 `service-rules-integration-results.md`。下文“接口缺失”是上一轮环境的结论。
+
 原型：`https://www.axureshow.com/project/2HvdzeaU/服务权益配置.html`
 
 本地：`http://localhost:7001/point/personal/srm`

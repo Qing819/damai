@@ -349,6 +349,24 @@ export function getBenefitGradeListApi(params) {
     params
   });
 }
+export function getServiceRuleModListApi(params) {
+  return fetch({ url: '/platform/benefit/rule/mod/list', method: 'get', params });
+}
+export function getServiceRuleModGradesApi(params) {
+  return fetch({ url: '/platform/benefit/rule/mod/gradeOptions', method: 'get', params });
+}
+export function getServiceRuleModViewApi(id) {
+  return fetch({ url: '/platform/benefit/rule/mod/view', method: 'get', params: { id } });
+}
+export function createServiceRuleModApi(data) {
+  return fetch({ url: '/platform/benefit/rule/mod/create', method: 'post', data });
+}
+export function updateServiceRuleModApi(data) {
+  return fetch({ url: '/platform/benefit/rule/mod/update', method: 'post', data });
+}
+export function deleteServiceRuleModApi(id) {
+  return fetch({ url: '/platform/benefit/rule/mod/delete', method: 'post', params: { id } });
+}
 export function serviceAdjustApplyApi(data) {
   return fetch({
     url: '/benefit/adjust/apply',

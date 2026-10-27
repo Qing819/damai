@@ -15,7 +15,7 @@ async function request(config) {
   if (!live) return responses[config.url] || { data: [] }
   assert.strictEqual(config.method, 'get', 'Live verification is read-only')
   const response = await axios({
-    ...config, baseURL: 'http://localhost:8002', timeout: 15000,
+    ...config, baseURL: process.env.SERVICE_RULE_API || 'http://192.168.137.235:8002', timeout: 15000,
     responseType: config.responseType === 'blob' ? 'arraybuffer' : 'json'
   })
   if (config.responseType === 'blob') {
@@ -32,7 +32,7 @@ function makeVM() {
   const vm = {
     ...component.data(),
     $message: Object.fromEntries(['error', 'warning', 'success'].map(type => [type, text => messages.push({ type, text })])),
-    $nextTick: callback => callback(),
+    $nextTick: callback => callback(), $confirm: async () => {},
     $refs: { editTableRef: { toggleRowExpansion() {} }, rightsPicker: { clearSelection() {} } }
   }
   for (const [name, method] of Object.entries(component.methods)) vm[name] = method.bind(vm)
@@ -46,13 +46,20 @@ async function run() {
   responses['/platform/dict/IDENTITY'] = { data: [
     { code: 'POLICYHOLDER', name: '投保人' }, { code: 'INSURED', name: '有效保单被保险人' }
   ] }
-  responses['/platform/dict/ORDER_CHANNEL'] = { data: [{ code: 'WECHAT', name: '官微' }] }
+  responses['/platform/dict/ORDER_CHANNEL'] = { data: [{ code: '00', name: '官微' }, { code: '01', name: 'PC端' }, { code: '02', name: '客服电话95348' }] }
   responses['/platform/dict/biz/orgs'] = { data: ['天津分公司'] }
   await vm.fetchDictOptions()
   assert.ok(!calls.some(call => call.url.includes('idTypes')))
   assert.deepStrictEqual(vm.orgOptions, ['全国', '天津分公司'])
   assert.strictEqual(vm.flag('0'), false)
   assert.strictEqual(vm.flag('1'), true)
+  assert.strictEqual(vm.ruleFlag('00'), true)
+  assert.strictEqual(vm.ruleFlag('01'), false)
+  assert.strictEqual(vm.ruleFlag('1'), true)
+  assert.strictEqual(vm.ruleFlag('0'), false)
+  responses['/platform/benefit/rule/mod/gradeOptions'] = { data: [
+    { gradeCode: 'WUXING', gradeName: '五星（新V）', pendingMod: 0 }
+  ] }
   vm.versionOptions = [{ version_tag: 'V2', current_flag: 1 }, { version_tag: 'V3', current_flag: 0, effectiveDate: '2099-01-01' }]
   vm.selectedVersion = 'V2'
   const start = calls.length
@@ -82,22 +89,22 @@ async function run() {
   vm.isModification = true
   assert.strictEqual(vm.versionExpireText(vm.versionOptions[0]), '—')
   assert.strictEqual(vm.versionExpireText({ expireDate: null }), '长期有效')
-  console.log('PASS: current version protected; missing version dates stay unknown; modification does not overwrite active rules')
+  console.log('PASS: current version protected; missing version dates stay unknown; mod-grade options use the new endpoint')
 
   const benefit = {
     benefitCode: 'QY1', benefitName: '体检', kind: '健康服务', supplier: '服务商',
     itemsJson: JSON.stringify([{ cat: '体检', name: '套餐A' }, { cat: '体检', name: '套餐B' }]),
     identitiesJson: '["POLICYHOLDER","INSURED"]', regionsJson: '["全国"]',
-    needOrder: '1', needAudit: '1', freqUnlimited: '1', orderChannelsJson: '["官微"]',
+    needOrder: '00', needAudit: '00', freqUnlimited: '00', orderChannelsJson: '["官微"]',
     itemRulesJson: JSON.stringify([
-      { cat: '体检', name: '套餐A', needOrder: '0', needAudit: '0', freqUnlimited: '0', freqYears: 2, freqAvgYears: 1, freqCount: 3 },
-      { cat: '体检', name: '套餐B', needOrder: '1', needAudit: '1', freqUnlimited: '1', orderChannels: ['WECHAT'] }
+      { cat: '体检', name: '套餐A', needOrder: '01', needAudit: '01', freqUnlimited: '01', freqYears: 2, freqAvgYears: 1, freqCount: 3 },
+      { cat: '体检', name: '套餐B', needOrder: '00', needAudit: '00', freqUnlimited: '00', orderChannels: ['00'] }
     ])
   }
   responses['/platform/benefit/rule/view'] = { data: { items: [benefit] } }
   await vm.loadRuleDetail('V2', 'WUXING')
   assert.deepStrictEqual(vm.editForm.rightsList[0].identities, ['POLICYHOLDER', 'INSURED'])
-  assert.deepStrictEqual(vm.editForm.rightsList[0].items[0].orderChannels, ['WECHAT'])
+  assert.deepStrictEqual(vm.editForm.rightsList[0].items[0].orderChannels, ['00'])
   assert.strictEqual(vm.editForm.rightsList[0].items[0].needOrder, false)
   assert.strictEqual(vm.editForm.rightsList[0].items[0].freqUnlimited, false)
   await vm.handleView({ grade_code: 'WUXING', gradeName: '五星' })
@@ -110,23 +117,27 @@ async function run() {
   console.log('PASS: project overrides, string flags, identity codes and translated detail values')
 
   const pending = {
-    versionTag: 'V2', gradeCode: 'WUXING', gradeName: '五星（新V）',
-    effectiveDate: '2099-01-01', status: 'PENDING_EFFECTIVE',
-    operator: '核对用户', modifyTime: '2026-10-26 10:00', description: '记录快照',
-    items: [benefit]
+    id: 1, versionTag: 'V2', gradeCode: 'WUXING', gradeName: '五星（新V）',
+    effectiveDate: '2099-01-01', statusCode: 'PENDING',
+    modifier: '核对用户', modifyTime: '2026-10-26 10:00', description: '记录快照',
+    items: [{ ...benefit, itemsJson: undefined }]
   }
   const snapshotBefore = JSON.stringify(pending)
-  vm.changeRecords = [pending, { ...pending, status: 'ACTIVE' }, { ...pending, status: 'EXPIRED' }]
-  vm.handleViewChange(pending)
+  responses['/platform/benefit/rule/mod/list'] = { data: [pending, { ...pending, id: 2, statusCode: 'EFFECTIVE' }, { ...pending, id: 3, statusCode: 'EXPIRED' }] }
+  responses['/platform/benefit/rule/mod/view'] = { data: pending }
+  await vm.fetchChangeRecords()
+  await vm.handleViewChange(vm.changeRecords[0])
   assert.strictEqual(vm.viewIsChange, true)
   assert.strictEqual(vm.viewData.itemList[0].frequency, '2年内平均1年使用3次')
   assert.deepStrictEqual(vm.changeDetailFields.map(field => field.label), ['规则版本', '星级', '生效日期', '修改人', '修改时间', '状态'])
-  assert.strictEqual(vm.changeStatusText('PENDING_EFFECTIVE'), '待生效')
-  assert.strictEqual(vm.changeStatusText('ACTIVE'), '生效中')
+  assert.strictEqual(vm.changeStatusText('PENDING'), '待生效')
+  assert.strictEqual(vm.changeStatusText('EFFECTIVE'), '生效中')
   assert.strictEqual(vm.changeStatusText('EXPIRED'), '已失效')
-  vm.handleEditChange(pending)
+  assert.strictEqual(vm.viewChange.operator, '核对用户')
+  await vm.handleEditChange(vm.changeRecords[0])
   assert.strictEqual(vm.isEditMode, true)
   assert.strictEqual(vm.editForm.effectiveDate, '2099-01-01')
+  assert.strictEqual(vm.editForm.rightsList[0].items.length, 2, 'Snapshot project rules restore both projects when itemsJson is absent')
   assert.strictEqual(vm.editForm.description, '记录快照')
   vm.editForm.rightsList[0].items[0].freqYears = 99
   vm.editForm.rightsList[0].identities.push('TEST')
@@ -137,10 +148,14 @@ async function run() {
   vm.handleChangePageSizeChange(20)
   assert.strictEqual(vm.pagedChangeRecords.length, 3)
   const requestsBeforeDelete = calls.length
-  vm.handleDeleteChange(pending)
-  assert.strictEqual(calls.length, requestsBeforeDelete)
+  await vm.handleDeleteChange(vm.changeRecords[1])
+  assert.strictEqual(calls.length, requestsBeforeDelete, 'Effective rows cannot be deleted')
+  await vm.handleDeleteChange(vm.changeRecords[0])
+  const deleted = calls.slice(requestsBeforeDelete).find(call => call.url.endsWith('/mod/delete'))
+  assert.deepStrictEqual(deleted.params, { id: 1 })
+  assert.strictEqual(deleted.method, 'post')
   assert.strictEqual(vm.changeRecords.length, 3)
-  console.log('PASS: change detail fields and snapshot, pending edit isolation, duplicate pending grades, pagination and unavailable delete protection')
+  console.log('PASS: live-shaped record statuses/modifier, detail endpoint, snapshot isolation, pending-only edit/delete and delete id query')
 
   vm.editForm.rightsList = []
   vm.selectedRightsFromDialog = [benefit]
@@ -173,7 +188,45 @@ async function run() {
   assert.deepStrictEqual(payload.items[0].identities, ['POLICYHOLDER'])
   assert.strictEqual(payload.items[0].itemRules.length, 2)
   assert.deepStrictEqual(payload.items[0].itemRules[0].orderChannels, [])
-  assert.strictEqual(payload.items[0].itemRules[0].needOrder, 0)
+  assert.strictEqual(payload.items[0].itemRules[0].needOrder, '01')
+  assert.strictEqual(payload.items[0].itemRules[0].freqUnlimited, '01')
+  vm.saving = true
+  const beforeDuplicate = calls.length
+  await vm.handleSaveRule()
+  assert.strictEqual(calls.length, beforeDuplicate)
+  vm.saving = false
+  vm.isModification = true
+  vm.isEditMode = false
+  vm.editForm.versionTag = 'V2'
+  vm.editForm.gradeCode = 'SANXING'
+  vm.editForm.effectiveDate = '2099-01-02'
+  await vm.handleSaveRule()
+  const created = calls.find(call => call.url.endsWith('/mod/create'))
+  assert.ok(created)
+  assert.strictEqual(created.data.effectiveDate, '2099-01-02')
+  assert.strictEqual(created.data.items[0].needAudit, '01')
+  assert.ok(!Object.prototype.hasOwnProperty.call(created.data, 'modifier'))
+  assert.strictEqual(created.data.items[0].itemRules[0].needOrder, '01')
+  vm.isEditMode = true
+  vm.editForm.id = 10
+  await vm.handleSaveRule()
+  const updated = calls.find(call => call.url.endsWith('/mod/update'))
+  assert.strictEqual(updated.data.id, 10)
+  vm.editForm.effectiveDate = '2000-01-01'
+  const beforeInvalidDate = calls.length
+  await vm.handleSaveRule()
+  assert.strictEqual(calls.length, beforeInvalidDate)
+  vm.editForm.effectiveDate = '2099-01-03'
+  vm.editForm.description = '字'.repeat(201)
+  await vm.handleSaveRule()
+  assert.strictEqual(calls.length, beforeInvalidDate)
+  vm.editForm.description = ''
+  global.Blob = class {
+    constructor(parts, options) { this.parts = parts; this.type = options.type }
+    async text() { return this.parts.join('') }
+  }
+  await assert.rejects(() => vm.downloadFile(new Blob([JSON.stringify({ header: { statusCode: '111111', message: '导出参数错误' } })], { type: 'application/json' }), '规则.xlsx'), /导出参数错误/)
+  vm.isModification = false
   responses['/platform/benefit/rule/import'] = { data: { total: 3, success: 2, fail: 1 } }
   const fileEvent = { target: { files: [{ name: 'test.xlsx' }], value: 'test.xlsx' } }
   await vm.handleFileChange(fileEvent)
@@ -193,6 +246,9 @@ async function run() {
   await real.fetchTableData()
   await real.fetchGradeConfigStatus()
   await real.fetchBenefitItems()
+  await real.fetchChangeRecords()
+  await real.handleStartModification()
+  assert.ok(real.formGradeOptions.length)
   assert.ok(real.selectedVersion && real.tableData.length && real.allRightsList.length)
   assert.ok(real.idTypeOptions.some(option => option.code === 'POLICYHOLDER'))
   for (const row of real.tableData) {
@@ -203,6 +259,6 @@ async function run() {
   await api.exportRuleApi()
   await api.exportBenefitRuleApi(real.selectedVersion)
   console.log('PASS: live versions, grades, rights library, every configured grade detail, identity/channel dictionaries, XLSX template and export')
-  console.log('Backend limitation: no rule change records or effective/expiry dates in the available service-rule API')
+  console.log('PASS: new mod list and gradeOptions; version effective/expiry dates remain absent from the response')
 }
 run().catch(error => { console.error(error); process.exitCode = 1 })

@@ -16,7 +16,7 @@
       </div>
     </el-card>
 
-    <el-tabs v-model="activeTab" class="rule-tabs">
+    <el-tabs v-model="activeTab" class="rule-tabs" @tab-click="handleTabChange">
       <el-tab-pane label="等级规则列表" name="rules" />
       <el-tab-pane label="服务规则修改记录" name="changes" />
     </el-tabs>
@@ -34,7 +34,7 @@
     </div>
 
     <!-- 主卡片区域 -->
-    <el-card class="main-card" shadow="never">
+    <el-card key="configured-rules" class="main-card" shadow="never">
       <!-- 列表顶部栏 -->
       <div class="table-header">
         <div class="table-title">服务规则配置</div>
@@ -97,15 +97,16 @@
       </div>
     </el-card>
     </template>
-    <el-card v-else class="main-card" shadow="never">
+    <el-card v-else key="rule-modifications" class="main-card" shadow="never">
       <div class="table-title">服务规则修改记录</div>
       <p class="records-tip">版本生效后不可直接修改；中途调整通过「发起服务规则修改」发起，记录保留修改后的权益内容快照；待生效的记录可修改、删除</p>
-      <el-alert title="当前后端尚未提供服务规则修改记录接口，暂无法查询、保存、修改或删除记录。" type="warning" :closable="false" />
-      <el-table :data="pagedChangeRecords" empty-text="修改记录接口待接入">
+      <el-table v-loading="changeLoading" :data="pagedChangeRecords">
         <el-table-column prop="versionTag" label="版本" width="140" />
         <el-table-column prop="gradeName" label="星级" min-width="160" />
         <el-table-column prop="effectiveDate" label="生效日期" width="130" />
-        <el-table-column prop="operator" label="修改人" width="120" />
+        <el-table-column prop="operator" label="修改人" width="120">
+          <template slot-scope="scope">{{ scope.row.operator || '—' }}</template>
+        </el-table-column>
         <el-table-column prop="modifyTime" label="修改时间" min-width="180" />
         <el-table-column label="状态" width="100">
           <template slot-scope="scope">
@@ -114,7 +115,7 @@
         </el-table-column>
         <el-table-column label="操作" width="210">
           <template slot-scope="scope">
-            <template v-if="scope.row.status === 'PENDING_EFFECTIVE'">
+            <template v-if="scope.row.status === 'PENDING'">
               <el-button type="text" size="small" @click="handleEditChange(scope.row)">修改</el-button>
               <el-divider direction="vertical" />
               <el-button type="text" size="small" @click="handleDeleteChange(scope.row)">删除</el-button>
@@ -136,10 +137,12 @@
         width="1280px"
         top="0"
         :close-on-click-modal="false"
+        :close-on-press-escape="!saving"
+        :before-close="beforeEditClose"
+        @close="detailRequest++"
         custom-class="rule-edit-drawer"
     >
-      <div>
-        <el-alert v-if="isModification" title="当前后端不支持按生效日期保存修改记录，此表单可核对配置，暂不能保存。" type="warning" :closable="false" class="warning-alert" />
+      <div v-loading="formLoading">
         <el-form :model="editForm" ref="editFormRef" label-width="90px" size="small" class="dialog-form">
           <!-- 基础信息区 -->
           <div class="form-row">
@@ -167,7 +170,7 @@
                 <el-option
                     v-for="grade in formGradeOptions"
                     :key="grade.gradeCode"
-                    :label="grade.gradeName + (isModification && gradeHasPendingChange(grade.gradeCode) ? '（已有待生效修改）' : '')"
+                    :label="grade.gradeName + (isModification && !isEditMode && gradeHasPendingChange(grade.gradeCode) ? '（已有待生效修改）' : '')"
                     :value="grade.gradeCode"
                     :disabled="gradeUnavailable(grade)">
                 </el-option>
@@ -185,6 +188,8 @@
                 type="textarea"
                 :rows="2"
                 placeholder="请输入服务规则描述"
+                maxlength="200"
+                show-word-limit
                 v-model="editForm.description"
                 style="width: 480px; max-width: 100%;"
             >
@@ -319,8 +324,8 @@
 
       <!-- 底部固定吸附按钮区 -->
       <div slot="footer">
-        <el-button @click="editDialogVisible = false" size="medium">取消</el-button>
-        <el-button type="primary" @click="handleSaveRule" size="medium" :loading="saving" :disabled="isModification">保存</el-button>
+        <el-button @click="editDialogVisible = false" size="medium" :disabled="saving">取消</el-button>
+        <el-button type="primary" @click="handleSaveRule" size="medium" :loading="saving" :disabled="formLoading">保存</el-button>
       </div>
     </el-dialog>
 
@@ -331,12 +336,14 @@
         width="1080px"
         top="8vh"
         custom-class="rule-view-dialog"
+        @close="detailRequest++"
     >
       <div class="view-detail-container" v-loading="viewLoading">
         <div v-if="viewIsChange" class="info-grid">
           <div v-for="field in changeDetailFields" :key="field.key" class="info-item">
             <span class="info-label">{{ field.label }}</span>
-            <span class="info-value text-bold">{{ field.key === 'status' ? changeStatusText(viewChange.status) : viewChange[field.key] || '—' }}</span>
+            <span v-if="field.key === 'status'" :class="['record-status', 'record-status--' + viewChange.status]">{{ changeStatusText(viewChange.status) }}</span>
+            <span v-else class="info-value text-bold">{{ viewChange[field.key] || '—' }}</span>
           </div>
         </div>
         <div v-else class="info-grid">
@@ -427,7 +434,13 @@ import {
   getBenefitItemsApi,
   getPlatformOrgApi,
   getServiceRuleIdentitiesApi,
-  getPlatformOrderChannelApi
+  getPlatformOrderChannelApi,
+  getServiceRuleModListApi,
+  getServiceRuleModGradesApi,
+  getServiceRuleModViewApi,
+  createServiceRuleModApi,
+  updateServiceRuleModApi,
+  deleteServiceRuleModApi
 } from '@/api/test/index';
 
 export default {
@@ -441,6 +454,11 @@ export default {
       importing: false,
       isModification: false,
       changeRecords: [],
+      changeLoading: false,
+      changeRequest: 0,
+      modGradeOptions: [],
+      formLoading: false,
+      detailRequest: 0,
       changePageNo: 1,
       changePageSize: 10,
       viewIsChange: false,
@@ -530,8 +548,30 @@ export default {
     this.initPageData();
   },
   methods: {
+    beforeEditClose(done) { if (!this.saving) done(); },
+    handleTabChange() {
+      if (this.activeTab === 'changes') return this.fetchChangeRecords();
+    },
+    normalizeChange(record) {
+      return { ...record, status: record.statusCode, operator: record.modifier };
+    },
+    async fetchChangeRecords() {
+      const request = ++this.changeRequest;
+      this.changeLoading = true;
+      try {
+        const res = await getServiceRuleModListApi();
+        if (request !== this.changeRequest) return;
+        this.changeRecords = (res.data || []).map(this.normalizeChange);
+        const lastPage = Math.max(1, Math.ceil(this.changeRecords.length / this.changePageSize));
+        this.changePageNo = Math.min(this.changePageNo, lastPage);
+      } catch (error) {
+        if (request !== this.changeRequest) return;
+        this.changeRecords = [];
+        this.$message.error('获取服务规则修改记录失败，请重试');
+      } finally { if (request === this.changeRequest) this.changeLoading = false; }
+    },
     changeStatusText(status) {
-      return { PENDING_EFFECTIVE: '待生效', ACTIVE: '生效中', EXPIRED: '已失效' }[status] || '—';
+      return { PENDING: '待生效', EFFECTIVE: '生效中', EXPIRED: '已失效' }[status] || '—';
     },
     handleChangePageSizeChange(size) {
       this.changePageSize = size;
@@ -543,40 +583,79 @@ export default {
       return this.gradeHasPendingChange(grade.gradeCode);
     },
     gradeHasPendingChange(gradeCode) {
-      return this.changeRecords.some(record => record.versionTag === this.editForm.versionTag &&
-        record.gradeCode === gradeCode && record.status === 'PENDING_EFFECTIVE');
+      const grade = this.modGradeOptions.find(item => item.gradeCode === gradeCode);
+      return Boolean(grade && Number(grade.pendingMod) === 1) ||
+        this.changeRecords.some(record => record.versionTag === this.editForm.versionTag &&
+          record.gradeCode === gradeCode && record.status === 'PENDING');
     },
-    handleViewChange(record) {
+    async handleViewChange(record) {
+      const request = ++this.detailRequest;
       this.viewIsChange = true;
-      this.viewChange = { ...record };
-      this.viewLoading = false;
-      this.viewData = { itemList: this.buildDetailRows(record.items || []) };
+      this.viewChange = {};
+      this.viewData = { itemList: [] };
+      this.viewLoading = true;
       this.viewDialogVisible = true;
+      try {
+        const res = await getServiceRuleModViewApi(record.id);
+        if (request !== this.detailRequest) return;
+        if (!res.data || res.data.id !== record.id) throw new Error('修改记录不匹配');
+        this.viewChange = this.normalizeChange(res.data);
+        this.viewData = { itemList: this.buildDetailRows(res.data.items || []) };
+      } catch (error) {
+        if (request === this.detailRequest) {
+          this.viewDialogVisible = false;
+          this.$message.error('获取修改记录详情失败，请重试');
+        }
+      } finally { if (request === this.detailRequest) this.viewLoading = false; }
     },
-    handleEditChange(record) {
-      if (record.status !== 'PENDING_EFFECTIVE') return;
+    async handleEditChange(record) {
+      if (record.status !== 'PENDING' || this.saving) return;
+      const request = ++this.detailRequest;
       this.isModification = true;
       this.isEditMode = true;
       this.dialogTitle = '修改服务规则修改记录';
-      this.formGradeOptions = [{ gradeCode: record.gradeCode, gradeName: record.gradeName }];
-      this.editForm = {
-        versionTag: record.versionTag,
-        gradeCode: record.gradeCode,
-        effectiveDate: record.effectiveDate,
-        description: record.description || '',
-        rightsList: []
-      };
-      // Use the record snapshot, never the currently effective rule.
-      this.setEditableRules(record.items || []);
+      this.editForm = { versionTag: record.versionTag, gradeCode: record.gradeCode, effectiveDate: '', description: '', rightsList: [] };
+      this.formLoading = true;
       this.editDialogVisible = true;
-      this.$nextTick(() => this.expandAllRows(true));
+      try {
+        const res = await getServiceRuleModViewApi(record.id);
+        if (request !== this.detailRequest) return;
+        const detail = res.data;
+        if (!detail || detail.id !== record.id || detail.statusCode !== 'PENDING') {
+          this.editDialogVisible = false;
+          this.$message.warning('该修改记录已非待生效状态，请刷新列表');
+          await this.fetchChangeRecords();
+          return;
+        }
+        this.formGradeOptions = [{ gradeCode: detail.gradeCode, gradeName: detail.gradeName }];
+        this.editForm = { id: detail.id, versionTag: detail.versionTag, gradeCode: detail.gradeCode,
+          effectiveDate: detail.effectiveDate, description: detail.description || '', rightsList: [] };
+        // Edit the saved modification snapshot, never the currently effective rule.
+        this.setEditableRules(detail.items || []);
+        this.$nextTick(() => this.expandAllRows(true));
+      } catch (error) {
+        if (request === this.detailRequest) {
+          this.editDialogVisible = false;
+          this.$message.error('加载修改记录失败，请重试');
+        }
+      } finally { if (request === this.detailRequest) this.formLoading = false; }
     },
-    handleDeleteChange(record) {
-      if (record.status !== 'PENDING_EFFECTIVE') return;
-      this.$message.warning('服务规则修改记录删除接口待接入，未删除任何记录');
+    async handleDeleteChange(record) {
+      if (record.status !== 'PENDING') return;
+      try {
+        await this.$confirm('确定删除该待生效的服务规则修改记录？删除后该记录不再生效。', '删除确认', { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' });
+      } catch (error) { return; }
+      try {
+        await deleteServiceRuleModApi(record.id);
+        this.$message.success('已删除服务规则修改记录');
+        await this.fetchChangeRecords();
+      } catch (error) { this.$message.error('删除失败，请刷新记录状态后重试'); }
     },
     flag(value) {
       return value === true || value === 1 || value === '1';
+    },
+    ruleFlag(value) {
+      return value === '00' || (value !== '01' && this.flag(value));
     },
     parseList(value) {
       if (Array.isArray(value)) return value;
@@ -606,6 +685,14 @@ export default {
     projectNames(row) {
       return (row.items || this.parseList(row.itemsJson)).map(item => item.name).join('、') || '—';
     },
+    ruleProjects(rule) {
+      const projects = this.parseList(rule.itemsJson);
+      if (projects.length) return projects;
+      const snapshot = this.parseList(rule.itemRulesJson);
+      if (snapshot.length) return snapshot.map(item => ({ cat: item.cat, name: item.name }));
+      const library = this.allRightsList.find(item => item.benefitCode === rule.benefitCode);
+      return this.parseList(library && library.itemsJson);
+    },
     rightSelectable(row) {
       return !this.editForm.rightsList.some(item => item.benefitCode === row.benefitCode);
     },
@@ -623,6 +710,7 @@ export default {
       }
     },
     async handleStartModification() {
+      if (this.saving) return;
       if (!this.currentVersionInfo || !this.flag(this.currentVersionInfo.current_flag)) {
         this.$message.warning('请先选择当前生效版本，再发起服务规则修改');
         return;
@@ -631,23 +719,25 @@ export default {
       this.isEditMode = false;
       this.dialogTitle = '发起服务规则修改';
       this.editForm = { versionTag: this.selectedVersion, gradeCode: '', effectiveDate: '', description: '', rightsList: [] };
-      await this.loadFormGradeOptions(this.selectedVersion);
-      this.editDialogVisible = true;
+      try {
+        await this.loadFormGradeOptions(this.selectedVersion);
+        this.editDialogVisible = true;
+      } catch (error) { this.$message.error('获取可修改等级失败，请重试'); }
     },
     async handleFormGradeChange(value) {
       if (this.isModification && value) {
         this.editForm.description = '';
         this.editForm.rightsList = [];
         await this.loadRuleDetail(this.editForm.versionTag, value);
+        this.$nextTick(() => this.expandAllRows(true));
       }
     },
     // 基础初始化
     async initPageData() {
       // 提取下拉字典接口数据[cite: 1, 2, 3]
-      await Promise.all([this.fetchDictOptions(), this.fetchVersions()]);
+      await Promise.all([this.fetchDictOptions(), this.fetchVersions(), this.fetchBenefitItems()]);
       if (this.selectedVersion) {
-        this.fetchTableData();
-        this.fetchGradeConfigStatus();
+        await Promise.all([this.fetchTableData(), this.fetchGradeConfigStatus(), this.fetchChangeRecords()]);
       }
     },
     // 加载下拉字典项[cite: 1, 2, 3]
@@ -684,6 +774,7 @@ export default {
     async fetchGradeConfigStatus(versionTag = this.selectedVersion) {
       try {
         const res = await getBenefitGradeListApi({ versionTag });
+        if (versionTag !== this.selectedVersion) return;
         this.gradeConfigList = res.data || [];
       } catch (err) {
         this.$message.error('获取等级状态失败');
@@ -741,8 +832,9 @@ export default {
       this.editDialogVisible = true;
     },
     async loadFormGradeOptions(versionTag) {
-      const res = await getBenefitGradeListApi({ versionTag });
-      this.formGradeOptions = (res.data || []).filter(grade => !this.isModification || Number(grade.configured) === 1);
+      const res = this.isModification ? await getServiceRuleModGradesApi({ versionTag }) : await getBenefitGradeListApi({ versionTag });
+      this.formGradeOptions = res.data || [];
+      this.modGradeOptions = this.isModification ? this.formGradeOptions : [];
     },
     async handleFormVersionChange(val) {
       await this.loadFormGradeOptions(val);
@@ -766,12 +858,7 @@ export default {
     },
     setEditableRules(items) {
         this.editForm.rightsList = items.map(item => {
-          let parsedItems = [];
-          try {
-            parsedItems = item.itemsJson ? JSON.parse(item.itemsJson) : [];
-          } catch (e) {
-            parsedItems = [];
-          }
+          const parsedItems = this.ruleProjects(item);
 
           let parsedItemRules = [];
           try {
@@ -814,13 +901,13 @@ export default {
             return {
               cat: p.cat,
               name: p.name,
-              freqUnlimited: this.flag(rule.freqUnlimited !== undefined ? rule.freqUnlimited : item.freqUnlimited),
+              freqUnlimited: this.ruleFlag(rule.freqUnlimited !== undefined ? rule.freqUnlimited : item.freqUnlimited),
               freqYears: rule.freqYears || item.freqYears || 1,
               freqAvgYears: rule.freqAvgYears || item.freqAvgYears || 1,
               freqCount: rule.freqCount || item.freqCount || 1,
-              needOrder: this.flag(rule.needOrder !== undefined ? rule.needOrder : item.needOrder),
+              needOrder: this.ruleFlag(rule.needOrder !== undefined ? rule.needOrder : item.needOrder),
               orderChannels: itemChannels,
-              needAudit: this.flag(rule.needAudit !== undefined ? rule.needAudit : item.needAudit)
+              needAudit: this.ruleFlag(rule.needAudit !== undefined ? rule.needAudit : item.needAudit)
             };
           });
 
@@ -829,7 +916,7 @@ export default {
             kind: item.kind,
             benefitName: item.benefitName,
             supplier: item.supplier,
-            signOrg: item.signOrg,
+            signOrg: item.signOrg || (this.allRightsList.find(value => value.benefitCode === item.benefitCode) || {}).signOrg,
             regions: parsedRegions,
             identities: parsedIdentities,
             items: projectItems
@@ -909,13 +996,32 @@ export default {
 
     // 保存规则配置
     async handleSaveRule() {
-      if (this.isModification) {
-        this.$message.warning('服务规则修改记录保存接口待接入，未保存任何修改');
-        return;
-      }
-      if (!this.canConfigureVersion(this.formVersionInfo)) {
+      if (this.saving || this.formLoading) return;
+      if (!this.isModification && !this.canConfigureVersion(this.formVersionInfo)) {
         this.$message.warning('只允许配置待生效版本');
         return;
+      }
+      if (this.isModification) {
+        if (!this.formVersionInfo || !this.flag(this.formVersionInfo.current_flag)) {
+          this.$message.warning('仅可对当前生效版本发起服务规则修改');
+          return;
+        }
+        const today = new Date();
+        const localDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        if (!this.editForm.effectiveDate || this.editForm.effectiveDate <= localDate) {
+          this.$message.warning('生效日期必须晚于今日');
+          return;
+        }
+        const previous = this.changeRecords.filter(record => record.versionTag === this.editForm.versionTag &&
+          record.gradeCode === this.editForm.gradeCode && record.id !== this.editForm.id);
+        if (previous.some(record => record.effectiveDate >= this.editForm.effectiveDate)) {
+          this.$message.warning('生效日期必须晚于该星级上一条修改的生效日期');
+          return;
+        }
+        if (!this.isEditMode && this.gradeHasPendingChange(this.editForm.gradeCode)) {
+          this.$message.warning('该等级已有待生效修改，请修改原记录');
+          return;
+        }
       }
       if (!this.editForm.versionTag || !this.editForm.gradeCode) {
         this.$message.warning('请选择版本和客户等级');
@@ -923,6 +1029,10 @@ export default {
       }
       if (this.editForm.rightsList.length === 0) {
         this.$message.warning('请至少选择一条服务权益');
+        return;
+      }
+      if ((this.editForm.description || '').length > 200) {
+        this.$message.warning('描述不能超过200字');
         return;
       }
       for (const right of this.editForm.rightsList) {
@@ -947,6 +1057,10 @@ export default {
             this.$message.warning(`请为「${item.name}」选择订单申请途径`);
             return;
           }
+          if (item.needOrder && item.orderChannels.some(code => !this.orderChannelOptions.some(option => option.code === code))) {
+            this.$message.warning('订单申请途径不在当前字典中，请重新选择');
+            return;
+          }
         }
       }
 
@@ -958,13 +1072,13 @@ export default {
           const itemRules = (r.items || []).map(it => ({
             cat: it.cat,
             name: it.name,
-            needOrder: it.needOrder ? 1 : 0,
+            needOrder: it.needOrder ? '00' : '01',
             orderChannels: it.needOrder ? it.orderChannels || [] : [],
-            needAudit: it.needAudit ? 1 : 0,
-            freqUnlimited: it.freqUnlimited ? 1 : 0,
-            freqYears: it.freqYears,
-            freqAvgYears: it.freqAvgYears,
-            freqCount: it.freqCount
+            needAudit: it.needAudit ? '00' : '01',
+            freqUnlimited: it.freqUnlimited ? '00' : '01',
+            freqYears: it.freqUnlimited ? null : it.freqYears,
+            freqAvgYears: it.freqUnlimited ? null : it.freqAvgYears,
+            freqCount: it.freqUnlimited ? null : it.freqCount
           }));
 
           const firstItem = itemRules[0] || {};
@@ -972,13 +1086,13 @@ export default {
             benefitCode: r.benefitCode,
             regions: r.regions,
             identities: r.identities,
-            freqUnlimited: firstItem.freqUnlimited !== undefined ? firstItem.freqUnlimited : 0,
-            freqYears: firstItem.freqYears || 1,
-            freqAvgYears: firstItem.freqAvgYears || 1,
-            freqCount: firstItem.freqCount || 1,
-            needOrder: firstItem.needOrder !== undefined ? firstItem.needOrder : 1,
+            freqUnlimited: firstItem.freqUnlimited,
+            freqYears: firstItem.freqYears,
+            freqAvgYears: firstItem.freqAvgYears,
+            freqCount: firstItem.freqCount,
+            needOrder: firstItem.needOrder,
             orderChannels: firstItem.orderChannels || [],
-            needAudit: firstItem.needAudit !== undefined ? firstItem.needAudit : 0,
+            needAudit: firstItem.needAudit,
             itemRules
           };
         })
@@ -986,11 +1100,20 @@ export default {
 
       this.saving = true;
       try {
-        await saveRuleApi(payload);
+        if (this.isModification) {
+          payload.effectiveDate = this.editForm.effectiveDate;
+          if (this.isEditMode) {
+            payload.id = this.editForm.id;
+            await updateServiceRuleModApi(payload);
+          } else {
+            await createServiceRuleModApi(payload);
+          }
+        } else {
+          await saveRuleApi(payload);
+        }
         this.$message.success('保存服务规则成功！');
         this.editDialogVisible = false;
-        this.fetchTableData();
-        this.fetchGradeConfigStatus();
+        await Promise.all([this.fetchTableData(), this.fetchGradeConfigStatus(), this.fetchChangeRecords()]);
       } catch (err) {
         this.$message.error('保存失败');
       } finally {
@@ -1000,12 +1123,14 @@ export default {
 
     // ===== 查看详情 =====
     async handleView(row) {
+      const request = ++this.detailRequest;
       this.viewIsChange = false;
       this.viewData = { gradeName: this.gradeDisplayName(row), creator: row.creator || '—', createTime: row.create_time || '—', description: row.description || '—', itemList: [] };
       this.viewDialogVisible = true;
       this.viewLoading = true;
       try {
         const res = await getRuleViewApi({ versionTag: this.selectedVersion, gradeCode: row.grade_code });
+        if (request !== this.detailRequest) return;
         const data = res.data || {};
         const items = data.items || [];
 
@@ -1022,20 +1147,16 @@ export default {
         }
         this.viewData.itemList = this.buildDetailRows(items);
       } catch (e) {
+        if (request !== this.detailRequest) return;
         this.$message.error('获取详情数据失败');
       } finally {
-        this.viewLoading = false;
+        if (request === this.detailRequest) this.viewLoading = false;
       }
     },
     buildDetailRows(items) {
         const detailRows = [];
         items.forEach(rule => {
-          let parsedItems = [];
-          try {
-            parsedItems = rule.itemsJson ? JSON.parse(rule.itemsJson) : [];
-          } catch (e) {
-            parsedItems = [];
-          }
+          const parsedItems = this.ruleProjects(rule);
 
           let parsedItemRules = [];
           try {
@@ -1052,7 +1173,7 @@ export default {
             const count = itemRule.freqCount || rule.freqCount;
 
             let freqStr = '不限次';
-            if (!this.flag(freqUnlim)) {
+            if (!this.ruleFlag(freqUnlim)) {
               freqStr = `${years}年内平均${avgYears}年使用${count}次`;
             }
 
@@ -1082,9 +1203,9 @@ export default {
                 return option ? option.name : code;
               }).join('、') || '—',
               frequency: freqStr,
-              needOrder: this.flag(nOrder) ? '是' : '否',
-              orderChannel: this.flag(nOrder) && displayChannels.length > 0 ? displayChannels.join('、') : '—',
-              needAudit: this.flag(nAudit) ? '是' : '否'
+              needOrder: this.ruleFlag(nOrder) ? '是' : '否',
+              orderChannel: this.ruleFlag(nOrder) && displayChannels.length > 0 ? displayChannels.join('、') : '—',
+              needAudit: this.ruleFlag(nAudit) ? '是' : '否'
             });
           };
 
@@ -1102,18 +1223,18 @@ export default {
     async handleDownloadTemplate() {
       try {
         const res = await exportRuleApi();
-        this.downloadFile(res, '服务规则导入模板.xlsx');
+        await this.downloadFile(res, '服务规则导入模板.xlsx');
       } catch (e) {
-        this.$message.error('下载模板失败');
+        this.$message.error(e.message || '下载模板失败');
       }
     },
     async handleExport() {
       if (!this.selectedVersion) return;
       try {
         const res = await exportBenefitRuleApi(this.selectedVersion);
-        this.downloadFile(res, `服务规则配置_${this.selectedVersion}.xlsx`);
+        await this.downloadFile(res, `服务规则配置_${this.selectedVersion}.xlsx`);
       } catch (e) {
-        this.$message.error('导出失败');
+        this.$message.error(e.message || '导出失败');
       }
     },
     triggerImport() {
@@ -1151,7 +1272,11 @@ export default {
         e.target.value = '';
       }
     },
-    downloadFile(data, defaultFileName) {
+    async downloadFile(data, defaultFileName) {
+      if (data instanceof Blob && /json|text/.test(data.type)) {
+        const result = JSON.parse(await data.text());
+        throw new Error(result.header && result.header.message || '文件下载失败');
+      }
       const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const link = document.createElement('a');
       link.href = window.URL.createObjectURL(blob);
@@ -1422,11 +1547,11 @@ export default {
   color: #5a6472;
   background: #eef0f2;
 }
-.record-status--ACTIVE {
+.record-status--EFFECTIVE {
   color: #2e7d32;
   background: #e8f5e9;
 }
-.record-status--PENDING_EFFECTIVE {
+.record-status--PENDING {
   color: #e67e22;
   background: #fdf3e7;
 }
