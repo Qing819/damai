@@ -497,7 +497,7 @@ export default {
       this.currentView = 'list'
     },
     goTrackDetail(row) {
-      this.$router.push({ path: '/personal/guiJiTab', query: { applyNo: row.applyNo } })
+      this.$router.push({ path: '/personal/guiJiTab', query: { applyNo: row.applyNo, from: 'switchApply' } })
     }
   }
 }

@@ -467,6 +467,14 @@ export function getSwitchRecordPageApi(params) {
     params
   });
 }
+export function switchRecordExportApi(params) {
+  return fetch({
+    url: '/switch/record/export',
+    method: 'get',
+    params,
+    responseType: 'blob'
+  });
+}
 export function exportSwitchApplyApi(params) {
   return fetch({
     url: '/switch/apply/template',
