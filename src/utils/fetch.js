@@ -14,7 +14,9 @@ service.interceptors.request.use(
   config => {
     if (getToken()) {
       config.headers.Authorization = getToken()
-      config.headers['Content-Type'] = 'application/json'
+      if (!(typeof FormData !== 'undefined' && config.data instanceof FormData)) {
+        config.headers['Content-Type'] = 'application/json'
+      }
       const timestamp = new Date().getTime()
       const rand = random(10)
       const signKey = 'boncsingkey!@#$%^&*(((()'

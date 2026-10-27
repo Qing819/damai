@@ -536,6 +536,13 @@ export function getPlatformOrderChannelApi(params) {
     params
   });
 }
+
+export function getServiceRuleIdentitiesApi() {
+  return fetch({
+    url: '/platform/dict/IDENTITY',
+    method: 'get'
+  });
+}
 export function switchApplyDetailApi(applyNo) {
   return fetch({
     url: `/switch/apply/detail/${applyNo}`,
