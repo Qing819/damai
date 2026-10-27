@@ -464,6 +464,9 @@ export default {
     },
 
     formatSummaryValue(value, index) {
+      if (index === 1 && Number(value || 0) !== 0) {
+        return `−${this.$options.filters.formatNumber(Math.abs(Number(value)))}`
+      }
       const formatted = this.$options.filters.formatNumber(value)
       return index < 3 && Number(value || 0) > 0 ? `+${formatted}` : formatted
     },

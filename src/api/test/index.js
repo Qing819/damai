@@ -512,6 +512,12 @@ export function switchTrialExtraApi(data) {
     data
   });
 }
+export function getTrialCustomerProfileApi(custId) {
+  return fetch({
+    url: `/profile/v2/cust/${encodeURIComponent(custId)}`,
+    method: 'get'
+  });
+}
 export function getSwitchApplyPageApi(params) {
   return fetch({
     url: '/switch/apply/page',
@@ -531,6 +537,14 @@ export function getSwitchTrialItemPageApi(params) {
     url: '/switch/trial/item/page',
     method: 'get',
     params
+  });
+}
+export function switchTrialItemExportApi(params) {
+  return fetch({
+    url: '/switch/trial/item/export',
+    method: 'get',
+    params,
+    responseType: 'blob'
   });
 }
 export function getSwitchTrialRiskPageApi(params) {
