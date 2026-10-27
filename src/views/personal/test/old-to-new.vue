@@ -374,8 +374,11 @@ export default {
       try {
         const res = await importCsvApi(file)
         const data = res.data || {}
-        const text = `共 ${data.total || 0} 条，成功 ${data.success || 0} 条，失败 ${data.fail || 0} 条`
-        this.$message[data.fail ? 'warning' : 'success'](`导入完成：${text}`)
+        const success = data.inserted == null ? data.success || 0 : data.inserted
+        const fail = data.skippedInvalid == null ? data.fail || 0 : data.skippedInvalid
+        const duplicate = data.skippedDup || 0
+        const text = `共 ${data.total || 0} 条，成功 ${success} 条，失败 ${fail} 条${duplicate ? `，重复跳过 ${duplicate} 条` : ''}`
+        this.$message[fail || duplicate ? 'warning' : 'success'](`导入完成：${text}`)
         this.currentPage = 1
         await this.fetchPageData()
       } catch (error) {
