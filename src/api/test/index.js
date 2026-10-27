@@ -84,6 +84,12 @@ export function switchApplyApi(data) {
     data
   });
 }
+export function getSwitchIdTypesApi() {
+  return fetch({
+    url: '/platform/dict/ID_TYPE',
+    method: 'get'
+  });
+}
 export function importCsvApi(file) {
   const formData = new FormData();
   formData.append('file', file);

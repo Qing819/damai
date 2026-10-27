@@ -309,7 +309,23 @@ export default {
     };
   },
   mounted() {
-    this.fetchList();
+    if (this.$route.query.applyNo) {
+      this.currentView = 'track';
+      this.fetchDetail(this.$route.query.applyNo);
+    } else {
+      this.fetchList();
+    }
+  },
+  watch: {
+    '$route.query.applyNo'(applyNo) {
+      if (applyNo) {
+        this.currentView = 'track';
+        this.fetchDetail(applyNo);
+      } else {
+        this.currentView = 'list';
+        this.fetchList();
+      }
+    }
   },
   methods: {
     // 1. 获取列表数据
