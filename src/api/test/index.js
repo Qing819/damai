@@ -344,7 +344,7 @@ export function getRuleVersionsApi() {
 }
 export function getBenefitGradeListApi(params) {
   return fetch({
-    url: 'platform/benefit/rule/grades',
+    url: '/platform/benefit/rule/grades',
     method: 'get',
     params
   });
