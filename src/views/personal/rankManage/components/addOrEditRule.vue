@@ -229,7 +229,6 @@ export default {
     },
     // 获取初始元素label值
     async getElementConfig() {
-      console.log(this.type)
       this.loading = true
       if (this.type === 'insert') {
         await this.getTableData()
@@ -317,7 +316,6 @@ export default {
         nextRule = this.ruleList[this.ruleList.length - 1].filter(item => item.isPrimaryKey === '00')
       }
       if (lastRule.length > 1) {
-        console.log(lastRule, nextRule)
         lastRule.forEach(item => {
           validLastRule.push(item.elementValue)
         })
@@ -405,7 +403,6 @@ export default {
     handleWarningInfo(data) {
       const onlyList = data.onlyCode ? data.onlyCode.split(',') : ''
       const primaryList = data.primaryKeyCode ? data.primaryKeyCode.split(',') : ''
-      console.log(onlyList, primaryList)
       const onlyName = []
       const primaryName = []
       if (onlyList) {
@@ -513,7 +510,6 @@ export default {
           })
           this.ruleList.push(data)
         }
-        console.log(this.ruleList)
       }
     },
     // 处理编辑规则
@@ -539,7 +535,6 @@ export default {
           return data.push(returnData)
         })
         this.ruleList.push(data)
-        console.log(this.ruleList)
       }).finally(() => {
         this.loading = false
       })

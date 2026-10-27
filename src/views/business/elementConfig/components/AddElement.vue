@@ -328,7 +328,7 @@ export default {
         this.labelStoreTableData = list
         this.labelStoreTotal = total
       } catch (error) {
-        console.log(error)
+        // 【待人工复核】沿用原有行为，不向外抛出异常。
       }
       this.dialogLoading = false
     },
@@ -347,7 +347,7 @@ export default {
         this.labelTableData = list
         this.labelTotal = total
       } catch (error) {
-        console.log(error)
+        // 【待人工复核】沿用原有行为，不向外抛出异常。
       }
       this.dialogLoading = false
     },
@@ -386,7 +386,6 @@ export default {
           elementOnly: ''
         }
       ]
-      console.log(row)
       // 重置表格内的表单的校验和输入
       this.$refs.formData.resetFields()
     },
@@ -422,7 +421,7 @@ export default {
           this.$message.warning('要素名称已存在')
         }
       } catch (error) {
-        console.log(error)
+        // 【待人工复核】沿用原有行为，不向外抛出异常。
       }
       this.dialogLoading = false
     },
@@ -458,7 +457,6 @@ export default {
       if (this.formData.tableData.length === 0) return this.$message.warning('请至少设置一个要素')
       this.$refs.formData.validate(async valid => {
         if (valid) {
-          console.log(this.formData.tableData)
           this.saveBtnLaoding = true
           const addIntegralElementVo = this.formData.tableData.map(item => ({
             isPercentage: item.isPercentage || '01',

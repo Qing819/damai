@@ -186,7 +186,7 @@ import calculateTable from '../calculateTable'
 import { getLabelWidth } from '../../consts/index'
 import { integralNamesOfCalculate } from '../../consts/index'
 
-import { getIntegralCalculateListHeader, getIntegralCalculateData, getRuleCode } from 'api/pointCalculate/index'
+import { getIntegralCalculateListHeader, getIntegralCalculateData } from 'api/pointCalculate/index'
 
 export default {
   components: { formItem, premiumTable, integralTypeForm, calculateTable, insuranceList },

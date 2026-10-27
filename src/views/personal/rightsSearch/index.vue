@@ -156,7 +156,7 @@ export default {
         const res2 = await getBaseDictByType({ dictType: 'manage_coms_code' })
         this.manageComs = res2.respStr
       } catch (error) {
-        console.log(error)
+        // 【待人工复核】沿用原有行为，不向外抛出异常。
       }
     },
     // 获取客户级别
@@ -165,7 +165,7 @@ export default {
         const res = await getGradeName()
         this.custLevelList = res.list
       } catch (error) {
-        console.log(error)
+        // 【待人工复核】沿用原有行为，不向外抛出异常。
       }
     },
 
@@ -185,7 +185,6 @@ export default {
     rightDetail(row) {
       this.currentRow = row
       this.dialogVisible = true
-      console.log(row)
     },
     // 清单导出
     async handleExport() {
@@ -196,7 +195,7 @@ export default {
         const res = await exportEquityInfo(form)
         await exportFileGet(res, '清单')
       } catch (error) {
-        console.log(error)
+        // 【待人工复核】沿用原有行为，不向外抛出异常。
       }
     }
   },

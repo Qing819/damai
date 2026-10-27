@@ -423,7 +423,6 @@ export default {
     // 处理导入
     handleImport(type) {
       if (type === 'downLoad') {
-        console.log('下载上传模板')
         getImportTemplate({ integralCode: this.formData.integralCode }).then(res => {
           exportFileGet(res, '个人积分规则管理文件')
         })
@@ -431,7 +430,6 @@ export default {
     },
     // 处理导出
     handleExport() {
-      console.log('导出全部')
       const params = this.formData
       const selList = []
       this.searchInfo.forEach(item => {
@@ -490,7 +488,7 @@ export default {
           }
         })
       }).catch(() => {
-        console.log('取消')
+        // 【待人工复核】沿用原有行为，不向外抛出异常。
       })
     },
 
@@ -511,7 +509,7 @@ export default {
           }
         })
       }).catch(() => {
-        console.log('取消')
+        // 【待人工复核】沿用原有行为，不向外抛出异常。
       })
     },
 

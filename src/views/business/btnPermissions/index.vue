@@ -65,7 +65,6 @@ export default {
      * 如果类型为'01',获取组织机构信息
      */
     async handleAuthData(val) {
-      console.log(val)
       if (val === '角色授权') {
         this.permissionType = 'role'
         await this.$refs.orgOrRole.getRuleInfo()

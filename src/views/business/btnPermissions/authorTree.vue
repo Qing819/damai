@@ -55,8 +55,7 @@ export default {
   },
   watch: {
     permissionValue: {
-      handler(val) {
-        console.log('value:', val)
+      handler() {
         this.getButtonMenuInfo()
       },
       deep: true
@@ -110,7 +109,6 @@ export default {
     // 处理选中内容
     handleCheck(node, key) {
       this.baseId = key.checkedKeys
-      console.log(this.baseId)
     },
     // 处理按钮权限保存
     handleSave() {

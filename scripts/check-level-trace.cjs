@@ -1,27 +1,7 @@
-const fs = require('fs')
-const path = require('path')
 const assert = require('assert')
-const babel = require('@babel/core')
-const compiler = require('vue-template-compiler')
 const axios = require('axios')
+const { loadFile, loadComponent } = require('./test-utils.cjs')
 
-const root = path.join(__dirname, '..')
-const source = compiler.parseComponent(fs.readFileSync(path.join(root, 'src/views/personal/test/level-change.vue'), 'utf8'))
-assert.deepStrictEqual(compiler.compile(source.template.content).errors, [])
-const columns = Array.from(source.template.content.matchAll(/<el-table-column[^>]*label="([^"]+)"/g), match => match[1])
-assert.deepStrictEqual(columns, [
-  '变化记录号', '客户', '证件类型', '证件号码', '服务归属机构', '业务渠道', '变化类型',
-  '变化前等级', '变化后等级', '变化时积分', '变化原因', '变化时间', '操作'
-])
-function load(text, requireStub) {
-  const module = { exports: {} }
-  const code = babel.transformSync(text, {
-    babelrc: false, configFile: false,
-    presets: [['@babel/preset-env', { targets: { node: 'current' } }]]
-  }).code
-  new Function('require', 'module', 'exports', code)(requireStub, module, module.exports)
-  return module.exports
-}
 const calls = []
 const responses = {}
 let live = false
@@ -40,8 +20,13 @@ async function request(config) {
   assert.strictEqual(response.data.header.statusCode, '000000')
   return response.data.body
 }
-const api = load(fs.readFileSync(path.join(root, 'src/api/test/index.js'), 'utf8'), () => request)
-const component = load(source.script.content, () => api).default
+const api = loadFile('src/api/test/index.js', () => request)
+const { component, template } = loadComponent('src/views/personal/test/level-change.vue', () => api)
+const columns = Array.from(template.content.matchAll(/<el-table-column[^>]*label="([^"]+)"/g), match => match[1])
+assert.deepStrictEqual(columns, [
+  '变化记录号', '客户', '证件类型', '证件号码', '服务归属机构', '业务渠道', '变化类型',
+  '变化前等级', '变化后等级', '变化时积分', '变化原因', '变化时间', '操作'
+])
 const messages = []
 function makeVM() {
   const vm = { ...component.data(), $message: {

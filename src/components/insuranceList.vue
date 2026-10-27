@@ -116,7 +116,6 @@ export default {
 
     // 某行选中改变
     handleChange(row) {
-      console.log('选中了', row)
       this.$emit('change', row)
     },
 

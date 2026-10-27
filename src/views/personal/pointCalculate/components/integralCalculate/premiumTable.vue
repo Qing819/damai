@@ -129,7 +129,6 @@ export default {
           })
           return
         }
-        console.log(this.tableData)
         if (this.tableData.length < 20) {
           const addTrList = []
           // 将规则code存到该行数据中
@@ -161,7 +160,6 @@ export default {
           })
         }
 
-        console.log(this.tableData)
 
         successCallback && successCallback()
       }).finally(() => {

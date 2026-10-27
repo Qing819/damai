@@ -1,30 +1,16 @@
-const fs = require('fs')
-const path = require('path')
 const assert = require('assert')
-const babel = require('@babel/core')
-const compiler = require('vue-template-compiler')
 const axios = require('axios')
-const root = path.join(__dirname, '..')
-function load(text, imports) {
-  const module = { exports: {} }
-  const code = babel.transformSync(text, {
-    babelrc: false, configFile: false,
-    presets: [['@babel/preset-env', { targets: { node: 'current' } }]]
-  }).code
-  new Function('require', 'module', 'exports', code)(imports, module, module.exports)
-  return module.exports
-}
-const model = load(fs.readFileSync(path.join(root, 'src/views/personal/test/benefit-adjust-model.js'), 'utf8'), () => {})
+const { loadFile, loadComponent } = require('./test-utils.cjs')
+
+const model = loadFile('src/views/personal/test/benefit-adjust-model.js', () => {})
 const calls = []
 let handler = async config => ({ data: config.url.endsWith('/page') ? { list: [], total: 0 } : [] })
 async function request(config) { calls.push(config); return handler(config) }
-const api = load(fs.readFileSync(path.join(root, 'src/api/test/index.js'), 'utf8'), () => request)
-const point = load(fs.readFileSync(path.join(root, 'src/api/test/point.js'), 'utf8'), () => request)
+const api = loadFile('src/api/test/index.js', () => request)
+const point = loadFile('src/api/test/point.js', () => request)
 const components = {}
 for (const file of ['service-apply.vue', 'components/benefit-adjust-form.vue', 'components/benefit-adjust-rights.vue']) {
-  const parsed = compiler.parseComponent(fs.readFileSync(path.join(root, 'src/views/personal/test', file), 'utf8'))
-  assert.deepStrictEqual(compiler.compile(parsed.template.content).errors, [], file)
-  components[file] = load(parsed.script.content, name => name === '@/api/test' ? api : name === '@/api/test/point' ? point : name.includes('benefit-adjust-model') ? model : {}).default
+  components[file] = loadComponent(`src/views/personal/test/${file}`, name => name === '@/api/test' ? api : name === '@/api/test/point' ? point : name.includes('benefit-adjust-model') ? model : {}).component
 }
 const messages = []
 function vmFor(component = components['service-apply.vue']) {
@@ -217,7 +203,7 @@ async function run() {
       response: { use() {} }
     }
   }) }
-  load(fs.readFileSync(path.join(root, 'src/utils/fetch.js'), 'utf8'), name => {
+  loadFile('src/utils/fetch.js', name => {
     if (name === 'axios') return fakeAxios
     if (name === 'crypto') return require('crypto')
     if (name === 'utils/auth') return { getToken: () => 'test-token' }
@@ -229,6 +215,7 @@ async function run() {
   const json = interceptRequest({ data: { id: 5 }, headers: {}, params: {} })
   assert.strictEqual(json.headers['Content-Type'], 'application/json')
   console.log('PASS: templates; filter contract and multi-benefit pagination; stale searches; selection/confirmation; zero/unlimited; validation; rejected-only edits; two-stage submission; failure/retry; upload guards; rights selection')
+  if (!process.argv.includes('--live')) return
   // Live checks are explicitly GET-only; never mutate the 8002 business database.
   handler = async config => {
     assert.strictEqual(config.method, 'get', 'Live verification must be read-only')

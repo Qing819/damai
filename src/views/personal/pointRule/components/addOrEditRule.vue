@@ -130,7 +130,7 @@
 import { integrationRuleElementContentInfo, integrationRuleContentDefaultInfo, editIntegralRule, checkEditIntegralRule, checkRuleStartAndEndPeriod } from 'api/pointRule/index'
 import formItem from 'components/formItem'
 import insuranceList from 'components/insuranceList'
-import { truncate } from 'fs';
+import 'fs';
 
 export default {
   components: { formItem, insuranceList },

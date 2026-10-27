@@ -65,9 +65,9 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import { random } from 'utils/index'
-import { exportFileGet, exportFilePost } from 'utils/exportFile'
+import 'vuex'
+import 'utils/index'
+import { exportFileGet } from 'utils/exportFile'
 import trackExamine from './components/trackExamine'
 import formItem from 'components/formItem'
 import {
@@ -80,9 +80,9 @@ import {
   seletFileListAgent
 } from 'api/pointRedistribution/index'
 import { getUserInfo } from '../../../../api/auth';
-import axios from 'axios'
-import crypto from 'crypto';
-import { getToken } from 'utils/auth'
+import 'axios'
+import 'crypto';
+import 'utils/auth'
 
 export default {
   components: { trackExamine, formItem },
@@ -154,7 +154,6 @@ export default {
       const res = await getUser()
       const index = res.getUserOrgs.lastIndexOf('/')
       const lastValue = res.getUserOrgs.substring(index + 1)
-      console.log('str', res.getUserOrgs.lastIndexOf('/'), lastValue);
       alert(lastValue);
       // res.UtilsOrgCode
       if (lastValue) {
@@ -168,7 +167,6 @@ export default {
           this.loading = false
         })
         // getImportNotAllocDetail({code: '861100002'}).then(res => {
-        //   console.log('res', res)
         // })
         // const token = getToken()
         // const md5 = crypto.createHash('md5')
@@ -226,14 +224,13 @@ export default {
         // this.getList()
       })
         .catch(() => {
-          console.log('取消')
+          // 【待人工复核】沿用原有行为，不向外抛出异常。
         })
     },
     async getUserId() {
       const res = await getUser()
       const index = res.getUserOrgs.lastIndexOf('/')
       const lastValue = res.getUserOrgs.substring(index + 1)
-      console.log('str', res.getUserOrgs.lastIndexOf('/'), lastValue);
       if (lastValue) {
         selectAgentCnt({ OrgCode: lastValue }).then(res => {
           this.formDataClient = res ? res : {
@@ -363,7 +360,6 @@ export default {
     // 处理导入
     handleImport(type) {
       if (type === 'downLoad') {
-        console.log('下载上传模板')
         getImportTemplateAgent({ integralCode: this.formData.integralCode }).then(res => {
           exportFileGet(res, '孤单客户再分配机构')
         })

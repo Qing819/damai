@@ -1,18 +1,6 @@
-const fs = require('fs')
-const path = require('path')
 const assert = require('assert')
-const babel = require('@babel/core')
-const compiler = require('vue-template-compiler')
+const { loadComponent } = require('./test-utils.cjs')
 
-const file = path.join(__dirname, '../src/views/personal/test/point-level-manage.vue')
-const source = compiler.parseComponent(fs.readFileSync(file, 'utf8'))
-const template = compiler.compile(source.template.content)
-assert.deepStrictEqual(template.errors, [])
-const code = babel.transformSync(source.script.content, {
-  babelrc: false,
-  configFile: false,
-  presets: [['@babel/preset-env', { targets: { node: 'current' } }]]
-}).code
 const calls = []
 const responses = {}
 const api = new Proxy({}, {
@@ -21,11 +9,7 @@ const api = new Proxy({}, {
     return responses[name] || { data: [] }
   }
 })
-const moduleObject = { exports: {} }
-new Function('require', 'module', 'exports', code)(
-  () => api, moduleObject, moduleObject.exports
-)
-const component = moduleObject.exports.default
+const { component } = loadComponent('src/views/personal/test/point-level-manage.vue', () => api)
 const messages = []
 const vm = Object.assign(component.data(), component.methods, {
   $message: {

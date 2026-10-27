@@ -965,7 +965,6 @@ export default {
           this.recordList = (data.list || data.records || []).map(this.normalizeAdjustRecord)
           this.total = data.total || 0
         } else {
-          console.log(res, 'res')
           this.$message.error(res?.header?.message || '获取申请列表失败')
         }
       } catch (err) {
@@ -1037,7 +1036,6 @@ export default {
       try {
         const res = await getPointAdjustDetailApi(targetId)
         if (res && res.data) {
-          console.log(res, 'res')
           this.detailData = res.data || {}
         } else {
           this.$message.error(res?.header?.message || '获取申请详情失败')

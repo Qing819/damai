@@ -278,7 +278,6 @@
 
 <script>
 import {
-  getBenefitAnnualPageApi, // 4.16.31 年初台账接口（已导入，按需要使用）
   exportBenefitTraceApi, // 4.16.30 轨迹导出 Excel
   getBenefitTraceStatsApi, // 4.16.28 本期统计
   getBenefitTracePageApi, // 4.16.27 轨迹分页
@@ -419,7 +418,6 @@ export default {
       this.detailVisible = true;
       this.detailLoading = true;
       try {
-        console.log('id', row.id)
         const res = await getBenefitTraceDetailApi(row.id || row.traceNo);
         if (res) {
           this.currentDetail = res.data;

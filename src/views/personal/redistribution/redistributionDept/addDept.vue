@@ -108,9 +108,7 @@
 </template>
 
 <script>
-import {
-  mapGetters
-} from 'vuex'
+import 'vuex'
 import {
   exportFileGet
 } from 'utils/exportFile'
@@ -120,9 +118,7 @@ import {
   getImportTemplate,
   importIntegrationRule,
   orgCodesInformation,
-  deleteFileList,
-  sureFileList,
-  sureFileListUp
+  sureFileList
 } from 'api/pointRedistribution/index'
 
 export default {
@@ -188,7 +184,6 @@ export default {
   computed: {},
   watch: {
     'formData.endTime'(val) {
-      console.log('val1', val)
       if (this.tableData.length) {
         this.loading = true
         for (const el of this.tableData) {
@@ -198,14 +193,12 @@ export default {
       }
     },
     depart() {
-      // console.log(this.isSubmit+"0")
       // if(this.tableData.length > 0) {
       //   for (const el of this.tableData)
       //     if(el.state==0){
       //       this.isSubmit = true
       //     }
       // }
-      // console.log(this.isSubmit+"1")
     },
     searchConfig(val) {
       this.searchInfo = []
@@ -224,8 +217,6 @@ export default {
   methods: {
     togglePopover() {
       this.popoverVisible = !this.popoverVisible;
-      console.log('popoverVisible', this.popoverVisible)
-      console.log('tableRule', this.tableRule)
       this.tableRule = [
         {
           ruleId: '1',
@@ -276,31 +267,21 @@ export default {
               list
             }
           }) => {
-            console.log(list)
             this.tableData = list;
             this.total = total;
-            console.log(this.isSubmit + '0')
-            console.log('this.tableData', this.tableData)
-            console.log(this.tableData.length + 'y')
             if (this.tableData.length > 0) {
               for (const el of this.tableData) {
                 this.isSubmit = el.state === 0
               }
-              console.log(this.isSubmit + '1')
             }
           }
         );
-      // console.log(this.isSubmit+"0")
-      // console.log('this.tableData', this.tableData)
-      // console.log(this.tableData.length+"y")
       // if(this.tableData.length > 0) {
       //   for (const el of this.tableData)
-      //     console.log(el.state+"Y")
       //     if(el.state==0){
       //       this.isSubmit = true
       //     }
       // }
-      // console.log(this.isSubmit+"1")
       // if(this.fileId != null){
       //   let paramState ={fileId: this.fileId};
       //   sureFileListUp(paramState).then(res => {
@@ -362,7 +343,6 @@ export default {
         const formData = new FormData()
         formData.append('excel', file.raw)
         if (this.formData.startTime) {
-          console.log('this.formData.startTime', this.formData.startTime)
           formData.append('startDate', this.formData.startTime.getTime())
         }
         if (this.formData.endTime) {

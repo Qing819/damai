@@ -331,7 +331,6 @@ export default {
         const newTag = this.ruleList.find(item => item.originType !== 'rule')
         newTag && (newTag.originType = 'rule')
       }
-      console.log(this.ruleList)
     },
     removeTag(tag, index) {
       this.$confirm('是否删除?', '确认框', {
@@ -344,7 +343,7 @@ export default {
           this.$message.success('操作成功')
         })
         .catch(() => {
-          console.log('取消')
+          // 【待人工复核】沿用原有行为，不向外抛出异常。
         })
     },
     editTag(tag, index) {
@@ -352,7 +351,6 @@ export default {
         if (isNaN(tag.value)) {
           return
         } else {
-          console.log(tag)
           tag.showInput = true
 
           this.$nextTick(() => {
@@ -375,8 +373,8 @@ export default {
       if (e.relatedContext.element?.originType === 'right') return false
       return true
     },
-    dragEnd(e) {
-      console.log(e)
+    dragEnd() {
+      // 保留模板绑定的事件入口。
     },
     saveForm() {}
   }

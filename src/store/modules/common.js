@@ -1,5 +1,5 @@
 // 公共模块
-import { getIntegrationType } from 'api/pointRule/index'
+import 'api/pointRule/index'
 
 const commonStore = {
   state: {

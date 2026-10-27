@@ -1,27 +1,12 @@
-const fs = require('fs')
-const path = require('path')
 const assert = require('assert')
-const babel = require('@babel/core')
-const compiler = require('vue-template-compiler')
 const axios = require('axios')
+const { loadFile, loadComponent } = require('./test-utils.cjs')
 // The Node runtime has no browser FormData. Capture multipart fields for contract assertions.
 global.FormData = class {
   constructor() { this.fields = {} }
   append(key, value) { this.fields[key] = value }
 }
 
-const root = path.join(__dirname, '..')
-const source = compiler.parseComponent(fs.readFileSync(path.join(root, 'src/views/personal/test/service-rule-manage.vue'), 'utf8'))
-assert.deepStrictEqual(compiler.compile(source.template.content).errors, [])
-function load(text, requireStub) {
-  const module = { exports: {} }
-  const code = babel.transformSync(text, {
-    babelrc: false, configFile: false,
-    presets: [['@babel/preset-env', { targets: { node: 'current' } }]]
-  }).code
-  new Function('require', 'module', 'exports', code)(requireStub, module, module.exports)
-  return module.exports
-}
 const calls = []
 const responses = {}
 let live = false
@@ -40,8 +25,8 @@ async function request(config) {
   assert.strictEqual(response.data.header.statusCode, '000000')
   return response.data.body
 }
-const api = load(fs.readFileSync(path.join(root, 'src/api/test/index.js'), 'utf8'), () => request)
-const component = load(source.script.content, () => api).default
+const api = loadFile('src/api/test/index.js', () => request)
+const { component } = loadComponent('src/views/personal/test/service-rule-manage.vue', () => api)
 const messages = []
 function makeVM() {
   const vm = {
@@ -200,6 +185,7 @@ async function run() {
   assert.strictEqual(vm.importing, false)
   console.log('PASS: save validation and encoded payload; partial import failure is not reported as full success')
 
+  if (!process.argv.includes('--live')) return
   live = true
   const real = makeVM()
   await real.fetchDictOptions()

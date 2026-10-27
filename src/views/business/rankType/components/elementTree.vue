@@ -95,7 +95,6 @@ export default {
     },
     // 拖拽初始化
     initDrag() {
-      console.log('创建拖拽')
       // 需要拖拽的dom节点
       const els = document.querySelectorAll('.el-tree-node__content')
       const options = {

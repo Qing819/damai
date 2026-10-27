@@ -192,7 +192,6 @@ export default {
         }
         this.tableLoading = false
       } catch (error) {
-        console.log(error)
         this.tableLoading = false
       }
     },

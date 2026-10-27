@@ -64,9 +64,7 @@
 </template>
 
 <script>
-import {
-  mapGetters
-} from 'vuex'
+import 'vuex'
 import {
   exportFileGet
 } from 'utils/exportFile'
@@ -76,7 +74,6 @@ import {
   getImportTemplateAgent,
   importIntegrationRuleAgent,
   orgCodesInformationAgent,
-  deleteFileListAgent,
   sureFileListAgent,
   sureFileListUpAgent
 } from 'api/pointRedistribution/index'
@@ -127,8 +124,6 @@ export default {
   methods: {
     togglePopover() {
       this.popoverVisible = !this.popoverVisible;
-      console.log('popoverVisible', this.popoverVisible)
-      console.log('tableRule', this.tableRule)
       this.tableRule = [
         {
           ruleId: '1',

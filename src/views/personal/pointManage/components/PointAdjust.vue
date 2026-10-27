@@ -83,7 +83,6 @@ export default {
   props: ['form'],
   watch: {
     'formData.point'(value) {
-      // console.log(value)
       if (value === undefined) {
         this.$nextTick(() => {
           this.formData.point = 0
@@ -107,7 +106,7 @@ export default {
           this.$emit('update:dialogVisible', false)
         }
       } catch (error) {
-        console.log(error)
+        // 【待人工复核】沿用原有行为，不向外抛出异常。
       }
     }
   },

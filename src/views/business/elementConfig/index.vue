@@ -131,7 +131,6 @@ export default {
         this.total = total
         this.tableLoading = false
       } catch (error) {
-        console.log(error)
         this.tableLoading = false
       }
     },
@@ -162,7 +161,7 @@ export default {
           }
         })
         .catch(() => {
-          console.log('取消')
+          // 【待人工复核】沿用原有行为，不向外抛出异常。
         })
     },
     // 新增要素

@@ -186,7 +186,6 @@ export default {
   methods: {
     async getUserCookie() {
       const res = await getUserInfo()
-      console.log('res1', res.userInfo.orgs[0])
       if (res.userInfo.orgs.length > 0) {
         this.id = res.userInfo.orgs[0].id
         this.orgName = res.userInfo.orgs[0].orgName
@@ -212,7 +211,7 @@ export default {
         // this.getList()
       })
         .catch(() => {
-          console.log('取消')
+          // 【待人工复核】沿用原有行为，不向外抛出异常。
         })
     },
     handleExportCommand(command) {
@@ -231,7 +230,6 @@ export default {
       const res = await getUser()
       const index = res.getUserOrgs.lastIndexOf('/')
       const lastValue = res.getUserOrgs.substring(index + 1)
-      console.log('str', res.getUserOrgs.lastIndexOf('/'), lastValue);
       if (lastValue) {
         selectDeptCnt({ OrgCode: lastValue }).then(res => {
           this.formDataClient = res ? res : {
@@ -377,7 +375,6 @@ export default {
     // 处理导入
     handleImport(type) {
       if (type === 'downLoad') {
-        console.log('下载上传模板')
         getImportTemplate({ integralCode: this.formData.integralCode }).then(res => {
           exportFileGet(res, '孤单客户再分配机构')
         })

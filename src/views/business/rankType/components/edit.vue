@@ -484,7 +484,6 @@ export default {
       const _this = this
       // 首先获取需要拖拽的dom节点
       const tbody = document.querySelector('.edit-table .el-table__body-wrapper tbody')
-      console.log(tbody)
       Sortable.create(tbody, {
         disabled: false, // 是否开启拖拽
         ghostClass: 'sortable-ghost', // 拖拽样式
