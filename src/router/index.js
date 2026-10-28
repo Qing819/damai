@@ -161,6 +161,14 @@ const routes = [
     path: '/personal/pointCalculated',
     component: _import('personal/test/point-calculate')
   },
+  {
+    path: '/personal/statistics',
+    component: _import('personal/test/statistics')
+  },
+  {
+    path: '/personal/reportDrill',
+    component: _import('personal/test/report-drill')
+  },
 
 
   // 按钮权限

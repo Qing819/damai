@@ -1,0 +1,36 @@
+.report-page {
+  padding: 20px;
+  color: #333a45;
+  font-size: 14px;
+
+  .page-heading { margin-bottom: 20px; }
+  h1 { margin: 0 0 6px; font-size: 21px; line-height: 30px; font-weight: 700; }
+  .page-heading p { margin: 0; color: #5a6472; font-size: 13px; line-height: 20px; }
+  .el-card { margin-bottom: 18px; border-color: #e0e4ea; border-radius: 6px; }
+  ::v-deep .el-card__header { padding: 13px 18px; color: #333a45; font-size: 15px; font-weight: 600; }
+  ::v-deep .el-card__body { padding: 16px 18px; }
+  .hint { color: #98a1ad; font-size: 12px; font-weight: 400; }
+  .card-hint { margin-left: 8px; }
+  .form-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+  .form-row:last-child { margin-bottom: 0; }
+  .form-label { width: 110px; flex-shrink: 0; color: #5a6472; font-size: 14px; }
+  .el-radio, .el-checkbox { margin-right: 18px; color: #333a45; }
+  ::v-deep .el-radio__label, ::v-deep .el-checkbox__label { font-size: 14px; }
+  .el-button { font-family: inherit; }
+  .el-button:not(.el-button--text) { height: 36px; padding: 0 16px; font-size: 14px; }
+  .el-button--primary { background: #4f6fae; border-color: #4f6fae; }
+  .el-button--default:hover, .el-button--default:focus { color: #4f6fae; border-color: #4f6fae; background: #fff; }
+  .el-button--text { color: #4f6fae; }
+  ::v-deep .el-input__inner { height: 40px; line-height: 40px; font-size: 14px; }
+  ::v-deep .el-input__icon { line-height: 40px; }
+  .query-actions { display: flex; gap: 8px; align-items: center; }
+  .query-actions .el-button { margin: 0; min-width: 62px; padding: 0 14px; }
+  .notice { margin: 0 0 16px; padding: 10px 14px; color: #5a6472; background: #f5f7fa; font-size: 13px; line-height: 22px; border-radius: 4px; }
+  .pagination-footer { margin-top: 16px; display: flex; justify-content: flex-end; }
+  .grade-badge { display: inline-block; padding: 2px 12px; border-radius: 12px; color: #8a6d00; background: #fff6df; font-size: 12px; }
+  .point-badge { padding: 2px 10px; border-radius: 12px; color: #4472c4; background: #eaf0fb; }
+  .point-badge.loyalty { color: #7030a0; background: #f0e6f8; }
+  .point-badge.pension { color: #c55a11; background: #fff2e8; }
+  .tip { display: flex; gap: 12px; margin-top: 14px; padding: 12px 16px; background: #eef4ff; color: #5a6472; line-height: 22px; font-size: 13px; }
+  .tip b { color: #2f5496; flex-shrink: 0; }
+}
