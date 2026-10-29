@@ -11,7 +11,7 @@
         <el-row :gutter="20">
           <el-col :span="4">
             <el-form-item>
-              <el-select v-model="queryForm.point_system" placeholder="全部积分体系" clearable style="width: 100%;">
+              <el-select v-model="queryForm.pointSystem" placeholder="全部积分体系" clearable style="width: 100%;">
                 <el-option label="新积分体系" value="V2_2027" />
                 <el-option label="老积分体系" value="V1_LEGACY" />
               </el-select>
@@ -19,7 +19,7 @@
           </el-col>
           <el-col :span="4">
             <el-form-item>
-              <el-select v-model="queryForm.current_grade" placeholder="全部客户等级" clearable style="width: 100%;">
+              <el-select v-model="queryForm.currentGrade" placeholder="全部客户等级" clearable style="width: 100%;">
                 <el-option label="普星" value="PUXING" />
                 <el-option label="三星" value="SANXING" />
                 <el-option label="四星" value="SIXING" />
@@ -41,7 +41,7 @@
           </el-col>
           <el-col :span="4">
             <el-form-item>
-              <el-select v-model="queryForm.org_name" placeholder="全部服务机构" clearable style="width: 100%;">
+              <el-select v-model="queryForm.orgName" placeholder="全部服务机构" clearable style="width: 100%;">
                 <el-option label="总公司" value="总公司" />
                 <el-option label="天津分公司" value="天津分公司" />
                 <el-option label="北京分公司" value="北京分公司" />
@@ -56,12 +56,12 @@
           </el-col>
           <el-col :span="4">
             <el-form-item>
-              <el-input v-model="queryForm.cust_id" placeholder="客户号" clearable />
+              <el-input v-model="queryForm.custId" placeholder="客户号" clearable />
             </el-form-item>
           </el-col>
           <el-col :span="4">
             <el-form-item>
-              <el-input v-model="queryForm.cust_name" placeholder="客户姓名" clearable />
+              <el-input v-model="queryForm.custName" placeholder="客户姓名" clearable />
             </el-form-item>
           </el-col>
         </el-row>
@@ -70,7 +70,7 @@
         <el-row :gutter="20">
           <el-col :span="4">
             <el-form-item>
-              <el-select v-model="queryForm.id_type" placeholder="全部证件类型" clearable style="width: 100%;">
+              <el-select v-model="queryForm.idType" placeholder="全部证件类型" clearable style="width: 100%;">
                 <el-option label="居民身份证" value="IDCARD" />
                 <el-option label="中国护照" value="PASSPORT" />
                 <el-option label="港澳居民来往内地通行证" value="HKMO_PASS" />
@@ -79,7 +79,7 @@
           </el-col>
           <el-col :span="4">
             <el-form-item>
-              <el-input v-model="queryForm.id_no" placeholder="证件号码" clearable />
+              <el-input v-model="queryForm.idNo" placeholder="证件号码" clearable />
             </el-form-item>
           </el-col>
           <el-col :span="4">
@@ -150,66 +150,66 @@
           size="mini"
       >
         <el-table-column prop="seq" label="序号" width="55" align="center" />
-        <el-table-column prop="point_system" label="客户积分体系" width="110" align="center">
+        <el-table-column prop="pointSystem" label="客户积分体系" width="110" align="center">
           <template slot-scope="scope">
             <span :class="['system-tag', isLegacySystem(scope.row) ? 'system-old' : 'system-new']">
               {{ formatSystem(scope.row) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="cust_id" label="客户号" width="130" />
-        <el-table-column prop="core_cust_id" label="核心客户号" width="100" />
-        <el-table-column prop="cust_name" label="客户姓名" width="90" />
-        <el-table-column prop="id_type" label="证件类型" width="100" />
-        <el-table-column prop="id_no" label="证件号码" width="170" />
+        <el-table-column prop="custId" label="客户号" width="130" />
+        <el-table-column prop="coreCustId" label="核心客户号" width="100" />
+        <el-table-column prop="custName" label="客户姓名" width="90" />
+        <el-table-column prop="idType" label="证件类型" width="100" />
+        <el-table-column prop="idNo" label="证件号码" width="170" />
         <el-table-column prop="mobile" label="手机号码" width="120" />
-        <el-table-column prop="current_grade" label="客户等级" width="100" align="center">
+        <el-table-column prop="currentGrade" label="客户等级" width="100" align="center">
           <template slot-scope="scope">
-            <el-tag :class="['tag-level', 'tag-' + getLevelCode(scope.row.current_grade)]" size="small" effect="plain">
-              {{ formatGrade(scope.row.current_grade) }}
+            <el-tag :class="['tag-level', 'tag-' + getLevelCode(scope.row.currentGrade)]" size="small" effect="plain">
+              {{ formatGrade(scope.row.currentGrade) }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="channel" label="所属渠道" width="100" show-overflow-tooltip />
-        <el-table-column prop="premium_point" label="保费积分" width="100" align="right">
+        <el-table-column prop="premiumPoint" label="保费积分" width="100" align="right">
           <template slot-scope="scope">
-            {{ scope.row.premium_point !== null && scope.row.premium_point !== undefined ? formatNumber(scope.row.premium_point) : '—' }}
+            {{ scope.row.premiumPoint !== null && scope.row.premiumPoint !== undefined ? formatNumber(scope.row.premiumPoint) : '—' }}
           </template>
         </el-table-column>
-        <el-table-column prop="loyalty_point" label="忠诚积分" width="100" align="right">
+        <el-table-column prop="loyaltyPoint" label="忠诚积分" width="100" align="right">
           <template slot-scope="scope">
-            <span v-if="scope.row.loyalty_point !== null && scope.row.loyalty_point !== undefined">
-              {{ formatNumber(scope.row.loyalty_point) }}
+            <span v-if="scope.row.loyaltyPoint !== null && scope.row.loyaltyPoint !== undefined">
+              {{ formatNumber(scope.row.loyaltyPoint) }}
             </span>
             <span v-else>—</span>
           </template>
         </el-table-column>
-        <el-table-column prop="manual_point" label="人工调整积分" width="110" align="right">
+        <el-table-column prop="manualPoint" label="人工调整积分" width="110" align="right">
           <template slot-scope="scope">
-            <span :class="scope.row.manual_point > 0 ? 'text-success' : scope.row.manual_point < 0 ? 'text-danger' : ''">
-              {{ scope.row.manual_point > 0 ? '+' : '' }}{{ formatNumber(scope.row.manual_point) }}
+            <span :class="scope.row.manualPoint > 0 ? 'text-success' : scope.row.manualPoint < 0 ? 'text-danger' : ''">
+              {{ scope.row.manualPoint > 0 ? '+' : '' }}{{ formatNumber(scope.row.manualPoint) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="current_point" label="当前积分" width="110" align="right">
+        <el-table-column prop="currentPoint" label="当前积分" width="110" align="right">
           <template slot-scope="scope">
-            <span class="text-bold">{{ formatNumber(scope.row.current_point) }}</span>
+            <span class="text-bold">{{ formatNumber(scope.row.currentPoint) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="org_name" label="服务归属机构" width="110" show-overflow-tooltip />
-        <el-table-column prop="org2_name" label="二级机构" width="110" show-overflow-tooltip />
-        <el-table-column prop="org3_name" label="三级机构" width="100" show-overflow-tooltip />
-        <el-table-column prop="bank_name" label="所属银行" width="100" show-overflow-tooltip>
+        <el-table-column prop="orgName" label="服务归属机构" width="110" show-overflow-tooltip />
+        <el-table-column prop="org2Name" label="二级机构" width="110" show-overflow-tooltip />
+        <el-table-column prop="org3Name" label="三级机构" width="100" show-overflow-tooltip />
+        <el-table-column prop="bankName" label="所属银行" width="100" show-overflow-tooltip>
           <template slot-scope="scope">
-            {{ scope.row.bank_name || '—' }}
+            {{ scope.row.bankName || '—' }}
           </template>
         </el-table-column>
-        <el-table-column prop="agency" label="所属经纪公司" width="110" show-overflow-tooltip>
+        <el-table-column prop="agentCompany" label="所属经代公司" width="110" show-overflow-tooltip>
           <template slot-scope="scope">
-            {{ scope.row.agency || '—' }}
+            {{ scope.row.agentCompany || '—' }}
           </template>
         </el-table-column>
-        <el-table-column prop="agent" label="代理人" width="90" show-overflow-tooltip />
+        <el-table-column prop="agentName" label="代理人" width="90" show-overflow-tooltip />
         <el-table-column label="操作" width="140" fixed="right" align="center">
           <template slot-scope="scope">
             <template v-if="isLegacySystem(scope.row)">
@@ -243,12 +243,16 @@
 <script>
 import * as echarts from 'echarts'
 import { getCustPointListApi, getCustPointStatsApi, exportCustListApi } from 'api/test/point'
+import { assertExportBlob } from '@/utils/exportFile'
 
 export default {
   name: 'CustomerPoints',
   data() {
     return {
       loading: false,
+      exportLoading: false,
+      listRequest: 0,
+      appliedQuery: {},
       // 顶部三个统计卡片的数据
       totalStats: {
         total: 0,
@@ -259,14 +263,14 @@ export default {
       // 保存 ECharts 实例以便后续 dispose 和 resize
       chartInstances: [],
       queryForm: {
-        point_system: '',
-        current_grade: '',
+        pointSystem: '',
+        currentGrade: '',
         channel: '',
-        org_name: '',
-        cust_id: '',
-        cust_name: '',
-        id_type: '',
-        id_no: '',
+        orgName: '',
+        custId: '',
+        custName: '',
+        idType: '',
+        idNo: '',
         mobile: ''
       },
       page: {
@@ -278,6 +282,7 @@ export default {
     }
   },
   mounted() {
+    this.appliedQuery = { ...this.queryForm }
     this.fetchTableData()
     // 确保 DOM 挂载完成后初始化图表
     this.$nextTick(() => {
@@ -468,36 +473,32 @@ export default {
 
     // 获取列表数据
     async fetchTableData() {
+      const request = ++this.listRequest
       this.loading = true
       try {
+        const query = this.appliedQuery
         const params = {
-          ruleVersionTag: this.queryForm.point_system,
-          custId: this.queryForm.cust_id,
-          custName: this.queryForm.cust_name,
-          grade: this.queryForm.current_grade,
-          channel: this.queryForm.channel,
-          orgName: this.queryForm.org_name,
-          idType: this.queryForm.id_type,
-          idNo: this.queryForm.id_no,
-          mobile: this.queryForm.mobile,
+          ruleVersionTag: query.pointSystem,
+          custId: query.custId,
+          custName: query.custName,
+          grade: query.currentGrade,
+          channel: query.channel,
+          orgName: query.orgName,
+          idType: query.idType,
+          idNo: query.idNo,
+          mobile: query.mobile,
           pageNum: this.page.currentPage,
           pageSize: this.page.pageSize
         }
 
+        const statsParams = { ...params }
+        delete statsParams.pageNum
+        delete statsParams.pageSize
         const [res, statsRes] = await Promise.all([
           getCustPointListApi(params),
-          getCustPointStatsApi({
-            ruleVersionTag: this.queryForm.point_system,
-            grade: this.queryForm.current_grade,
-            channel: this.queryForm.channel,
-            orgName: this.queryForm.org_name,
-            idType: this.queryForm.id_type,
-            idNo: this.queryForm.id_no,
-            mobile: this.queryForm.mobile,
-            custId: this.queryForm.cust_id,
-            custName: this.queryForm.cust_name
-          })
+          getCustPointStatsApi(statsParams).catch(() => null)
         ])
+        if (request !== this.listRequest) return
 
         const stats = statsRes && (statsRes.data || statsRes.body?.data)
         if (stats) {
@@ -512,6 +513,17 @@ export default {
           this.chartInstances.forEach(instance => instance && instance.dispose())
           this.chartInstances = []
           this.$nextTick(() => this.initCharts())
+        } else {
+          this.totalStats = {
+            total: 0,
+            newSystem: { count: 0, percent: 0 },
+            oldSystem: { count: 0, percent: 0 },
+            grades: { V2_2027: {}, V1_LEGACY: {} }
+          }
+          this.chartInstances.forEach(instance => instance && instance.dispose())
+          this.chartInstances = []
+          this.$nextTick(() => this.initCharts())
+          this.$message.error('客户积分统计加载失败')
         }
 
         if (res && res.data) {
@@ -522,24 +534,35 @@ export default {
           // 映射计算序号
           const list = bodyData.list || []
           this.tableData = list.map((item, index) => ({
-            ...item,
-            point_system: item.point_system || (item.rule_version_tag === 'V1_LEGACY' ? '老积分体系' : item.rule_version_tag === 'V2_2027' ? '新积分体系' : ''),
+            ...this.normalizeCustomer(item),
             seq: (this.page.currentPage - 1) * this.page.pageSize + index + 1
           }))
         } else {
+          this.tableData = []
+          this.total = 0
           this.$message.error(res?.header?.message || '获取客户积分列表失败')
         }
       } catch (error) {
+        if (request !== this.listRequest) return
+        this.tableData = []
+        this.total = 0
         console.error('获取列表接口错误:', error)
         this.$message.error('网络请求异常，请稍后再试')
       } finally {
-        this.loading = false
+        if (request === this.listRequest) this.loading = false
       }
+    },
+
+    normalizeCustomer(item) {
+      const row = { ...item }
+      row.pointSystem = item.pointSystem || (row.ruleVersionTag === 'V1_LEGACY' ? '老积分体系' : row.ruleVersionTag === 'V2_2027' ? '新积分体系' : '')
+      return row
     },
 
     // 等级映射 CSS class 编码
     getLevelCode(grade) {
       if (!grade) return 'default'
+      grade = this.formatGrade(grade)
       if (grade.includes('普星')) return 'puxing'
       if (grade.includes('三星')) return '3star'
       if (grade.includes('四星')) return '4star'
@@ -562,50 +585,56 @@ export default {
     },
 
     isLegacySystem(row) {
-      return row.point_system === '老积分体系' || row.rule_version_tag === 'V1_LEGACY'
+      return row.pointSystem === '老积分体系' || row.ruleVersionTag === 'V1_LEGACY'
     },
 
     formatSystem(row) {
       if (this.isLegacySystem(row)) return '老积分体系'
-      if (row.point_system === '新积分体系' || row.rule_version_tag === 'V2_2027') return '新积分体系'
-      return row.point_system || row.rule_version_tag || '—'
+      if (row.pointSystem === '新积分体系' || row.ruleVersionTag === 'V2_2027') return '新积分体系'
+      return row.pointSystem || row.ruleVersionTag || '—'
     },
 
     handleSearch() {
+      this.appliedQuery = { ...this.queryForm }
       this.page.currentPage = 1
       this.fetchTableData()
     },
 
     handleReset() {
       this.queryForm = {
-        point_system: '',
-        current_grade: '',
+        pointSystem: '',
+        currentGrade: '',
         channel: '',
-        org_name: '',
-        cust_id: '',
-        cust_name: '',
-        id_type: '',
-        id_no: '',
+        orgName: '',
+        custId: '',
+        custName: '',
+        idType: '',
+        idNo: '',
         mobile: ''
       }
       this.page.currentPage = 1
+      this.appliedQuery = { ...this.queryForm }
       this.fetchTableData()
     },
 
     async handleExport() {
+      if (this.exportLoading) return
+      this.exportLoading = true
       try {
+        const query = this.appliedQuery
         const params = {
-          ruleVersionTag: this.queryForm.point_system,
-          custId: this.queryForm.cust_id,
-          custName: this.queryForm.cust_name,
-          grade: this.queryForm.current_grade,
-          channel: this.queryForm.channel,
-          orgName: this.queryForm.org_name,
-          idType: this.queryForm.id_type,
-          idNo: this.queryForm.id_no,
-          mobile: this.queryForm.mobile
+          ruleVersionTag: query.pointSystem,
+          custId: query.custId,
+          custName: query.custName,
+          grade: query.currentGrade,
+          channel: query.channel,
+          orgName: query.orgName,
+          idType: query.idType,
+          idNo: query.idNo,
+          mobile: query.mobile
         }
         const blob = await exportCustListApi(params)
+        await assertExportBlob(blob)
         const url = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
@@ -615,27 +644,29 @@ export default {
         this.$message.success('导出成功')
       } catch (error) {
         this.$message.error('导出失败')
+      } finally {
+        this.exportLoading = false
       }
     },
 
     handleDetail(row) {
       this.$router.push({
         path: '/personal/manageDetails',
-        query: { custId: row.cust_id }
+        query: { custId: row.custId }
       })
     },
 
     handlePointDetail(row) {
       this.$router.push({
         path: '/personal/oldPointDetail',
-        query: { custId: row.cust_id }
+        query: { custId: row.custId }
       })
     },
 
     handleRightDetail(row) {
       this.$router.push({
         path: '/personal/oldBenefitDetail',
-        query: { custId: row.cust_id }
+        query: { custId: row.custId }
       })
     },
 
@@ -737,15 +768,6 @@ export default {
   background-color: #fff;
 }
 
-.btn-search {
-  background-color: #4472c4 !important;
-  border-color: #4472c4 !important;
-}
-.btn-search:hover,
-.btn-search:focus {
-  background-color: #4472c4;
-  border-color: #4472c4;
-}
 .btn-export {
   color: #4472c4;
   border-color: #4472c4;

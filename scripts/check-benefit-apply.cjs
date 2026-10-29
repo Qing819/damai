@@ -112,7 +112,9 @@ async function run() {
   assert.strictEqual(model.validateForm(vm.applyForm), '')
   assert.ok(model.validateForm({ ...vm.applyForm, validEndDate: '2020-01-01' }))
   assert.ok(model.validateForm({ ...vm.applyForm, reasonCode: 'invalid' }))
-  assert.strictEqual(model.payloadFor({ ...vm.applyForm, reasonCode: 'REASON05' }).reasonName, '权益派发错误')
+  // 与交付 SQL 的 sys_dict_v2 及接口文档 2.4 一致，不能将 03/05 对调。
+  assert.strictEqual(model.payloadFor({ ...vm.applyForm, reasonCode: 'REASON03' }).reasonName, '权益派发错误')
+  assert.strictEqual(model.payloadFor({ ...vm.applyForm, reasonCode: 'REASON05' }).reasonName, '历史权益修正')
   // No write occurs before the confirmation, or after cancel. A failed write stays retryable.
   const writesBefore = calls.filter(call => call.method !== 'get').length
   vm.openConfirmation(false)

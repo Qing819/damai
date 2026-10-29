@@ -12,7 +12,8 @@
 | `check-benefit-approval.cjs` | 权益审批查询、详情、通过/驳回及重复提交保护 |
 | `check-service-rules.cjs` | 服务规则、00/01编码、修改记录快照及保存/导入参数 |
 | `integrate-service-rules.cjs` | 服务规则真实接口及已发现的后端问题复测 |
-| `test-utils.cjs` | 六个脚本共用的源码读取、Babel转换和Vue模板编译 |
+| `test-utils.cjs` | 回归脚本共用的源码读取、Babel转换和Vue模板编译 |
+| `check-menu-audit.js` | 全菜单核对中补充的积分组件回归；`--live` 只读检查各菜单主要接口 |
 
 ## 本地回归
 
@@ -24,7 +25,16 @@ node scripts/check-level-trace.cjs
 node scripts/check-benefit-apply.cjs
 node scripts/check-benefit-approval.cjs
 node scripts/check-service-rules.cjs
+node scripts/check-menu-audit.js
 ```
+
+全菜单核对记录及后端待办见 `menu-audit-results-20261028.md`。新的只读检查使用当前本地代理：
+
+```sh
+node scripts/check-menu-audit.js --live
+```
+
+需要显式指定其他测试目标时可用 `MENU_AUDIT_API`；此脚本没有写入模式。接口断连与业务断言失败均保持非零退出码，不记为通过。
 
 后四个脚本支持追加 `--live` 执行真实接口只读检查；等级轨迹、权益申请、权益审批沿用 `localhost:8002`，服务规则沿用当前接口目标，支持已有 `SERVICE_RULE_API` 环境变量。
 

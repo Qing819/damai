@@ -1,3 +1,32 @@
+export async function assertExportBlob(blob) {
+  if (blob.type && /json|text/.test(blob.type)) {
+    const text = await blob.text()
+    let message = '导出失败'
+    try {
+      const error = JSON.parse(text)
+      message = (error.header || {}).message || error.message || message
+    } catch (error) {
+      // 非 JSON 的文本错误也不能保存为 Excel。
+    }
+    throw new Error(message)
+  }
+}
+
+export async function downloadBlob(blob, fileName) {
+  await assertExportBlob(blob)
+  const href = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = href
+  link.download = fileName
+  document.body.appendChild(link)
+  try {
+    link.click()
+  } finally {
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(href)
+  }
+}
+
 export function exportFileGet(content, name, suffix = 'xlsx') {
   // 添加字节序标识，避免乱码
   // const data = `\uFEFF${content}`;

@@ -185,6 +185,9 @@
         class="audit-detail-dialog"
         title="审核详情"
         :visible.sync="dialogVisible"
+        :close-on-click-modal="!submitLoading"
+        :close-on-press-escape="!submitLoading"
+        :show-close="!submitLoading"
         width="660px"
         append-to-body
     >
@@ -239,7 +242,7 @@
         <div v-if="currentRow.attachment" class="section-block">
           <div class="section-title">附件</div>
           <div>
-            <el-link type="primary" :underline="false" icon="el-icon-document">{{ currentRow.attachment }}</el-link>
+            <el-link type="primary" :underline="false" icon="el-icon-document" @click="downloadAttachment">{{ currentRow.attachment }}</el-link>
             <span class="attachment-download-count">（已下载 {{ currentRow.attachmentDownloadCount || currentRow.downloadCount || 0 }} 次）</span>
           </div>
         </div>
@@ -290,8 +293,10 @@
 import {
   getPointAdjustPageApi,
   getPointAdjustDetailApi,
-  auditPointAdjustApi
+  auditPointAdjustApi,
+  downloadAttachmentApi
 } from '@/api/test/point'
+import { downloadBlob } from '@/utils/exportFile'
 
 export default {
   name: 'PointsAudit',
@@ -300,6 +305,9 @@ export default {
       loading: false,
       detailLoading: false,
       submitLoading: false,
+      listRequest: 0,
+      detailRequest: 0,
+      appliedQuery: {},
 
       // 证件类型字典 (规范 1.8)
       idTypeMap: {
@@ -355,9 +363,21 @@ export default {
     }
   },
   created() {
+    this.appliedQuery = { ...this.searchForm }
     this.fetchPageList()
   },
   methods: {
+    async downloadAttachment() {
+      if (!this.currentRow || !this.currentRow.attachment) return
+      const filePath = this.currentRow.attachment
+      const fileName = this.currentRow.attachmentName || filePath.split('/').pop()
+      try {
+        const blob = await downloadAttachmentApi({ filePath, fileName })
+        await downloadBlob(blob, fileName)
+      } catch (error) {
+        this.$message.error('附件下载失败，请重试')
+      }
+    },
     // 格式化证件类型
     formatIdType(code) {
       if (!code) return '—'
@@ -404,24 +424,29 @@ export default {
 
     // 4.2.2 加载申请列表
     async fetchPageList() {
+      const request = ++this.listRequest
       this.loading = true
       try {
         const params = {
-          ...this.searchForm,
+          ...this.appliedQuery,
           pageNum: this.pageNum,
           pageSize: this.pageSize
         }
 
         const res = await getPointAdjustPageApi(params)
+        if (request !== this.listRequest) return
         const pageData = res?.data || res?.body?.data || {}
 
         this.tableData = pageData.list || []
         this.total = pageData.total || 0
       } catch (err) {
+        if (request !== this.listRequest) return
+        this.tableData = []
+        this.total = 0
         console.error('获取列表数据异常:', err)
         this.$message.error('获取列表失败')
       } finally {
-        this.loading = false
+        if (request === this.listRequest) this.loading = false
       }
     },
 
@@ -444,6 +469,11 @@ export default {
     },
 
     handleSearch() {
+      if (this.searchForm.dateFrom && this.searchForm.dateTo && this.searchForm.dateFrom > this.searchForm.dateTo) {
+        this.$message.warning('开始日期不能晚于结束日期')
+        return
+      }
+      this.appliedQuery = { ...this.searchForm }
       this.pageNum = 1
       this.fetchPageList()
     },
@@ -461,31 +491,43 @@ export default {
         dateTo: ''
       }
       this.pageNum = 1
+      this.appliedQuery = { ...this.searchForm }
       this.fetchPageList()
     },
 
     // 4.2.3 打开弹窗并获取申请详情
     async openAuditModal(row) {
+      if (this.submitLoading) return
+      if (!row.id) {
+        this.$message.error('申请主键缺失，无法加载详情')
+        return
+      }
+      const request = ++this.detailRequest
       this.dialogVisible = true
-      this.currentRow = { ...row } // 先展示行内部数据
+      this.currentRow = null
       this.auditRemark = ''
       this.detailLoading = true
 
       try {
-        const res = await getPointAdjustDetailApi(row.id || row.applyNo)
-        const detailData = res?.data || res?.body?.data || res
-        if (detailData && (detailData.id || detailData.applyNo)) {
-          this.currentRow = detailData
-        }
+        const res = await getPointAdjustDetailApi(row.id)
+        if (request !== this.detailRequest || !this.dialogVisible) return
+        const detailData = res?.data || res?.body?.data
+        if (!detailData || !detailData.id) throw new Error('申请详情缺少主键')
+        this.currentRow = detailData
       } catch (err) {
+        if (request !== this.detailRequest) return
+        this.dialogVisible = false
+        this.$message.error('获取申请详情失败，请重试')
         console.error('获取申请详情异常:', err)
       } finally {
-        this.detailLoading = false
+        if (request === this.detailRequest) this.detailLoading = false
       }
     },
 
     // 4.2.6 提交审核 (按 1.6 规范: result 传参支持 APPROVED / REJECTED)
     async handleAuditSubmit(resultCode) {
+      if (this.submitLoading || this.detailLoading || !this.currentRow || !this.isPending(this.currentRow.status)) return
+      if (!['APPROVED', 'REJECTED'].includes(resultCode)) return
       const isReject = resultCode === 'REJECTED' || resultCode === '驳回'
       if (isReject && !this.auditRemark.trim()) {
         this.$message.warning('驳回时必须填写审核意见！')
@@ -521,6 +563,7 @@ export default {
 
     handleSizeChange(val) {
       this.pageSize = val
+      this.pageNum = 1
       this.fetchPageList()
     },
 
@@ -645,11 +688,6 @@ export default {
   padding: 0 16px;
   border-radius: 4px;
   font-size: 14px;
-}
-
-.prototype-filter-form /deep/ .btn-search {
-  background: #4472c4 !important;
-  border-color: #4472c4 !important;
 }
 
 .prototype-filter-form /deep/ .btn-reset {

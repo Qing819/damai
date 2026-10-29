@@ -242,7 +242,7 @@
           <div class="section-title">保单信息</div>
           <el-row :gutter="12" class="info-row">
             <el-col :span="12">客户：<strong>{{ detailData.custName }} ({{ detailData.custId }})</strong></el-col>
-            <el-col :span="12">证件类型：<strong>{{ detailData.certType || '居民身份证' }}</strong></el-col>
+            <el-col :span="12">证件类型：<strong>{{ detailData.certType || '—' }}</strong></el-col>
             <el-col :span="12">证件号码：<strong>{{ detailData.certNo }}</strong></el-col>
             <el-col :span="12">服务归属机构：<strong>{{ detailData.orgName }}</strong></el-col>
             <el-col :span="12" v-if="detailData.policyNo">保单号：<strong class="text-primary">{{ detailData.policyNo }}</strong></el-col>
@@ -321,21 +321,21 @@
                 {{ formatPointType(detailData.pointType) }}
               </el-tag>
             </el-col>
-            <el-col :span="12">触发规则：<strong>{{ detailData.ruleName || '期交实收保费积分规则 (R-001)' }}</strong></el-col>
-            <el-col :span="12">规则版本：<strong>{{ detailData.ruleVersion || 'V2.0' }}</strong></el-col>
-            <el-col :span="12">实收记录：<strong class="text-primary">{{ detailData.payRecordNo || 'SR2026082201' }}</strong></el-col>
-            <el-col :span="12">缴费间隔：<strong>{{ detailData.payInterval || '年交' }}</strong></el-col>
-            <el-col :span="12">交费年期：<strong>{{ detailData.payYears ? `${detailData.payYears} 年` : '3 年' }}</strong></el-col>
-            <el-col :span="12">缴费次数：<strong>{{ detailData.payCount ? `${detailData.payCount} 次` : '1 次' }}</strong></el-col>
-            <el-col :span="12">交费金额：<strong>{{ (detailData.payAmt || 10000) | formatNumber }}</strong></el-col>
-            <el-col :span="12">计算系数：<strong>{{ detailData.calcFactor || '0.05' }}</strong></el-col>
+            <el-col :span="12">触发规则：<strong>{{ detailData.ruleName || '—' }}</strong></el-col>
+            <el-col :span="12">规则版本：<strong>{{ detailData.ruleVersion || '—' }}</strong></el-col>
+            <el-col :span="12">实收记录：<el-button v-if="detailData.payRecordNo" type="text" @click="$refs.payDetail.open(detailData.payRecordNo)">{{ detailData.payRecordNo }}</el-button><strong v-else>—</strong></el-col>
+            <el-col :span="12">缴费间隔：<strong>{{ detailData.payInterval || '—' }}</strong></el-col>
+            <el-col :span="12">交费年期：<strong>{{ detailData.payYears != null ? `${detailData.payYears} 年` : '—' }}</strong></el-col>
+            <el-col :span="12">缴费次数：<strong>{{ detailData.payCount != null ? `${detailData.payCount} 次` : '—' }}</strong></el-col>
+            <el-col :span="12">交费金额：<strong>{{ detailData.payAmt != null ? $options.filters.formatNumber(detailData.payAmt) : '—' }}</strong></el-col>
+            <el-col :span="12">计算系数：<strong>{{ detailData.calcFactor != null ? detailData.calcFactor : '—' }}</strong></el-col>
           </el-row>
         </div>
 
         <!-- 附件区 -->
         <div class="detail-section" v-if="detailData.attachmentName">
           <div class="section-title">附件</div>
-          <el-link type="primary" icon="el-icon-document" :underline="false">
+          <el-link type="primary" icon="el-icon-document" :underline="false" @click="downloadAttachment">
             {{ detailData.attachmentName }}
           </el-link>
         </div>
@@ -346,8 +346,8 @@
             审批信息 <span class="sub-tip">人工调整需审批通过后生效</span>
           </div>
           <el-row :gutter="12" class="info-row">
-            <el-col :span="12">申请单号：<strong>{{ detailData.applyNo || 'ADJ20260823001' }}</strong></el-col>
-            <el-col :span="12">审核人：<strong>{{ detailData.approver || '李四' }}</strong></el-col>
+            <el-col :span="12">申请单号：<strong>{{ detailData.applyNo || '—' }}</strong></el-col>
+            <el-col :span="12">审核人：<strong>{{ detailData.approver || '—' }}</strong></el-col>
             <el-col :span="12" v-if="detailData.approveTime">审核时间：<strong>{{ detailData.approveTime }}</strong></el-col>
             <el-col :span="24" v-if="detailData.approveRemark">审核意见：<strong>{{ detailData.approveRemark }}</strong></el-col>
           </el-row>
@@ -358,14 +358,18 @@
         <el-button size="small" @click="detailDialogVisible = false">关闭</el-button>
       </div>
     </el-dialog>
+    <pay-detail-dialog ref="payDetail" />
   </div>
 </template>
 
 <script>
-import { getPointTracePageApi, getPointTraceSummaryApi, getPointTraceDetailApi, exportTraceApi } from '@/api/test/point'
+import { getPointTracePageApi, getPointTraceSummaryApi, getPointTraceDetailApi, exportTraceApi, downloadAttachmentApi } from '@/api/test/point'
+import { assertExportBlob, downloadBlob } from '@/utils/exportFile'
+import PayDetailDialog from './pay-detail-dialog.vue'
 
 export default {
   name: 'PointTraceList',
+  components: { PayDetailDialog },
   filters: {
     formatNumber(val) {
       if (val === null || val === undefined || isNaN(val)) return '0'
@@ -375,6 +379,11 @@ export default {
   data() {
     return {
       loading: false,
+      exportLoading: false,
+      listRequest: 0,
+      summaryRequest: 0,
+      detailRequest: 0,
+      appliedQuery: {},
       dateRange: [],
       detailDialogVisible: false,
       detailData: null,
@@ -412,9 +421,9 @@ export default {
       total: 0,
       traceList: [],
       summaryData: {
-        add_total: 0,
-        reduce_total: 0,
-        net_change: 0,
+        addTotal: 0,
+        reduceTotal: 0,
+        netChange: 0,
         total: 0
       }
     }
@@ -422,17 +431,29 @@ export default {
   computed: {
     summaryCards() {
       return [
-        { title: '本期加分总额', value: this.summaryData.add_total, color: '#67c23a' },
-        { title: '本期减分总额', value: this.summaryData.reduce_total, color: '#f56c6c' },
-        { title: '本期净变化', value: this.summaryData.net_change, color: '#4f6fae' },
+        { title: '本期加分总额', value: this.summaryData.addTotal, color: '#67c23a' },
+        { title: '本期减分总额', value: this.summaryData.reduceTotal, color: '#f56c6c' },
+        { title: '本期净变化', value: this.summaryData.netChange, color: '#4f6fae' },
         { title: '轨迹总数', value: this.summaryData.total, color: '#909399' }
       ]
     }
   },
   created() {
+    this.appliedQuery = { ...this.queryParams }
     this.loadData()
   },
   methods: {
+    async downloadAttachment() {
+      if (!this.detailData || !this.detailData.attachmentName) return
+      const filePath = this.detailData.attachmentName
+      const fileName = filePath.split('/').pop()
+      try {
+        const blob = await downloadAttachmentApi({ filePath, fileName })
+        await downloadBlob(blob, fileName)
+      } catch (error) {
+        this.$message.error('附件下载失败，请重试')
+      }
+    },
     isPolicyPointType(pointType) {
       const targetTypes = ['PREMIUM', '保费积分', 'PENSION', '养老协同积分']
       return targetTypes.includes(pointType)
@@ -486,7 +507,6 @@ export default {
     },
 
     async loadData() {
-      this.loading = true
       try {
         await Promise.all([
           this.fetchTracePage(),
@@ -494,43 +514,61 @@ export default {
         ])
       } catch (err) {
         console.error('页面数据加载失败:', err)
-      } finally {
-        this.loading = false
       }
     },
 
     async fetchTracePage() {
+      const request = ++this.listRequest
+      this.loading = true
       try {
-        const res = await getPointTracePageApi(this.queryParams)
+        const res = await getPointTracePageApi({
+          ...this.appliedQuery,
+          pageNum: this.queryParams.pageNum,
+          pageSize: this.queryParams.pageSize
+        })
+        if (request !== this.listRequest) return
         if (res && res.data) {
           const data = res.data || {}
           this.traceList = (data.list || []).map(this.normalizeTraceItem)
           this.total = data.total || 0
         } else {
-          this.$message.error(res?.header?.message || '获取积分轨迹列表失败')
+          throw new Error('获取积分轨迹列表失败')
         }
       } catch (err) {
+        if (request !== this.listRequest) return
+        this.traceList = []
+        this.total = 0
+        this.$message.error('获取积分轨迹列表失败')
         console.error('获取列表发生异常:', err)
+      } finally {
+        if (request === this.listRequest) this.loading = false
       }
     },
 
     async fetchTraceSummary() {
+      const request = ++this.summaryRequest
       try {
         const params = {
-          dateFrom: this.queryParams.dateFrom,
-          dateTo: this.queryParams.dateTo
+          dateFrom: this.appliedQuery.dateFrom,
+          dateTo: this.appliedQuery.dateTo
         }
         const res = await getPointTraceSummaryApi(params)
+        if (request !== this.summaryRequest) return
         if (res && res.data) {
           const data = res.data || {}
           this.summaryData = {
-            add_total: data.add_total !== undefined ? data.add_total : (data.addTotal || 0),
-            reduce_total: data.reduce_total !== undefined ? data.reduce_total : (data.reduceTotal || 0),
-            net_change: data.net_change !== undefined ? data.net_change : (data.netChange || 0),
+            addTotal: data.addTotal ?? 0,
+            reduceTotal: data.reduceTotal ?? 0,
+            netChange: data.netChange ?? 0,
             total: data.total !== undefined ? data.total : (data.totalCount || 0)
           }
+        } else {
+          throw new Error('获取积分统计失败')
         }
       } catch (err) {
+        if (request !== this.summaryRequest) return
+        this.summaryData = { addTotal: 0, reduceTotal: 0, netChange: 0, total: 0 }
+        this.$message.error('获取积分统计失败')
         console.error('获取统计数据发生异常:', err)
       }
     },
@@ -546,7 +584,12 @@ export default {
     },
 
     handleQuery() {
+      if (this.queryParams.dateFrom && this.queryParams.dateTo && this.queryParams.dateFrom > this.queryParams.dateTo) {
+        this.$message.warning('开始日期不能晚于结束日期')
+        return
+      }
       this.queryParams.pageNum = 1
+      this.appliedQuery = { ...this.queryParams }
       this.loadData()
     },
 
@@ -569,9 +612,14 @@ export default {
     },
 
     async handleExport() {
+      if (this.exportLoading) return
+      this.exportLoading = true
       try {
-        const { pageNum, pageSize, ...exportParams } = this.queryParams
+        const exportParams = { ...this.appliedQuery }
+        delete exportParams.pageNum
+        delete exportParams.pageSize
         const blob = await exportTraceApi(exportParams)
+        await assertExportBlob(blob)
         const url = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
@@ -581,11 +629,14 @@ export default {
         this.$message.success('导出成功')
       } catch (err) {
         this.$message.error('导出失败')
+      } finally {
+        this.exportLoading = false
       }
     },
 
     handleSizeChange(val) {
       this.queryParams.pageSize = val
+      this.queryParams.pageNum = 1
       this.fetchTracePage()
     },
 
@@ -600,8 +651,8 @@ export default {
         traceId: item.trace_id || item.traceId,
         custId: item.cust_id || item.custId,
         custName: item.cust_name || item.custName,
-        certType: item.id_type || item.cert_type || item.certType,
-        certNo: item.id_no || item.cert_no || item.certNo,
+        certType: item.id_type || item.idType || item.cert_type || item.certType,
+        certNo: item.id_no || item.idNo || item.cert_no || item.certNo,
         orgName: item.org_name || item.orgName,
         operateType: item.operate_type || item.operateType,
         pointType: item.point_type || item.pointType,
@@ -617,34 +668,53 @@ export default {
         operateTime: item.operate_time || item.operateTime,
         riskCode: item.risk_code || item.riskCode,
         productName: item.product_name || item.productName,
-        policyEffectiveDate: item.policy_effective_date || item.policyEffectiveDate,
+        policyEffectiveDate: item.policy_effective_date || item.policyEffectiveDate || item.cvalidate,
         attachmentName: item.attachment_name || item.attachmentName,
         detailRemark: item.detail_remark || item.detailRemark,
         applyNo: item.apply_no || item.applyNo,
         approver: item.approver,
         approveTime: item.approve_time || item.approveTime,
         approveRemark: item.approve_remark || item.approveRemark,
-        ruleName: item.rule_name || item.ruleName,
+        ruleName: item.rule_name || item.ruleName || item.rule_code || item.ruleCode,
         ruleVersion: item.rule_version || item.ruleVersion,
-        payRecordNo: item.pay_record_no || item.payRecordNo,
+        payRecordNo: item.pay_record_no || item.payRecordNo || item.pay_no || item.payNo,
         payInterval: item.pay_interval || item.payInterval,
         payYears: item.pay_years !== undefined ? item.pay_years : item.payYears,
         payCount: item.pay_count !== undefined ? item.pay_count : item.payCount,
         payAmt: item.pay_amt !== undefined ? item.pay_amt : item.payAmt,
-        calcFactor: item.calc_factor || item.calcFactor
+        calcFactor: item.calc_factor ?? item.calcFactor ?? item.calc_coefficient ?? item.calcCoefficient
       }
     },
 
     async handleViewDetail(row) {
-      this.detailData = { ...row }
+      if (!row.traceId) {
+        this.$message.error('轨迹主键缺失，无法加载详情')
+        return
+      }
+      const request = ++this.detailRequest
+      this.detailData = null
       this.detailDialogVisible = true
       try {
         const res = await getPointTraceDetailApi(row.traceId)
-        const detail = res?.data || res?.body?.data || res
-        if (detail && typeof detail === 'object') {
-          this.detailData = this.normalizeTraceItem({ ...row, ...detail })
+        if (request !== this.detailRequest || !this.detailDialogVisible) return
+        const data = res?.data || res?.body?.data
+        const detail = data && (data.trace || data)
+        if (detail && (detail.trace_id || detail.traceId)) {
+          const apply = data.apply || detail.apply || {}
+          this.detailData = this.normalizeTraceItem({
+            ...row, ...detail,
+            applyNo: apply.applyNo || apply.apply_no || detail.applyNo,
+            approver: apply.auditor || apply.approver || detail.approver,
+            approveTime: apply.auditTime || apply.audit_time || detail.approveTime,
+            approveRemark: apply.auditOpinion || apply.audit_opinion || detail.approveRemark,
+            attachmentName: apply.attachment || detail.attachmentName
+          })
+        } else {
+          throw new Error('轨迹详情缺少主键')
         }
       } catch (err) {
+        if (request !== this.detailRequest) return
+        this.detailDialogVisible = false
         console.error('获取轨迹详情发生异常:', err)
         this.$message.error('获取轨迹详情失败')
       }
@@ -724,11 +794,6 @@ export default {
   padding: 0 16px;
   border-radius: 4px;
   font-size: 14px;
-}
-
-.prototype-filter-form ::v-deep .btn-search {
-  background: #4472c4 !important;
-  border-color: #4472c4 !important;
 }
 
 .prototype-filter-form ::v-deep .btn-reset,

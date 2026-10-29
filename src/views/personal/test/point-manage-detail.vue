@@ -15,17 +15,17 @@
       <div class="section-card">
         <div class="section-title">客户基本信息</div>
         <el-descriptions :column="3" border class="custom-descriptions">
-          <el-descriptions-item label="客户号">{{ userInfo.cust_id || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="核心客户号">{{ userInfo.core_cust_id || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="客户姓名">{{ userInfo.cust_name || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="证件类型">{{ userInfo.id_type || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="证件号码">{{ userInfo.id_no || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="客户号">{{ userInfo.custId || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="核心客户号">{{ userInfo.coreCustId || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="客户姓名">{{ userInfo.custName || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="证件类型">{{ userInfo.idType || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="证件号码">{{ userInfo.idNo || '—' }}</el-descriptions-item>
           <el-descriptions-item label="手机号码">{{ userInfo.mobile || '—' }}</el-descriptions-item>
           <el-descriptions-item label="客户级别">
-            <el-tag type="warning" size="small">{{ formatGrade(userInfo.current_grade) }}</el-tag>
+            <el-tag type="warning" size="small">{{ formatGrade(userInfo.currentGrade) }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="所属渠道">{{ userInfo.channel || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="服务归属机构">{{ userInfo.org_name || '—' }}</el-descriptions-item>
+          <el-descriptions-item label="服务归属机构">{{ userInfo.orgName || '—' }}</el-descriptions-item>
           <el-descriptions-item label="二级机构">{{ userInfo.org2_name || '—' }}</el-descriptions-item>
           <el-descriptions-item label="三级机构">{{ userInfo.org3_name || '—' }}</el-descriptions-item>
           <el-descriptions-item label="代理人">{{ userInfo.agent || '—' }}</el-descriptions-item>
@@ -49,20 +49,20 @@
       <div class="section-card">
         <div class="section-title">权益现状</div>
         <el-table :data="benefitsData" header-row-class-name="custom-header" border size="mini">
-          <el-table-column prop="benefit_name" label="服务项目" align="center" />
+          <el-table-column prop="benefitName" label="服务项目" align="center" />
           <el-table-column label="可使用次数" align="center">
             <template slot-scope="{row}">
-              {{ row.limit_type === 'unlimited' ? '不限' : (row.grant_count || '—') }}
+              {{ row.limitType === 'unlimited' ? '不限' : (row.grantCount != null ? row.grantCount : '—') }}
             </template>
           </el-table-column>
-          <el-table-column prop="used_count" label="已使用次数" align="center">
+          <el-table-column prop="usedCount" label="已使用次数" align="center">
             <template slot-scope="{row}">
-              {{ row.used_count !== null && row.used_count !== undefined ? row.used_count : 0 }}
+              {{ row.usedCount !== null && row.usedCount !== undefined ? row.usedCount : 0 }}
             </template>
           </el-table-column>
           <el-table-column label="剩余次数" align="center">
             <template slot-scope="{row}">
-              {{ row.limit_type === 'unlimited' ? '不限' : (row.remain_count !== null ? row.remain_count : '—') }}
+              {{ row.limitType === 'unlimited' ? '不限' : (row.remainCount != null ? row.remainCount : '—') }}
             </template>
           </el-table-column>
           <el-table-column prop="grant_time" label="获得时间" align="center" />
@@ -139,7 +139,7 @@
               </el-table-column>
               <el-table-column label="变化类型" align="center">
                 <template slot-scope="{row}">
-                  <el-tag size="mini" type="info">{{ row.change_type || row.changeType || '—' }}</el-tag>
+                  <el-tag size="mini" type="info">{{ formatChangeType(row.change_type || row.changeType) }}</el-tag>
                 </template>
               </el-table-column>
               <el-table-column label="变化前等级" align="center">
@@ -169,7 +169,7 @@
           <el-tab-pane label="权益轨迹" name="benefitTrack">
             <el-table :data="benefitTrackData" header-row-class-name="custom-header" border size="mini">
               <el-table-column label="权益动作" align="center">
-                <template slot-scope="{row}">{{ row.action || row.action_name || row.actionName || '—' }}</template>
+                <template slot-scope="{row}">{{ formatBenefitAction(row.action || row.action_name || row.actionName) }}</template>
               </el-table-column>
               <el-table-column label="权益名称" align="center">
                 <template slot-scope="{row}">{{ row.benefit_name || row.benefitName || '—' }}</template>
@@ -193,7 +193,7 @@
                 <template slot-scope="{row}">{{ row.used_count !== undefined ? row.used_count : (row.usedCount || 0) }} / {{ row.remain_count !== undefined ? (row.remain_count === null ? '不限' : row.remain_count) : (row.remainCount === null || row.remainCount === undefined ? '不限' : row.remainCount) }}</template>
               </el-table-column>
               <el-table-column label="次数状态" align="center">
-                <template slot-scope="{row}">{{ row.count_status || row.countStatus || '正常' }}</template>
+                <template slot-scope="{row}">{{ formatBenefitStatus(row.count_status || row.countStatus) }}</template>
               </el-table-column>
               <el-table-column label="操作" width="80" fixed="right" align="center">
                 <template slot-scope="{row}">
@@ -224,17 +224,17 @@
         <div class="detail-section">
           <div class="section-title">保单信息</div>
           <el-row :gutter="12" class="info-row">
-            <el-col :span="12">客户：<strong>{{ traceDetailData.cust_name || userInfo.cust_name }} ({{ traceDetailData.cust_id || userInfo.cust_id }})</strong></el-col>
-            <el-col :span="12">证件类型：<strong>{{ traceDetailData.cert_type || '居民身份证' }}</strong></el-col>
-            <el-col :span="12">证件号码：<strong>{{ traceDetailData.cert_no || '—' }}</strong></el-col>
-            <el-col :span="12">服务归属机构：<strong>{{ traceDetailData.org_name || '天津分公司' }}</strong></el-col>
+            <el-col :span="12">客户：<strong>{{ traceDetailData.cust_name || userInfo.custName }} ({{ traceDetailData.cust_id || userInfo.custId }})</strong></el-col>
+            <el-col :span="12">证件类型：<strong>{{ traceDetailData.id_type || traceDetailData.cert_type || userInfo.idType || '—' }}</strong></el-col>
+            <el-col :span="12">证件号码：<strong>{{ traceDetailData.id_no || traceDetailData.cert_no || userInfo.idNo || '—' }}</strong></el-col>
+            <el-col :span="12">服务归属机构：<strong>{{ traceDetailData.org_name || userInfo.orgName || '—' }}</strong></el-col>
             <el-col :span="12" v-if="traceDetailData.policy_no">保单号：<strong class="text-primary">{{ traceDetailData.policy_no }}</strong></el-col>
             <el-col :span="12" v-if="traceDetailData.risk_code">险种号：<strong>{{ traceDetailData.risk_code }}</strong></el-col>
             <el-col :span="12" v-if="traceDetailData.product_name">产品：<strong>{{ traceDetailData.product_name }}</strong></el-col>
 
             <!-- 【新增1】针对保费积分或养老协同积分展示 保单生效日期 -->
             <el-col :span="12" v-if="isPolicyPointType(traceDetailData.point_type)">
-              保单生效日期：<strong>{{ traceDetailData.policy_effective_date || '2024-05-06' }}</strong>
+              保单生效日期：<strong>{{ traceDetailData.policy_effective_date || '—' }}</strong>
             </el-col>
           </el-row>
         </div>
@@ -304,24 +304,24 @@
                 {{ formatPointType(traceDetailData.point_type) }}
               </el-tag>
             </el-col>
-            <el-col :span="12">触发规则：<strong>{{ traceDetailData.rule_name || '期交实收保费积分规则 (R-001)' }}</strong></el-col>
-            <el-col :span="12">规则版本：<strong>{{ traceDetailData.rule_version || 'V2.0' }}</strong></el-col>
-            <el-col :span="12">实收记录：<strong class="text-primary">{{ traceDetailData.pay_record_no || 'SR2026082201' }}</strong></el-col>
-            <el-col :span="12">缴费间隔：<strong>{{ traceDetailData.pay_interval || '年交' }}</strong></el-col>
+            <el-col :span="12">触发规则：<strong>{{ traceDetailData.rule_name || traceDetailData.rule_code || '—' }}</strong></el-col>
+            <el-col :span="12">规则版本：<strong>{{ traceDetailData.rule_version || '—' }}</strong></el-col>
+            <el-col :span="12">实收记录：<el-button v-if="traceDetailData.pay_record_no" type="text" @click="$refs.payDetail.open(traceDetailData.pay_record_no)">{{ traceDetailData.pay_record_no }}</el-button><strong v-else>—</strong></el-col>
+            <el-col :span="12">缴费间隔：<strong>{{ traceDetailData.pay_interval || '—' }}</strong></el-col>
 
             <!-- 【新增2】触发规则区域新增交费年期 -->
-            <el-col :span="12">交费年期：<strong>{{ traceDetailData.pay_years ? `${traceDetailData.pay_years} 年` : '3 年' }}</strong></el-col>
+            <el-col :span="12">交费年期：<strong>{{ traceDetailData.pay_years != null ? `${traceDetailData.pay_years} 年` : '—' }}</strong></el-col>
 
-            <el-col :span="12">缴费次数：<strong>{{ traceDetailData.pay_count ? `${traceDetailData.pay_count} 次` : '1 次' }}</strong></el-col>
-            <el-col :span="12">交费金额：<strong>{{ (traceDetailData.pay_amt || 10000) | formatNumber }}</strong></el-col>
-            <el-col :span="12">计算系数：<strong>{{ traceDetailData.calc_factor || '0.05' }}</strong></el-col>
+            <el-col :span="12">缴费次数：<strong>{{ traceDetailData.pay_count != null ? `${traceDetailData.pay_count} 次` : '—' }}</strong></el-col>
+            <el-col :span="12">交费金额：<strong>{{ traceDetailData.pay_amt != null ? $options.filters.formatNumber(traceDetailData.pay_amt) : '—' }}</strong></el-col>
+            <el-col :span="12">计算系数：<strong>{{ traceDetailData.calc_factor != null ? traceDetailData.calc_factor : '—' }}</strong></el-col>
           </el-row>
         </div>
 
         <!-- 附件区 -->
         <div class="detail-section" v-if="traceDetailData.attachment_name">
           <div class="section-title">附件</div>
-          <el-link type="primary" icon="el-icon-document" :underline="false">
+          <el-link type="primary" icon="el-icon-document" :underline="false" @click="downloadAttachment">
             {{ traceDetailData.attachment_name }}
           </el-link>
         </div>
@@ -332,8 +332,8 @@
             审批信息 <span class="sub-tip">人工调整需审批通过后生效</span>
           </div>
           <el-row :gutter="12" class="info-row">
-            <el-col :span="12">申请单号：<strong>{{ traceDetailData.apply_no || 'ADJ20260823001' }}</strong></el-col>
-            <el-col :span="12">审核人：<strong>{{ traceDetailData.approver || '李四' }}</strong></el-col>
+            <el-col :span="12">申请单号：<strong>{{ traceDetailData.apply_no || '—' }}</strong></el-col>
+            <el-col :span="12">审核人：<strong>{{ traceDetailData.approver || '—' }}</strong></el-col>
             <el-col :span="12" v-if="traceDetailData.approve_time">审核时间：<strong>{{ traceDetailData.approve_time }}</strong></el-col>
             <el-col :span="24" v-if="traceDetailData.approve_remark">审核意见：<strong>{{ traceDetailData.approve_remark }}</strong></el-col>
           </el-row>
@@ -345,6 +345,7 @@
       </div>
     </el-dialog>
 
+    <pay-detail-dialog ref="payDetail" />
     <!-- 等级变化详情弹框 -->
     <el-dialog
         title="等级变化详情"
@@ -358,8 +359,8 @@
           <div class="section-title">基本信息</div>
           <el-descriptions :column="2" size="small" class="grade-descriptions">
             <el-descriptions-item label="变化记录号">{{ gradeDetailData.trace_no || gradeDetailData.traceNo || gradeDetailData.record_no || gradeDetailData.recordNo || '—' }}</el-descriptions-item>
-            <el-descriptions-item label="客户">{{ gradeDetailData.cust_name || gradeDetailData.custName || userInfo.cust_name || '—' }}（{{ gradeDetailData.cust_id || gradeDetailData.custId || userInfo.cust_id || '—' }}）</el-descriptions-item>
-            <el-descriptions-item label="身份证号">{{ gradeDetailData.id_no || gradeDetailData.idNo || userInfo.id_no || '—' }}</el-descriptions-item>
+            <el-descriptions-item label="客户">{{ gradeDetailData.cust_name || gradeDetailData.custName || userInfo.custName || '—' }}（{{ gradeDetailData.cust_id || gradeDetailData.custId || userInfo.custId || '—' }}）</el-descriptions-item>
+            <el-descriptions-item label="身份证号">{{ gradeDetailData.id_no || gradeDetailData.idNo || userInfo.idNo || '—' }}</el-descriptions-item>
             <el-descriptions-item label="服务归属机构">{{ gradeDetailData.org_name || gradeDetailData.orgName || '—' }}</el-descriptions-item>
             <el-descriptions-item label="业务渠道">{{ gradeDetailData.channel || gradeDetailData.channel_name || gradeDetailData.channelName || '—' }}</el-descriptions-item>
             <el-descriptions-item label="变化类型">{{ formatChangeType(gradeDetailData.change_type || gradeDetailData.changeType) }}</el-descriptions-item>
@@ -402,19 +403,19 @@
         <div class="detail-section">
           <div class="section-title">权益信息</div>
           <el-row :gutter="12" class="info-row">
-            <el-col :span="12">客户：<strong>{{ benefitDetailData.custName || benefitDetailData.cust_name || userInfo.cust_name || '—' }}（{{ benefitDetailData.custId || benefitDetailData.cust_id || userInfo.cust_id || '—' }}）</strong></el-col>
+            <el-col :span="12">客户：<strong>{{ benefitDetailData.custName || benefitDetailData.cust_name || userInfo.custName || '—' }}（{{ benefitDetailData.custId || benefitDetailData.cust_id || userInfo.custId || '—' }}）</strong></el-col>
             <el-col :span="12">服务项目：<strong>{{ benefitDetailData.benefitName || benefitDetailData.benefit_name || '—' }}</strong></el-col>
             <el-col :span="12">服务供应商：<strong>{{ benefitDetailData.supplier || '—' }}</strong></el-col>
             <el-col :span="12">服务类型：<strong>{{ benefitDetailData.kind || benefitDetailData.serviceType || benefitDetailData.service_type || '—' }}</strong></el-col>
             <el-col :span="12">有效期：<strong>{{ formatDateOnly(benefitDetailData.validTo || benefitDetailData.valid_to || benefitDetailData.expire_time) }}</strong></el-col>
-            <el-col :span="12">次数状态：<strong>{{ benefitDetailData.countStatus || benefitDetailData.count_status || '正常' }}</strong></el-col>
+            <el-col :span="12">次数状态：<strong>{{ formatBenefitStatus(benefitDetailData.countStatus || benefitDetailData.count_status) }}</strong></el-col>
           </el-row>
         </div>
 
         <div class="detail-section">
           <div class="section-title">本次使用</div>
           <el-row :gutter="12" class="info-row">
-            <el-col :span="12">权益动作：<strong>{{ benefitDetailData.action || benefitDetailData.actionName || benefitDetailData.action_name || '—' }}</strong></el-col>
+            <el-col :span="12">权益动作：<strong>{{ formatBenefitAction(benefitDetailData.action || benefitDetailData.actionName || benefitDetailData.action_name) }}</strong></el-col>
             <el-col :span="12">动作时间：<strong>{{ benefitDetailData.actionTime || benefitDetailData.action_time || '—' }}</strong></el-col>
             <el-col :span="12">本次次数：<strong>{{ formatBenefitCount(benefitDetailData.countChange !== undefined ? benefitDetailData.countChange : benefitDetailData.count_change) }}</strong></el-col>
             <el-col :span="12">已使用 / 剩余：<strong>{{ benefitDetailData.usedCount !== undefined ? benefitDetailData.usedCount : (benefitDetailData.used_count || 0) }} / {{ benefitDetailData.remainCount === null || benefitDetailData.remain_count === null ? '不限' : (benefitDetailData.remainCount !== undefined ? benefitDetailData.remainCount : (benefitDetailData.remain_count !== undefined ? benefitDetailData.remain_count : '不限')) }}</strong></el-col>
@@ -424,9 +425,9 @@
         <div class="detail-section">
           <div class="section-title">次数变化</div>
           <div class="benefit-change-card">
-            <span>变化前剩余：<strong>{{ benefitDetailData.beforeRemain || benefitDetailData.before_remain || '不限' }}</strong></span>
+            <span>变化前剩余：<strong>{{ benefitBalance(benefitDetailData, true) }}</strong></span>
             <span class="grade-change-arrow">→</span>
-            <span>变化后剩余：<strong>{{ benefitDetailData.afterRemain || benefitDetailData.after_remain || '不限' }}</strong></span>
+            <span>变化后剩余：<strong>{{ benefitBalance(benefitDetailData, false) }}</strong></span>
           </div>
         </div>
       </div>
@@ -438,12 +439,15 @@
 </template>
 
 <script>
-import { getCustPointDetailApi, getPointTraceSummaryApi, getPointTraceDetailApi, exportTraceApi } from '@/api/test/point'
+import { getCustPointDetailApi, getPointTraceSummaryApi, getPointTraceDetailApi, exportTraceApi, downloadAttachmentApi } from '@/api/test/point'
 import { getGradeTraceDetailApi } from '@/api/test/index'
 import { getBenefitTraceDetailApi } from '@/api/test/index'
+import { assertExportBlob, downloadBlob } from '@/utils/exportFile'
+import PayDetailDialog from './pay-detail-dialog.vue'
 
 export default {
   name: 'CustomerPointDetailDialog',
+  components: { PayDetailDialog },
   filters: {
     formatNumber(val) {
       if (val === null || val === undefined || isNaN(val)) return '0'
@@ -459,6 +463,10 @@ export default {
   data() {
     return {
       loading: false,
+      customerRequest: 0,
+      traceRequest: 0,
+      gradeRequest: 0,
+      benefitRequest: 0,
       activeTab: 'points',
       currentCustId: '',
 
@@ -476,9 +484,9 @@ export default {
       },
 
       traceSummary: {
-        add_total: 0,
-        reduce_total: 0,
-        net_change: 0,
+        addTotal: 0,
+        reduceTotal: 0,
+        netChange: 0,
         total: 0
       },
       userInfo: {},
@@ -492,18 +500,18 @@ export default {
   computed: {
     traceSummaryCards() {
       return [
-        { title: '本期加分总额', value: this.traceSummary.add_total, color: '#67c23a' },
-        { title: '本期减分总额', value: this.traceSummary.reduce_total, color: '#f56c6c' },
-        { title: '本期净变化', value: this.traceSummary.net_change, color: '#4f6fae' },
+        { title: '本期加分总额', value: this.traceSummary.addTotal, color: '#67c23a' },
+        { title: '本期减分总额', value: this.traceSummary.reduceTotal, color: '#f56c6c' },
+        { title: '本期净变化', value: this.traceSummary.netChange, color: '#4f6fae' },
         { title: '轨迹总数', value: this.traceSummary.total, color: '#909399' }
       ]
     },
     pointsSummaryList() {
       return [
-        { label: '当前积分', value: this.pointsSummary.current_point || 0, highlight: true },
-        { label: '保费积分', value: this.pointsSummary.premium_point || 0 },
-        { label: '忠诚积分', value: this.pointsSummary.loyalty_point || 0 },
-        { label: '人工调整积分', value: this.pointsSummary.manual_point || 0 }
+        { label: '当前积分', value: this.pointsSummary.currentPoint || 0, highlight: true },
+        { label: '保费积分', value: this.pointsSummary.premiumPoint || 0 },
+        { label: '忠诚积分', value: this.pointsSummary.loyaltyPoint || 0 },
+        { label: '人工调整积分', value: this.pointsSummary.manualPoint || 0 }
       ]
     }
   },
@@ -525,6 +533,17 @@ export default {
     }
   },
   methods: {
+    async downloadAttachment() {
+      if (!this.traceDetailData || !this.traceDetailData.attachment_name) return
+      const filePath = this.traceDetailData.attachment_name
+      const fileName = filePath.split('/').pop()
+      try {
+        const blob = await downloadAttachmentApi({ filePath, fileName })
+        await downloadBlob(blob, fileName)
+      } catch (error) {
+        this.$message.error('附件下载失败，请重试')
+      }
+    },
     // 判断积分类型是否包含保单生效日期（保费积分/养老协同积分）
     isPolicyPointType(type) {
       const targets = ['PREMIUM', '保费积分', 'PENSION', '养老协同积分']
@@ -578,6 +597,20 @@ export default {
       if (value === null || value === undefined || value === '') return '—'
       return Number(value) > 0 ? `+${value}` : String(value)
     },
+    formatBenefitAction(value) {
+      return { GRADE_CHANGE: '等级变动调整', MANUAL_ADJUST: '人工调整', USE_DEDUCT: '使用消减', EXPIRE_DEDUCT: '失效消减', DEDUCT_ROLLBACK: '消减回退', TRANSFER_OUT: '转出', TRANSFER_IN: '转入' }[value] || value || '—'
+    },
+    formatBenefitStatus(value) {
+      return { NORMAL: '正常', EXHAUSTED: '已用尽', EXPIRED: '已失效', TRANSFERRED: '已转出' }[value] || value || '—'
+    },
+    benefitBalance(row, before) {
+      const fields = before ? ['beforeRemain', 'before_remain'] : ['afterRemain', 'after_remain', 'remainCount', 'remain_count']
+      for (const field of fields) {
+        if (row[field] !== undefined) return row[field] === null ? '不限' : row[field]
+      }
+      // 详情的 remainCount 空值可省略；动作前余额没有相应返回契约。
+      return before ? '—' : '不限'
+    },
 
     formatDirection(direction) {
       if (!direction) return '—'
@@ -626,9 +659,9 @@ export default {
         if (res && res.data) {
           const data = res.data || {}
           this.traceSummary = {
-            add_total: data.add_total !== undefined ? data.add_total : (data.addTotal || 0),
-            reduce_total: data.reduce_total !== undefined ? data.reduce_total : (data.reduceTotal || 0),
-            net_change: data.net_change !== undefined ? data.net_change : (data.netChange || 0),
+            addTotal: data.addTotal ?? 0,
+            reduceTotal: data.reduceTotal ?? 0,
+            netChange: data.netChange ?? 0,
             total: data.total !== undefined ? data.total : (data.totalCount || 0)
           }
         }
@@ -638,27 +671,29 @@ export default {
     },
 
     async fetchDetailData(custId) {
+      const request = ++this.customerRequest
       try {
         const res = await getCustPointDetailApi(custId)
+        if (request !== this.customerRequest) return
         if (res && res.data) {
           const data = res.data || {}
           const profile = data.profile || {}
           const baseInfo = data.custBaseInfo || {}
           this.userInfo = {
-            cust_id: profile.cust_id || profile.custId || baseInfo.custId,
-            core_cust_id: profile.core_cust_id || profile.coreCustId || baseInfo.coreCustId,
-            cust_name: profile.cust_name || profile.custName || baseInfo.custName,
-            id_type: profile.id_type || profile.idType || baseInfo.idType,
-            id_no: profile.id_no || profile.idNo || baseInfo.idNo,
+            custId: profile.cust_id || profile.custId || baseInfo.custId,
+            coreCustId: profile.core_cust_id || profile.coreCustId || baseInfo.coreCustId,
+            custName: profile.cust_name || profile.custName || baseInfo.custName,
+            idType: profile.id_type || profile.idType || baseInfo.idType,
+            idNo: profile.id_no || profile.idNo || baseInfo.idNo,
             mobile: profile.mobile || baseInfo.mobile,
-            current_grade: profile.current_grade || profile.currentGrade,
+            currentGrade: profile.current_grade || profile.currentGrade || data.pointSummary?.currentGrade,
             channel: profile.channel || profile.channelName || baseInfo.channel || baseInfo.channelName,
-            org_name: profile.org_name || profile.orgName || baseInfo.orgName,
-            org2_name: profile.org2_name || profile.org2Name || baseInfo.org2Name,
-            org3_name: profile.org3_name || profile.org3Name || baseInfo.org3Name,
-            agent: profile.agent || baseInfo.agent
+            orgName: profile.org_name || profile.orgName || baseInfo.orgName,
+            org2Name: profile.org2_name || profile.org2Name || baseInfo.org2Name,
+            org3Name: profile.org3_name || profile.org3Name || baseInfo.org3Name,
+            agent: profile.agent || profile.agentName || baseInfo.agent || baseInfo.agentName
           }
-          this.pointsSummary = data.pointSummary || data.point_summary || {}
+          this.pointsSummary = data.pointSummary || {}
           this.pointsTrack = (data.pointTraces || data.point_traces || []).map(item => ({
             ...item,
             trace_id: item.trace_id || item.traceId,
@@ -676,19 +711,37 @@ export default {
             operator: item.operator
           }))
           this.levelTrack = data.gradeTraces || data.grade_traces || []
-          this.benefitsData = data.benefitStatus || data.benefit_status || []
-          this.benefitTrackData = data.usageRecords || data.usage_records || []
+          this.benefitsData = data.benefitStatus || []
+          this.benefitTrackData = data.benefitTraces || data.benefit_traces || []
         } else {
-          this.$message.error(res?.header?.message || '获取客户积分详情失败')
+          throw new Error('客户积分详情响应异常')
         }
       } catch (err) {
+        if (request !== this.customerRequest) return
+        this.userInfo = {}
+        this.pointsSummary = {}
+        this.pointsTrack = []
+        this.levelTrack = []
+        this.benefitsData = []
+        this.benefitTrackData = []
+        this.$message.error('获取客户积分详情失败，请重试')
         console.error('获取详情接口错误:', err)
       }
+    },
+
+    normalizeDetailFields(item) {
+      const row = { ...item }
+      Object.keys(item).forEach(key => {
+        const field = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
+        if (row[field] === undefined) row[field] = item[key]
+      })
+      return row
     },
 
     async handleExport() {
       try {
         const blob = await exportTraceApi({ custId: this.currentCustId })
+        await assertExportBlob(blob)
         const url = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
@@ -703,62 +756,85 @@ export default {
 
     // 点击轨迹列表的“查看详情”后读取完整轨迹详情
     async handleDetail(row) {
-      this.traceDetailData = { ...row }
+      if (!row.trace_id) {
+        this.$message.error('轨迹主键缺失，无法加载详情')
+        return
+      }
+      const request = ++this.traceRequest
+      this.traceDetailData = null
       this.innerTraceDetailVisible = true
-      if (!row.trace_id) return
 
       try {
         const res = await getPointTraceDetailApi(row.trace_id)
+        if (request !== this.traceRequest || !this.innerTraceDetailVisible) return
         if (res && res.data) {
-          const detail = res.data.trace || res.data
+          const detail = this.normalizeDetailFields(res.data.trace || res.data)
+          if (!detail.trace_id) throw new Error('轨迹详情缺少主键')
           this.traceDetailData = { ...row, ...detail }
+          this.traceDetailData.policy_effective_date = detail.policy_effective_date || detail.cvalidate
           this.traceDetailData.pay_record_no = detail.pay_no || detail.pay_record_no
           this.traceDetailData.calc_factor = detail.calc_coefficient !== undefined ? detail.calc_coefficient : detail.calc_factor
-          this.traceDetailData.attachment_name = detail.attachment || detail.attachment_name
           const apply = res.data.apply || detail.apply || {}
+          this.traceDetailData.attachment_name = apply.attachment || detail.attachment || detail.attachment_name
           this.traceDetailData.apply = apply
           this.traceDetailData.apply_no = apply.apply_no || apply.applyNo || this.traceDetailData.apply_no
-          this.traceDetailData.approver = apply.approver || apply.approver_name || this.traceDetailData.approver
-          this.traceDetailData.approve_time = apply.approve_time || apply.approveTime || this.traceDetailData.approve_time
-          this.traceDetailData.approve_remark = apply.approve_remark || apply.approveRemark || apply.approval_comment || this.traceDetailData.approve_remark
+          this.traceDetailData.approver = apply.auditor || apply.approver || apply.approver_name || this.traceDetailData.approver
+          this.traceDetailData.approve_time = apply.auditTime || apply.approve_time || apply.approveTime || this.traceDetailData.approve_time
+          this.traceDetailData.approve_remark = apply.auditOpinion || apply.approve_remark || apply.approveRemark || apply.approval_comment || this.traceDetailData.approve_remark
+        } else {
+          throw new Error('轨迹详情响应异常')
         }
       } catch (err) {
+        if (request !== this.traceRequest) return
+        this.innerTraceDetailVisible = false
         console.error('获取积分轨迹详情失败:', err)
         this.$message.error('获取轨迹详情失败，请稍后重试')
       }
     },
 
     async handleGradeDetail(row) {
-      this.gradeDetailData = { ...row }
-      this.gradeDetailDialogVisible = true
       const traceNo = row.trace_no || row.traceNo || row.record_no || row.recordNo
       if (!traceNo) return
+      const request = ++this.gradeRequest
+      this.gradeDetailData = null
+      this.gradeDetailDialogVisible = true
 
       try {
         const res = await getGradeTraceDetailApi(traceNo)
-        const detail = res?.data || res?.body?.data || res
-        if (detail && typeof detail === 'object') {
+        if (request !== this.gradeRequest || !this.gradeDetailDialogVisible) return
+        const detail = res?.data || res?.body?.data
+        if (detail && (detail.id || detail.traceNo || detail.trace_no)) {
           this.gradeDetailData = { ...row, ...detail }
+        } else {
+          throw new Error('等级变化详情响应异常')
         }
       } catch (err) {
+        if (request !== this.gradeRequest) return
+        this.gradeDetailDialogVisible = false
         console.error('获取等级变化详情失败:', err)
         this.$message.error('获取等级变化详情失败')
       }
     },
 
     async handleBenefitDetail(row) {
-      this.benefitDetailData = { ...row }
-      this.benefitDetailDialogVisible = true
       const traceId = row.id || row.traceNo || row.trace_no
       if (!traceId) return
+      const request = ++this.benefitRequest
+      this.benefitDetailData = null
+      this.benefitDetailDialogVisible = true
 
       try {
         const res = await getBenefitTraceDetailApi(traceId)
-        const detail = res?.data || res?.body?.data || res
-        if (detail && typeof detail === 'object') {
+        if (request !== this.benefitRequest || !this.benefitDetailDialogVisible) return
+        const detail = res?.data || res?.body?.data
+        if (detail && (detail.id || detail.traceNo || detail.trace_no)) {
           this.benefitDetailData = { ...row, ...detail }
+        } else {
+          throw new Error('权益轨迹详情响应异常')
         }
       } catch (err) {
+        if (request !== this.benefitRequest) return
+        this.benefitDetailDialogVisible = false
         console.error('获取权益使用详情失败:', err)
         this.$message.error('获取权益使用详情失败')
       }

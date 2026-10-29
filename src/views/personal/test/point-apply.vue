@@ -221,6 +221,7 @@
         <el-row :gutter="20" class="customer-info-row">
           <el-col :span="6">客户号：<strong>{{ customerInfo.custId }}</strong></el-col>
           <el-col :span="5">客户姓名：<strong>{{ customerInfo.custName || '—' }}</strong></el-col>
+          <el-col :span="7">证件类型：<strong>{{ formatIdType(customerInfo.idType) }}</strong></el-col>
           <el-col :span="7">证件号：<strong>{{ customerInfo.idNo || '—' }}</strong></el-col>
           <el-col :span="6">客户等级：<el-tag size="mini" type="warning">{{ formatGrade(customerInfo.gradeName) }}</el-tag></el-col>
           <el-col :span="6">服务机构：<strong>{{ customerInfo.orgName || '—' }}</strong></el-col>
@@ -248,15 +249,19 @@
               <el-form-item label="操作类型">
                 <el-select v-model="detailFilter.operationType" placeholder="全部操作类型" style="width: 110px">
                   <el-option label="全部操作类型" value="" />
+                  <el-option label="人工调整" value="MANUAL" />
+                  <el-option label="系统调整" value="SYSTEM" />
                 </el-select>
               </el-form-item>
               <el-form-item label="积分类型">
                 <el-select v-model="detailFilter.pointType" placeholder="全部积分类型" style="width: 110px">
                   <el-option label="全部积分类型" value="" />
+                  <el-option v-for="(label, code) in pointTypeMap" :key="code" :label="label" :value="code" />
                 </el-select>
               </el-form-item>
               <el-form-item>
                 <el-button type="primary" icon="el-icon-search" @click="loadCustomerPoints">查询</el-button>
+                <el-button @click="resetCustomerPoints">重置</el-button>
               </el-form-item>
             </el-form>
 
@@ -279,8 +284,8 @@
             </el-table>
 
             <div class="table-sub-footer">
-              <el-button size="mini" @click="moreDetailDialogVisible = true">加载更多</el-button>
-              <span>共 {{ pointsDetailList.length }} 条积分流水</span>
+              <el-button size="mini" @click="openMorePoints">加载更多</el-button>
+              <span>共 {{ pointsDetailTotal }} 条积分流水</span>
             </div>
           </el-card>
         </el-col>
@@ -345,7 +350,7 @@
 
               <el-form-item label="调整原因" prop="reasonCode" required>
                 <el-select v-model="adjustForm.reasonCode" style="width: 100%" @change="handleReasonChange">
-                  <el-option label="活动积分补发" value="REASON01" />
+                  <el-option label="等级权益补发" value="REASON01" />
                   <el-option label="系统故障补发" value="REASON02" />
                   <el-option label="权益派发错误" value="REASON03" />
                   <el-option label="客户投诉补偿" value="REASON04" />
@@ -376,8 +381,8 @@
               </el-form-item>
 
               <el-form-item class="form-action-item">
-                <el-button icon="el-icon-check" type="primary" @click="submitAdjust">提交调整</el-button>
-                <el-button icon="el-icon-refresh" @click="resetAdjust">重置</el-button>
+                <el-button icon="el-icon-check" type="primary" :loading="submitLoading" @click="submitAdjust">提交调整</el-button>
+                <el-button icon="el-icon-refresh" :disabled="submitLoading" @click="resetAdjust">重置</el-button>
               </el-form-item>
             </el-form>
           </el-card>
@@ -466,7 +471,7 @@
     </el-dialog>
 
     <!-- Dialog 2: 修改申请弹窗 -->
-    <el-dialog class="edit-application-dialog" title="修改申请" :visible.sync="editDialogVisible" width="620px">
+    <el-dialog class="edit-application-dialog" title="修改申请" :visible.sync="editDialogVisible" :close-on-click-modal="!editLoading" :close-on-press-escape="!editLoading" :show-close="!editLoading" width="620px">
       <div v-if="editRow">
         <el-alert
             title="客户信息不可修改，仅可调整积分申请内容"
@@ -523,7 +528,7 @@
 
           <el-form-item label="调整原因" required>
             <el-select v-model="editForm.reasonCode" style="width: 100%" @change="handleEditReasonChange">
-              <el-option label="活动积分补发" value="REASON01" />
+              <el-option label="等级权益补发" value="REASON01" />
               <el-option label="系统故障补算" value="REASON02" />
               <el-option label="权益派发错误" value="REASON03" />
               <el-option label="客户投诉处理" value="REASON04" />
@@ -555,8 +560,8 @@
         </el-form>
       </div>
       <div slot="footer" class="dialog-footer">
-        <el-button size="small" @click="editDialogVisible = false">取消</el-button>
-        <el-button type="primary" size="small" @click="saveEdit">保存并重新提交</el-button>
+        <el-button size="small" :disabled="editLoading" @click="editDialogVisible = false">取消</el-button>
+        <el-button type="primary" size="small" :loading="editLoading" @click="saveEdit">保存并重新提交</el-button>
       </div>
     </el-dialog>
 
@@ -564,22 +569,25 @@
     <el-dialog title="全量积分明细" :visible.sync="moreDetailDialogVisible" width="800px">
       <el-form :inline="true" :model="moreDetailFilter" size="small" class="custom-filter-form" style="margin-bottom: 12px;">
         <el-form-item label="发生时间">
-          <el-date-picker v-model="moreDetailFilter.startDate" type="date" placeholder="开始日期" style="width: 130px" />
+          <el-date-picker v-model="moreDetailFilter.startDate" type="date" value-format="yyyy-MM-dd" placeholder="开始日期" style="width: 130px" />
           <span style="margin: 0 4px; color: #909399;">~</span>
-          <el-date-picker v-model="moreDetailFilter.endDate" type="date" placeholder="结束日期" style="width: 130px" />
+          <el-date-picker v-model="moreDetailFilter.endDate" type="date" value-format="yyyy-MM-dd" placeholder="结束日期" style="width: 130px" />
         </el-form-item>
         <el-form-item label="来源">
           <el-select v-model="moreDetailFilter.source" placeholder="全部来源" style="width: 110px">
             <el-option label="全部来源" value="" />
+            <el-option label="人工调整" value="MANUAL" />
+            <el-option label="系统调整" value="SYSTEM" />
           </el-select>
         </el-form-item>
         <el-form-item label="类型">
           <el-select v-model="moreDetailFilter.type" placeholder="全部类型" style="width: 110px">
             <el-option label="全部类型" value="" />
+            <el-option v-for="(label, code) in pointTypeMap" :key="code" :label="label" :value="code" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" icon="el-icon-search">查询</el-button>
+          <el-button type="primary" icon="el-icon-search" @click="queryMorePoints">查询</el-button>
         </el-form-item>
       </el-form>
 
@@ -600,7 +608,7 @@
       </el-table>
 
       <div class="pagination-container" style="margin-top: 16px;">
-        <el-pagination :current-page="1" :page-sizes="[10, 20, 50]" :page-size="10" layout="total, prev, pager, next, sizes" :total="32" />
+        <el-pagination :current-page="morePageNum" :page-sizes="[10, 20, 50]" :page-size="morePageSize" layout="total, prev, pager, next, sizes" :total="morePointsTotal" @current-change="changeMorePage" @size-change="changeMoreSize" />
       </div>
 
       <div slot="footer" class="dialog-footer">
@@ -616,13 +624,14 @@ import {
   getPointAdjustDetailApi,
   getCustCurrentPointApi,
   searchCustomerProfileApi,
-  getPointDetailV2Api,
+  getPointTracePageApi,
   uploadAttachmentApi,
   downloadAttachmentApi,
   submitPointAdjustApi,
   modifyPointAdjustApi,
   deletePointAdjustApi
 } from '@/api/test/point'
+import { assertExportBlob } from '@/utils/exportFile'
 
 export default {
   name: 'PointsManagement',
@@ -645,6 +654,13 @@ export default {
       customerInfo: null,
       loading: false,
       detailLoading: false,
+      customerRequest: 0,
+      pointsRequest: 0,
+      morePointsRequest: 0,
+      submitLoading: false,
+      editLoading: false,
+      attachmentUploading: false,
+      pointTypeMap: { PREMIUM: '保费积分', PENSION: '养老协同积分', LOYALTY: '忠诚积分', MANUAL: '人工调整' },
 
       // 证件类型字典映射 (规范 1.8)
       idTypeMap: {
@@ -677,6 +693,9 @@ export default {
       },
       total: 0,
       recordList: [],
+      appliedQuery: {},
+      listRequest: 0,
+      detailRequest: 0,
 
       // 4.2.3 详情响应数据存储
       detailData: null,
@@ -685,15 +704,20 @@ export default {
       // 积分明细测试数据
       detailFilter: { startDate: '', endDate: '', operationType: '', pointType: '' },
       pointsDetailList: [],
+      pointsDetailTotal: 0,
 
       moreDetailDialogVisible: false,
       moreDetailFilter: { startDate: '', endDate: '', source: '', type: '' },
       morePointsDetailList: [],
+      morePointsTotal: 0,
+      morePageNum: 1,
+      morePageSize: 10,
+      moreAppliedFilter: {},
 
       // 新增与编辑表单
       adjustForm: {
-        custId: 'CU202401001',
-        custName: '张伟',
+        custId: '',
+        custName: '',
         idType: '',
         idNo: '',
         orgName: '',
@@ -702,10 +726,10 @@ export default {
         validType: 'nat',
         validEndDate: '',
         reasonCode: 'REASON01',
-        reasonName: '活动积分补发',
+        reasonName: '等级权益补发',
         policyNo: '',
         oaNo: '',
-        remark: '2026年暑期营销活动积分补发',
+        remark: '',
         attachment: ''
       },
       adjustRules: {
@@ -739,7 +763,12 @@ export default {
     }
   },
   created() {
+    this.appliedQuery = { ...this.searchForm }
     this.fetchPageList()
+  },
+  beforeDestroy() {
+    clearTimeout(this.customerSearchTimer)
+    this.customerRequest++
   },
   methods: {
     async handleCustomerSearch() {
@@ -749,6 +778,7 @@ export default {
         return
       }
       this.customerLoading = true
+      const request = ++this.customerRequest
       try {
         const searchRes = await searchCustomerProfileApi(custId)
         const candidates = searchRes?.data || searchRes?.body?.data || []
@@ -760,11 +790,11 @@ export default {
           idNo: item.idNo || item.id_no,
           orgName: item.orgName || item.org_name
         }))
-        const profile = normalizedCandidates
-          .find(item => String(item.custId) === custId) || normalizedCandidates[0]
+        const profile = normalizedCandidates.find(item => String(item.custId) === custId)
         if (!profile) throw new Error('customer-not-found')
 
         const currentRes = await getCustCurrentPointApi(profile.custId)
+        if (request !== this.customerRequest) return
         const current = currentRes?.data || currentRes?.body?.data || {}
         this.customerInfo = {
           custId: profile.custId,
@@ -783,19 +813,26 @@ export default {
         await this.loadCustomerPoints()
         this.hasSearchedCustomer = true
       } catch (err) {
+        if (request !== this.customerRequest) return
         this.customerInfo = null
         this.hasSearchedCustomer = false
         this.$message.error('客户查询失败，请检查客户号')
       } finally {
-        this.customerLoading = false
+        if (request === this.customerRequest) this.customerLoading = false
       }
     },
     handleCustomerInput(value) {
+      this.customerRequest++
+      this.customerLoading = false
+      this.pointsRequest++
+      this.morePointsRequest++
+      this.moreDetailDialogVisible = false
       this.selectedCustomerId = ''
       this.selectedCustomerName = ''
       this.customerCandidates = []
       this.customerInfo = null
       this.pointsDetailList = []
+      this.pointsDetailTotal = 0
       this.hasSearchedCustomer = false
       clearTimeout(this.customerSearchTimer)
       if (!String(value || '').trim()) return
@@ -804,6 +841,8 @@ export default {
       }, 300)
     },
     async handleCustomerKeyword() {
+      clearTimeout(this.customerSearchTimer)
+      const request = ++this.customerRequest
       const value = String(this.customerSearchKey || '').trim()
       this.selectedCustomerId = ''
       if (!value) {
@@ -814,11 +853,13 @@ export default {
       this.customerLoading = true
       try {
         const res = await searchCustomerProfileApi(value)
+        if (request !== this.customerRequest) return
         const candidates = res?.data || res?.body?.data || []
         this.customerCandidates = (Array.isArray(candidates) ? candidates : []).map(item => ({
           ...item,
           custId: item.custId || item.cust_id,
           custName: item.custName || item.cust_name,
+          idType: item.idType || item.id_type,
           idNo: item.idNo || item.id_no,
           currentGrade: item.currentGrade || item.current_grade,
           gradeName: item.gradeName || item.grade_name,
@@ -826,9 +867,10 @@ export default {
         }))
         if (!this.customerCandidates.length) this.$message.info('未检索到客户')
       } catch (err) {
+        if (request !== this.customerRequest) return
         this.customerCandidates = []
       } finally {
-        this.customerLoading = false
+        if (request === this.customerRequest) this.customerLoading = false
       }
     },
     async handleCustomerConfirm() {
@@ -852,6 +894,10 @@ export default {
       this.selectedCustomerName = customer.custName || '—'
     },
     resetCustomerSearch() {
+      this.customerRequest++
+      this.customerLoading = false
+      this.pointsRequest++
+      this.morePointsRequest++
       clearTimeout(this.customerSearchTimer)
       this.customerSearchKey = ''
       this.selectedCustomerId = ''
@@ -859,28 +905,102 @@ export default {
       this.customerCandidates = []
       this.customerInfo = null
       this.pointsDetailList = []
+      this.pointsDetailTotal = 0
+      this.moreDetailDialogVisible = false
       this.hasSearchedCustomer = false
+    },
+    resetCustomerPoints() {
+      this.detailFilter = { startDate: '', endDate: '', operationType: '', pointType: '' }
+      return this.loadCustomerPoints()
+    },
+    normalizeCustomerPoint(item) {
+      const operation = item.operateType || item.operate_type
+      const type = item.pointType || item.point_type
+      const amount = item.pointAmt ?? item.point_amt
+      const operationType = { MANUAL: '人工调整', SYSTEM: '系统调整' }[operation] || operation || '—'
+      const pointType = this.pointTypeMap[type] || type || '—'
+      return {
+        date: item.operateTime || item.operate_time,
+        operationType, pointType, source: operationType, type: pointType,
+        amount: amount != null ? `${item.direction === 'SUB' || Number(amount) < 0 ? '-' : '+'} ${Math.abs(Number(amount))}` : '—',
+        remark: item.reason || item.remark || '—'
+      }
     },
     async loadCustomerPoints() {
       if (!this.customerInfo || !this.customerInfo.custId) return
+      if (this.detailFilter.startDate && this.detailFilter.endDate && this.detailFilter.startDate > this.detailFilter.endDate) {
+        this.$message.warning('开始日期不能晚于结束日期')
+        return
+      }
+      const request = ++this.pointsRequest
       try {
         const params = {
+          custId: this.customerInfo.custId,
           pageNum: 1,
           pageSize: 20,
-          startDate: this.detailFilter.startDate,
-          endDate: this.detailFilter.endDate
+          dateFrom: this.detailFilter.startDate,
+          dateTo: this.detailFilter.endDate,
+          operateType: this.detailFilter.operationType,
+          pointType: this.detailFilter.pointType
         }
-        const res = await getPointDetailV2Api(this.customerInfo.custId, params)
+        const res = await getPointTracePageApi(params)
+        if (request !== this.pointsRequest) return
         const data = res?.data || res?.body?.data || {}
-        this.pointsDetailList = (data.list || []).map(item => ({
-          date: item.calc_date || item.calcDate || item.pt,
-          operationType: item.operation_type || item.operationType || item.source || '—',
-          pointType: item.point_type || item.pointType || item.type || '—',
-          amount: `${Number(item.point || 0) >= 0 ? '+' : '-'} ${Math.abs(Number(item.point || 0))}`,
-          remark: item.comment || item.remark || '—'
-        }))
+        if (!Array.isArray(data.list)) throw new Error('积分明细响应异常')
+        this.pointsDetailList = data.list.map(this.normalizeCustomerPoint)
+        this.pointsDetailTotal = Number(data.total || 0)
       } catch (err) {
+        if (request !== this.pointsRequest) return
+        this.pointsDetailList = []
+        this.pointsDetailTotal = 0
         this.$message.error('获取客户积分明细失败')
+      }
+    },
+    openMorePoints() {
+      this.moreDetailFilter = {
+        startDate: this.detailFilter.startDate, endDate: this.detailFilter.endDate,
+        source: this.detailFilter.operationType, type: this.detailFilter.pointType
+      }
+      this.moreDetailDialogVisible = true
+      return this.queryMorePoints()
+    },
+    queryMorePoints() {
+      const filter = this.moreDetailFilter
+      if (filter.startDate && filter.endDate && filter.startDate > filter.endDate) {
+        this.$message.warning('开始日期不能晚于结束日期')
+        return
+      }
+      this.moreAppliedFilter = { ...filter }
+      this.morePageNum = 1
+      return this.loadMorePoints()
+    },
+    changeMorePage(page) {
+      this.morePageNum = page
+      return this.loadMorePoints()
+    },
+    changeMoreSize(size) {
+      this.morePageSize = size
+      this.morePageNum = 1
+      return this.loadMorePoints()
+    },
+    async loadMorePoints() {
+      if (!this.customerInfo || !this.customerInfo.custId) return
+      const request = ++this.morePointsRequest
+      const filter = this.moreAppliedFilter
+      try {
+        const res = await getPointTracePageApi({
+          custId: this.customerInfo.custId, pageNum: this.morePageNum, pageSize: this.morePageSize,
+          dateFrom: filter.startDate, dateTo: filter.endDate, operateType: filter.source, pointType: filter.type
+        })
+        if (request !== this.morePointsRequest || !this.moreDetailDialogVisible) return
+        if (!res.data || !Array.isArray(res.data.list)) throw new Error('积分明细响应异常')
+        this.morePointsDetailList = res.data.list.map(this.normalizeCustomerPoint)
+        this.morePointsTotal = Number(res.data.total || 0)
+      } catch (err) {
+        if (request !== this.morePointsRequest) return
+        this.morePointsDetailList = []
+        this.morePointsTotal = 0
+        this.$message.error('获取全量积分明细失败，请重试')
       }
     },
     // 转换证件类型中文显示 (规范 1.8)
@@ -951,29 +1071,37 @@ export default {
 
     // 4.2.2 列表数据加载
     async fetchPageList() {
+      const request = ++this.listRequest
       this.loading = true
       try {
         // 空筛选项不传给后端，避免部分实现将空字符串转换为无效查询条件。
-        const params = Object.keys(this.searchForm).reduce((result, key) => {
-          const value = this.searchForm[key]
+        const query = { ...this.appliedQuery, pageNum: this.searchForm.pageNum, pageSize: this.searchForm.pageSize }
+        const params = Object.keys(query).reduce((result, key) => {
+          const value = query[key]
           if (value !== '' && value !== null && value !== undefined) result[key] = value
           return result
         }, {})
         const res = await getPointAdjustPageApi(params)
+        if (request !== this.listRequest) return
         if (res && res.data) {
           const data = res.data || {}
           this.recordList = (data.list || data.records || []).map(this.normalizeAdjustRecord)
           this.total = data.total || 0
         } else {
+          this.recordList = []
+          this.total = 0
           this.$message.error(res?.header?.message || '获取申请列表失败')
         }
       } catch (err) {
+        if (request !== this.listRequest) return
+        this.recordList = []
+        this.total = 0
         console.error('【接口报错详情】:', err)
         console.error('【HTTP状态码】:', err.response?.status)
         console.error('【后端返回内容】:', err.response?.data)
         this.$message.error('获取申请列表失败')
       } finally {
-        this.loading = false
+        if (request === this.listRequest) this.loading = false
       }
     },
 
@@ -1027,26 +1155,27 @@ export default {
 
     // 4.2.3 查看详情数据加载
     async openDetail(row) {
+      if (!row.id) {
+        this.$message.error('申请主键缺失，无法加载详情')
+        return
+      }
+      const request = ++this.detailRequest
       this.detailDialogVisible = true
       this.detailLoading = true
       this.detailData = null
 
-      // 兼容后端可能是 id 或 id/applyNo 字段入参
-      const targetId = row.id || row.applyNo
       try {
-        const res = await getPointAdjustDetailApi(targetId)
-        if (res && res.data) {
-          this.detailData = res.data || {}
-        } else {
-          this.$message.error(res?.header?.message || '获取申请详情失败')
-          // 容错处理：若网络/API异常则回退使用当前行表格数据
-          this.detailData = { ...row }
-        }
+        const res = await getPointAdjustDetailApi(row.id)
+        if (request !== this.detailRequest || !this.detailDialogVisible) return
+        if (!res || !res.data || !res.data.id) throw new Error('申请详情缺少主键')
+        this.detailData = res.data
       } catch (err) {
+        if (request !== this.detailRequest) return
         console.error('获取详情发生异常:', err)
-        this.detailData = { ...row }
+        this.detailDialogVisible = false
+        this.$message.error('获取申请详情失败，请重试')
       } finally {
-        this.detailLoading = false
+        if (request === this.detailRequest) this.detailLoading = false
       }
     },
 
@@ -1063,7 +1192,12 @@ export default {
 
     // 触发查询与重置
     handleQuery() {
+      if (this.searchForm.dateFrom && this.searchForm.dateTo && this.searchForm.dateFrom > this.searchForm.dateTo) {
+        this.$message.warning('开始日期不能晚于结束日期')
+        return
+      }
       this.searchForm.pageNum = 1
+      this.appliedQuery = { ...this.searchForm }
       this.fetchPageList()
     },
     resetQuery() {
@@ -1087,6 +1221,7 @@ export default {
     // 分页切换
     handleSizeChange(val) {
       this.searchForm.pageSize = val
+      this.searchForm.pageNum = 1
       this.fetchPageList()
     },
     handleCurrentChange(val) {
@@ -1097,7 +1232,7 @@ export default {
     // 表单其他交互方法
     handleReasonChange(val) {
       const reasonMap = {
-        REASON01: '活动积分补发',
+        REASON01: '等级权益补发',
         REASON02: '系统故障补发',
         REASON03: '权益派发错误',
         REASON04: '客户投诉补偿',
@@ -1108,7 +1243,7 @@ export default {
     },
     handleEditReasonChange(val) {
       const reasonMap = {
-        REASON01: '活动积分补发',
+        REASON01: '等级权益补发',
         REASON02: '系统故障补发',
         REASON03: '权益派发错误',
         REASON04: '客户投诉补偿',
@@ -1119,37 +1254,38 @@ export default {
     },
     async handleWorkspaceFileChange(e) {
       const file = e.target.files[0]
-      if (!file) return
-      try {
-        const formData = new FormData()
-        formData.append('file', file)
-        const res = await uploadAttachmentApi(formData)
-        const data = res?.data || res?.body?.data || {}
-        this.adjustForm.attachment = data.fileName || data.filePath || data.name || file.name
-        this.$message.success('附件上传成功')
-      } catch (err) {
-        this.adjustForm.attachment = ''
-        this.$message.error('附件上传失败，请重试')
-      }
+      e.target.value = ''
+      return this.uploadAdjustFile(file, this.adjustForm)
     },
     async handleEditFileChange(e) {
       const file = e.target.files[0]
-      if (!file) return
+      e.target.value = ''
+      return this.uploadAdjustFile(file, this.editForm)
+    },
+    async uploadAdjustFile(file, form) {
+      if (!file || this.attachmentUploading) return
+      if (!/\.(jpe?g|png|pdf)$/i.test(file.name) || file.size > 5 * 1024 * 1024) {
+        this.$message.warning('仅支持 jpg / png / pdf，单文件不超过 5MB')
+        return
+      }
+      this.attachmentUploading = true
       try {
         const formData = new FormData()
         formData.append('file', file)
         const res = await uploadAttachmentApi(formData)
         const data = res?.data || res?.body?.data || {}
-        this.editForm.attachment = data.fileName || data.filePath || data.name || file.name
+        if (!data.filePath) throw new Error('附件上传未返回存储路径')
+        form.attachment = data.filePath
         this.$message.success('附件上传成功')
       } catch (err) {
-        this.editForm.attachment = ''
         this.$message.error('附件上传失败，请重试')
+      } finally {
+        this.attachmentUploading = false
       }
     },
     async downloadAttachment(detail) {
       const filePath = detail.attachmentPath || detail.filePath || detail.attachment
-      const fileName = detail.attachmentName || detail.fileName || detail.attachment
+      const fileName = detail.attachmentName || detail.fileName || String(filePath || '').split('/').pop()
       if (!filePath || !fileName) {
         this.$message.warning('附件信息不完整，无法下载')
         return
@@ -1157,6 +1293,7 @@ export default {
       try {
         const response = await downloadAttachmentApi({ filePath, fileName })
         const blob = response instanceof Blob ? response : new Blob([response], { type: 'application/octet-stream' })
+        await assertExportBlob(blob)
         const url = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
@@ -1167,7 +1304,23 @@ export default {
         this.$message.error('附件下载失败')
       }
     },
-    openEdit(row) {
+    async openEdit(row) {
+      if (this.editLoading || row.status !== 'REJECTED') return
+      if (!row.id) {
+        this.$message.error('申请主键缺失，无法修改')
+        return
+      }
+      try {
+        const res = await getPointAdjustDetailApi(row.id)
+        if (!res.data || res.data.status !== 'REJECTED') {
+          this.$message.warning('当前申请已不是已驳回状态，请刷新列表')
+          return
+        }
+        row = this.normalizeAdjustRecord(res.data)
+      } catch (error) {
+        this.$message.error('获取申请详情失败，无法修改')
+        return
+      }
       this.editRow = row
       this.editForm = {
         id: row.id || '',
@@ -1189,11 +1342,12 @@ export default {
       this.editDialogVisible = true
     },
     handleDelete(row) {
+      if (!row.id || row.status !== 'REJECTED') return
       this.$confirm(`确认删除客户【${row.custName}】的此条调整申请记录？`, '提示', {
         type: 'warning'
       }).then(async() => {
         try {
-          await deletePointAdjustApi(row.id || row.applyNo)
+          await deletePointAdjustApi(row.id)
           this.$message.success('删除成功')
           this.fetchPageList()
         } catch (err) {
@@ -1202,20 +1356,25 @@ export default {
       }).catch(() => null)
     },
     submitAdjust() {
+      if (this.submitLoading || this.attachmentUploading || !this.hasSearchedCustomer || !this.customerInfo) return
       this.$refs.adjustForm.validate(valid => {
-        if (valid) {
-          this.$confirm('确认提交调整申请？', '二次确认', {
+        if (valid && this.validateAdjust(this.adjustForm)) {
+          this.submitLoading = true
+          const form = { ...this.adjustForm }
+          const amount = Number(form.adjustAmt) * (form.adjustType === 'SUB' ? -1 : 1)
+          const afterPoint = Number(this.customerInfo.currentPoint) + amount
+          this.$confirm(`客户：${form.custName}；调整类型：${form.adjustType === 'SUB' ? '减分' : '加分'}；调整积分额度：${form.adjustAmt}；调整后积分：${afterPoint}`, '二次确认', {
             type: 'info'
           }).then(async() => {
             try {
-              await submitPointAdjustApi(this.buildAdjustPayload(this.adjustForm, false))
+              await submitPointAdjustApi(this.buildAdjustPayload(form, false))
               this.$message.success('提交成功！')
               this.currentView = 'list'
               this.fetchPageList()
             } catch (err) {
               this.$message.error('提交失败')
             }
-          })
+          }).catch(() => null).finally(() => { this.submitLoading = false })
         }
       })
     },
@@ -1224,6 +1383,8 @@ export default {
       this.adjustForm.attachment = ''
     },
     async saveEdit() {
+      if (this.editLoading || this.attachmentUploading || !this.editForm.id || !this.validateAdjust(this.editForm)) return
+      this.editLoading = true
       try {
         await modifyPointAdjustApi(this.buildAdjustPayload(this.editForm, true))
         this.$message.success('修改成功并已重新提交！')
@@ -1231,7 +1392,24 @@ export default {
         this.fetchPageList()
       } catch (err) {
         this.$message.error('修改失败')
+      } finally {
+        this.editLoading = false
       }
+    },
+    validateAdjust(form) {
+      if (!/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(String(form.adjustAmt)) || Number(form.adjustAmt) <= 0) {
+        this.$message.warning('调整积分额度必须大于 0，且最多保留两位小数')
+        return false
+      }
+      if (!String(form.oaNo || '').trim() || !form.reasonCode) {
+        this.$message.warning('请填写 OA 流水号和调整原因')
+        return false
+      }
+      if (form.validType === 'custom' && !form.validEndDate) {
+        this.$message.warning('请选择有效期截止日')
+        return false
+      }
+      return true
     }
   }
 }
@@ -1397,23 +1575,12 @@ export default {
   margin: 0 0 16px !important;
 }
 
-.page-container > div[style*="margin"] /deep/ .el-button {
-  height: 40px;
-  line-height: 38px;
-  padding: 0 17px;
-  border-radius: 3px;
-  background-color: #4f6fae;
-  border-color: #4f6fae;
-}
-
 .list-add-action /deep/ .el-button {
   height: 36px;
   line-height: normal;
   padding: 0 16px;
   border-radius: 4px;
   font-size: 14px;
-  background: #4472c4;
-  border-color: #4472c4;
 }
 
 .custom-filter-form .el-form-item {
@@ -1463,16 +1630,6 @@ export default {
   padding: 0 16px;
   border-radius: 4px;
   font-size: 14px;
-}
-
-.prototype-filter-form /deep/ .el-button--primary {
-  background: #4472c4 !important;
-  border-color: #4472c4 !important;
-}
-
-.prototype-filter-form /deep/ .btn-search {
-  background: #4472c4 !important;
-  border-color: #4472c4 !important;
 }
 
 .prototype-filter-form /deep/ .btn-reset {
@@ -1620,7 +1777,7 @@ export default {
 .customer-result-row:hover,
 .customer-result-row.selected {
   color: #2f5496;
-  background: #f5f8fc;
+  background: #ebf1fa;
 }
 
 .customer-selected-result {

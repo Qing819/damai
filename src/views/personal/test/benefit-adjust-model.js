@@ -1,9 +1,9 @@
 export const reasons = [
   { code: 'REASON01', name: '等级权益补发' },
   { code: 'REASON02', name: '系统故障补发' },
-  { code: 'REASON05', name: '权益派发错误' },
+  { code: 'REASON03', name: '权益派发错误' },
   { code: 'REASON04', name: '客户投诉补偿' },
-  { code: 'REASON03', name: '历史权益修正' },
+  { code: 'REASON05', name: '历史权益修正' },
   { code: 'REASON06', name: '其他' }
 ]
 
