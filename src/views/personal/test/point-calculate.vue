@@ -80,7 +80,7 @@
           </el-table-column>
         </el-table>
         <div class="formula">保费积分 <b>{{ formatNumber(pointTotals.premium) }}</b> + 忠诚积分 <b>{{ formatNumber(pointTotals.loyalty) }}</b> + 养老协同积分 <b>{{ formatNumber(pointTotals.pension) }}</b> = 试算汇总积分 <strong>{{ formatNumber(pointTotals.total) }}</strong></div>
-        <div class="hint formula-hint">保费积分 = 实收保费（元）× 险种计算系数，每张已生效保单均产生；忠诚积分 = 实收保费（元）× 1%，仅连续交费满 3 年及以上的保单产生（含二次投保奖励）；养老协同积分 = 保费积分 × 5%，仅在养老协同产品的基础积分之外额外奖励。故并非每张保单都有忠诚积分与养老协同积分。客户名下全部已生效保单均纳入试算，新规则试算总积分 {{ formatNumber(resultData.newPoint) }} 分。</div>
+        <div class="hint formula-hint">保费积分 = 实收保费（元）× 险种计算系数，每张已生效保单均产生；忠诚积分 = 实收保费（元）× 1%，仅连续交费满 5 年及以上的保单产生（含二次投保奖励）；养老协同积分 = 保费积分 × 5%，仅在养老协同产品的基础积分之外额外奖励。故并非每张保单都有忠诚积分与养老协同积分。客户名下全部已生效保单均纳入试算，新规则试算总积分 {{ formatNumber(resultData.newPoint) }} 分。</div>
       </template>
       <template v-else>
         <div class="section-title">试算摘要</div>
