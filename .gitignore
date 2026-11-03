@@ -22,3 +22,12 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Local workspace copies and generated delivery files
+/天津/
+/光大/
+/backend.log
+/*.zip
+/*.sql
+/*.docx
+/*.md
