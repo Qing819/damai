@@ -561,6 +561,13 @@ export function getPlatformOrgApi(params) {
     params
   });
 }
+export function getPlatformOrgTreeApi(params) {
+  return fetch({
+    url: '/platform/dict/biz/orgTree',
+    method: 'get',
+    params
+  });
+}
 export function getPlatformIdTypesApi(params) {
   return fetch({
     url: '/platform/dict/biz/idTypes',

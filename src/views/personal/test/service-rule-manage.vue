@@ -282,14 +282,18 @@
               <!-- ⑤ 动态读取适用地区/机构列表 -->
               <el-table-column label="适用地区" width="180">
                 <template slot-scope="scope">
-                  <el-select v-model="scope.row.regions" multiple size="mini" placeholder="请选择地区" collapse-tags style="width: 100%;">
-                    <el-option
-                        v-for="org in orgOptions"
-                        :key="org"
-                        :label="org"
-                        :value="org">
-                    </el-option>
-                  </el-select>
+                  <el-popover placement="bottom-start" trigger="click" width="260">
+                    <el-tree
+                      :data="regionTreeOptions"
+                      node-key="value"
+                      show-checkbox
+                      default-expand-all
+                      :default-checked-keys="scope.row.regions"
+                      @check="(node, state) => scope.row.regions = state.checkedKeys"
+                      style="max-height: 280px; overflow-y: auto;"
+                    />
+                    <el-input slot="reference" :value="scope.row.regions.join('、')" size="mini" readonly placeholder="请选择地区" />
+                  </el-popover>
                 </template>
               </el-table-column>
 
@@ -432,7 +436,7 @@ import {
   importBenefitRuleApi,
   exportRuleApi,
   getBenefitItemsApi,
-  getPlatformOrgApi,
+  getPlatformOrgTreeApi,
   getServiceRuleIdentitiesApi,
   getPlatformOrderChannelApi,
   getServiceRuleModListApi,
@@ -520,6 +524,17 @@ export default {
     };
   },
   computed: {
+    regionTreeOptions() {
+      return [{
+        value: '全国',
+        label: '全国',
+        children: this.orgOptions.map(org => ({
+          value: org.name,
+          label: org.name,
+          children: (org.children || []).map(child => ({ value: child, label: child }))
+        }))
+      }];
+    },
     pagedChangeRecords() {
       return this.changeRecords.slice((this.changePageNo - 1) * this.changePageSize, this.changePageNo * this.changePageSize);
     },
@@ -744,13 +759,19 @@ export default {
     async fetchDictOptions() {
       try {
         const [orgRes, idRes, channelRes] = await Promise.all([
-          getPlatformOrgApi(),
+          getPlatformOrgTreeApi(),
           getServiceRuleIdentitiesApi(),
           getPlatformOrderChannelApi()
         ]);
 
         // 适配接口层级的返回格式并储存
-        this.orgOptions = Array.from(new Set(['全国', ...((orgRes.body && orgRes.body.data) || orgRes.data || [])]));
+        const orgTree = (orgRes.body && orgRes.body.data) || orgRes.data || [];
+        this.orgOptions = orgTree
+          .filter(org => org && org.name && org.name !== '全国')
+          .map(org => ({
+            name: org.name,
+            children: Array.from(new Set(Array.isArray(org.children) ? org.children : []))
+          }));
         this.idTypeOptions = (idRes.body && idRes.body.data) || idRes.data || [];
         this.orderChannelOptions = (channelRes.body && channelRes.body.data) || channelRes.data || [];
       } catch (e) {
