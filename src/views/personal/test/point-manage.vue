@@ -90,7 +90,7 @@
           <el-col :span="12" class="btn-container">
             <el-button class="btn-search" size="mini" type="primary" @click="handleSearch">查询</el-button>
             <el-button class="btn-reset" size="mini" @click="handleReset">重置</el-button>
-            <el-button class="btn-export" size="mini" @click="handleExport">导出</el-button>
+            <el-button v-if="handleIsOwn('导出')" class="btn-export" size="mini" @click="handleExport">导出</el-button>
           </el-col>
         </el-row>
       </el-form>
@@ -210,14 +210,14 @@
           </template>
         </el-table-column>
         <el-table-column prop="agentName" label="代理人" width="90" show-overflow-tooltip />
-        <el-table-column label="操作" width="140" fixed="right" align="center">
+        <el-table-column label="操作" width="240" fixed="right" align="center">
           <template slot-scope="scope">
             <template v-if="isLegacySystem(scope.row)">
-              <el-button type="text" size="small" @click="handlePointDetail(scope.row)">积分详情</el-button>
-              <el-button type="text" size="small" @click="handleRightDetail(scope.row)">权益详情</el-button>
+              <el-button v-if="handleIsOwn('查看详情')" type="text" size="small" @click="handlePointDetail(scope.row)">积分详情</el-button>
+              <el-button v-if="handleIsOwn('查看详情')" type="text" size="small" @click="handleRightDetail(scope.row)">权益详情</el-button>
             </template>
             <template v-else>
-              <el-button type="text" size="small" @click="handleDetail(scope.row)">查看详情</el-button>
+              <el-button v-if="handleIsOwn('查看详情')" type="text" size="small" @click="handleDetail(scope.row)">查看详情</el-button>
             </template>
           </template>
         </el-table-column>
@@ -241,11 +241,13 @@
 </template>
 
 <script>
+import pagePermissions from '@/mixins/pagePermissions'
 import * as echarts from 'echarts'
 import { getCustPointListApi, getCustPointStatsApi, exportCustListApi } from 'api/test/point'
 import { assertExportBlob } from '@/utils/exportFile'
 
 export default {
+  mixins: [pagePermissions],
   name: 'CustomerPoints',
   data() {
     return {
@@ -529,7 +531,6 @@ export default {
         if (res && res.data) {
           const bodyData = res.data || {}
           this.total = bodyData.total || 0
-          this.totalStats.total = this.total
 
           // 映射计算序号
           const list = bodyData.list || []

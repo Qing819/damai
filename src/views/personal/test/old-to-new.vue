@@ -11,12 +11,12 @@
       </div>
       <el-card shadow="never" class="toolbar-card">
         <div class="toolbar">
-          <el-button type="primary" icon="el-icon-plus" @click="openSingleAdd">单条申请</el-button>
-          <el-button :loading="templateLoading" @click="handleDownloadTemplate">模板下载</el-button>
-          <el-button :loading="importLoading" @click="$refs.importInput.click()">批量导入</el-button>
-          <el-button :loading="exportLoading" @click="handleExport">申请数据导出</el-button>
-          <el-button @click="openBatchEdit">批量修改生效日期</el-button>
-          <el-button @click="openBatchRemove">批量移除</el-button>
+          <el-button v-if="handleIsOwn('单条录入切换申请')" type="primary" icon="el-icon-plus" @click="openSingleAdd">单条申请</el-button>
+          <el-button v-if="handleIsOwn('模板下载')" :loading="templateLoading" @click="handleDownloadTemplate">模板下载</el-button>
+          <el-button v-if="handleIsOwn('批量导入')" :loading="importLoading" @click="$refs.importInput.click()">批量导入</el-button>
+          <el-button v-if="handleIsOwn('申请数据导出')" :loading="exportLoading" @click="handleExport">申请数据导出</el-button>
+          <el-button v-if="handleIsOwn('批量修改生效日期')" @click="openBatchEdit">批量修改生效日期</el-button>
+          <el-button v-if="handleIsOwn('批量移除')" @click="openBatchRemove">批量移除</el-button>
           <span class="hint">切换生效日期可选次日及以后；到生效当天系统自动跑批重新计算</span>
         </div>
         <input ref="importInput" class="import-input" type="file" accept=".csv" aria-label="导入切换申请 CSV" :disabled="importLoading" @change="handleImportFile">
@@ -93,8 +93,8 @@
           </el-table-column>
           <el-table-column label="操作" width="100" fixed="right" align="center">
             <template slot-scope="{ row }">
-              <el-button v-if="row.status === 'SWITCHED'" type="text" size="mini" @click="goTrackDetail(row)">查看轨迹</el-button>
-              <el-button v-else type="text" size="mini" @click="goDetail(row)">查看</el-button>
+              <el-button v-if="row.status === 'SWITCHED' && handleIsOwn('查看切换轨迹')" type="text" size="mini" @click="goTrackDetail(row)">查看轨迹</el-button>
+              <el-button v-else-if="handleIsOwn('查看申请详情')" type="text" size="mini" @click="goDetail(row)">查看</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -205,8 +205,10 @@ function tomorrow() {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 const newApplication = () => ({ custName: '', idType: 'IDCARD', idNo: '', orgName: '', effectiveDate: tomorrow() })
+import pagePermissions from '@/mixins/pagePermissions'
 
 export default {
+  mixins: [pagePermissions],
   name: 'OldToNewApply',
   data() {
     return {

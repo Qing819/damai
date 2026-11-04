@@ -53,3 +53,11 @@ export function getPageButtonMenuInfo(params) {
     params
   })
 }
+
+export function getPlatformPageButtonMenuInfo(params) {
+  return fetch({
+    url: '/platform/auth/button/getPageButtonMenuInfo',
+    method: 'get',
+    params
+  })
+}

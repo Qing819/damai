@@ -108,7 +108,7 @@
         <el-form-item class="search-btn-group">
           <el-button class="btn-search" type="primary" @click="handleQuery">查询</el-button>
           <el-button class="btn-reset" @click="resetQuery">重置</el-button>
-          <el-button class="btn-export" @click="handleExport">导出</el-button>
+          <el-button v-if="handleIsOwn('导出')" class="btn-export" @click="handleExport">导出</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -207,7 +207,7 @@
 
         <el-table-column label="操作" width="90" align="center" fixed="right">
           <template slot-scope="{row}">
-            <el-button type="text" size="small" @click="handleViewDetail(row)">查看详情</el-button>
+            <el-button v-if="handleIsOwn('查看详情')" type="text" size="small" @click="handleViewDetail(row)">查看详情</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -366,8 +366,10 @@
 import { getPointTracePageApi, getPointTraceSummaryApi, getPointTraceDetailApi, exportTraceApi, downloadAttachmentApi } from '@/api/test/point'
 import { assertExportBlob, downloadBlob } from '@/utils/exportFile'
 import PayDetailDialog from './pay-detail-dialog.vue'
+import pagePermissions from '@/mixins/pagePermissions'
 
 export default {
+  mixins: [pagePermissions],
   name: 'PointTraceList',
   components: { PayDetailDialog },
   filters: {
@@ -560,7 +562,7 @@ export default {
             addTotal: data.addTotal ?? 0,
             reduceTotal: data.reduceTotal ?? 0,
             netChange: data.netChange ?? 0,
-            total: data.total !== undefined ? data.total : (data.totalCount || 0)
+            total: data.total !== undefined ? data.total : data.totalCount || 0
           }
         } else {
           throw new Error('获取积分统计失败')

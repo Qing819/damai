@@ -75,7 +75,7 @@
 
       <!-- 新增按钮 -->
       <div class="list-add-action" style="margin: 16px 0;">
-        <el-button type="primary" icon="el-icon-plus" size="small" @click="currentView = 'workspace'">
+        <el-button v-if="handleIsOwn('新建')" type="primary" icon="el-icon-plus" size="small" @click="currentView = 'workspace'">
           新增积分调整
         </el-button>
       </div>
@@ -134,12 +134,12 @@
           </el-table-column>
 
           <!-- 修改/删除的条件适配编码 -->
-          <el-table-column label="操作" width="150" align="center" fixed="right">
+          <el-table-column label="操作" width="220" align="center" fixed="right">
             <template slot-scope="scope">
-              <el-button type="text" size="mini" @click="openDetail(scope.row)">查看</el-button>
+              <el-button v-if="handleIsOwn('查询')" type="text" size="mini" @click="openDetail(scope.row)">查看</el-button>
               <template v-if="scope.row.status === 'REJECTED' || scope.row.status === '已驳回'">
-                <el-button type="text" size="mini" @click="openEdit(scope.row)">修改</el-button>
-                <el-button type="text" size="mini" class="text-danger" @click="handleDelete(scope.row)">删除</el-button>
+                <el-button v-if="handleIsOwn('修改')" type="text" size="mini" @click="openEdit(scope.row)">修改</el-button>
+                <el-button v-if="handleIsOwn('删除')" type="text" size="mini" class="text-danger" @click="handleDelete(scope.row)">删除</el-button>
               </template>
             </template>
           </el-table-column>
@@ -381,7 +381,7 @@
               </el-form-item>
 
               <el-form-item class="form-action-item">
-                <el-button icon="el-icon-check" type="primary" :loading="submitLoading" @click="submitAdjust">提交调整</el-button>
+                <el-button v-if="handleIsOwn('提交')" icon="el-icon-check" type="primary" :loading="submitLoading" @click="submitAdjust">提交调整</el-button>
                 <el-button icon="el-icon-refresh" :disabled="submitLoading" @click="resetAdjust">重置</el-button>
               </el-form-item>
             </el-form>
@@ -632,8 +632,10 @@ import {
   deletePointAdjustApi
 } from '@/api/test/point'
 import { assertExportBlob } from '@/utils/exportFile'
+import pagePermissions from '@/mixins/pagePermissions'
 
 export default {
+  mixins: [pagePermissions],
   name: 'PointsManagement',
   filters: {
     formatNumber(val) {
@@ -1018,11 +1020,11 @@ export default {
         WUXING: '五星',
         ZHUOYUE: '卓越',
         ZUNYAO: '尊耀',
-        '普星级客户': '普星级客户',
-        '三星级客户': '三星级客户',
-        '四星级客户': '四星级客户',
-        '五星级客户': '五星级客户',
-        '卓越客户': '卓越客户'
+        普星级客户: '普星级客户',
+        三星级客户: '三星级客户',
+        四星级客户: '四星级客户',
+        五星级客户: '五星级客户',
+        卓越客户: '卓越客户'
       }
       return gradeMap[grade] || grade
     },

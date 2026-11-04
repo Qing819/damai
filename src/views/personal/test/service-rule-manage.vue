@@ -23,11 +23,11 @@
     <template v-if="activeTab === 'rules'">
     <div class="action-bar">
       <div class="left-btn-group">
-        <el-button type="primary" size="medium" @click="handleAddRule">＋ 新增服务规则</el-button>
-        <el-button size="medium" @click="handleStartModification">发起服务规则修改</el-button>
-        <el-button size="medium" @click="handleDownloadTemplate">模板下载</el-button>
-        <el-button size="medium" :loading="importing" @click="triggerImport">批量导入</el-button>
-        <el-button size="medium" @click="handleExport">导出</el-button>
+        <el-button v-if="handleIsOwn('新增')" type="primary" size="medium" @click="handleAddRule">＋ 新增服务规则</el-button>
+        <el-button v-if="handleIsOwn('发起服务规则修改')" size="medium" @click="handleStartModification">发起服务规则修改</el-button>
+        <el-button v-if="handleIsOwn('模板下载')" size="medium" @click="handleDownloadTemplate">模板下载</el-button>
+        <el-button v-if="handleIsOwn('批量导入')" size="medium" :loading="importing" @click="triggerImport">批量导入</el-button>
+        <el-button v-if="handleIsOwn('导出')" size="medium" @click="handleExport">导出</el-button>
         <!-- 隐藏的文件选择框 -->
         <input type="file" ref="fileInput" style="display: none;" accept=".xlsx, .xls" @change="handleFileChange" />
       </div>
@@ -87,8 +87,8 @@
         </el-table-column>
         <el-table-column label="操作" align="center" width="140">
           <template slot-scope="scope">
-            <el-button v-if="canConfigureVersion(currentVersionInfo)" type="text" size="small" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button type="text" size="small" @click="handleView(scope.row)">查看</el-button>
+            <el-button v-if="canConfigureVersion(currentVersionInfo) && handleIsOwn('编辑')" type="text" size="small" @click="handleEdit(scope.row)">编辑</el-button>
+            <el-button v-if="handleIsOwn('查看已选权益明细')" type="text" size="small" @click="handleView(scope.row)">查看</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -116,12 +116,12 @@
         <el-table-column label="操作" width="210">
           <template slot-scope="scope">
             <template v-if="scope.row.status === 'PENDING'">
-              <el-button type="text" size="small" @click="handleEditChange(scope.row)">修改</el-button>
+              <el-button v-if="handleIsOwn('编辑')" type="text" size="small" @click="handleEditChange(scope.row)">修改</el-button>
               <el-divider direction="vertical" />
-              <el-button type="text" size="small" @click="handleDeleteChange(scope.row)">删除</el-button>
+              <el-button v-if="handleIsOwn('删除')" type="text" size="small" @click="handleDeleteChange(scope.row)">删除</el-button>
               <el-divider direction="vertical" />
             </template>
-            <el-button type="text" size="small" @click="handleViewChange(scope.row)">查看详情</el-button>
+            <el-button v-if="handleIsOwn('查看详情')" type="text" size="small" @click="handleViewChange(scope.row)">查看详情</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -446,8 +446,10 @@ import {
   updateServiceRuleModApi,
   deleteServiceRuleModApi
 } from '@/api/test/index';
+import pagePermissions from '@/mixins/pagePermissions'
 
 export default {
+  mixins: [pagePermissions],
   name: 'ServiceRuleConfig',
   data() {
     return {
@@ -878,71 +880,71 @@ export default {
       }
     },
     setEditableRules(items) {
-        this.editForm.rightsList = items.map(item => {
-          const parsedItems = this.ruleProjects(item);
+      this.editForm.rightsList = items.map(item => {
+        const parsedItems = this.ruleProjects(item);
 
-          let parsedItemRules = [];
-          try {
-            parsedItemRules = item.itemRulesJson ? JSON.parse(item.itemRulesJson) : [];
-          } catch (e) {
-            parsedItemRules = [];
-          }
+        let parsedItemRules = [];
+        try {
+          parsedItemRules = item.itemRulesJson ? JSON.parse(item.itemRulesJson) : [];
+        } catch (e) {
+          parsedItemRules = [];
+        }
 
-          let parsedRegions = [];
-          try {
-            parsedRegions = item.regionsJson ? JSON.parse(item.regionsJson) : [];
-          } catch (e) {
-            parsedRegions = [];
-          }
+        let parsedRegions = [];
+        try {
+          parsedRegions = item.regionsJson ? JSON.parse(item.regionsJson) : [];
+        } catch (e) {
+          parsedRegions = [];
+        }
 
-          let parsedIdentities = [];
-          try {
-            parsedIdentities = item.identitiesJson ? JSON.parse(item.identitiesJson) : [];
-            parsedIdentities = parsedIdentities.map(id => {
-              const option = this.idTypeOptions.find(value => value.code === id || value.name === id);
-              return option ? option.code : id;
-            });
-          } catch (e) {
-            parsedIdentities = [];
-          }
-
-          let parsedChannels = [];
-          try {
-            parsedChannels = item.orderChannelsJson ? JSON.parse(item.orderChannelsJson) : [];
-          } catch (e) {
-            parsedChannels = [];
-          }
-
-          const projectItems = parsedItems.map(p => {
-            const rule = parsedItemRules.find(r => r.cat === p.cat && r.name === p.name) || {};
-            const itemChannels = (rule.orderChannels || parsedChannels).map(channel => {
-              const option = this.orderChannelOptions.find(value => value.code === channel || value.name === channel);
-              return option ? option.code : channel;
-            });
-            return {
-              cat: p.cat,
-              name: p.name,
-              freqUnlimited: this.ruleFlag(rule.freqUnlimited !== undefined ? rule.freqUnlimited : item.freqUnlimited),
-              freqYears: rule.freqYears || item.freqYears || 1,
-              freqAvgYears: rule.freqAvgYears || item.freqAvgYears || 1,
-              freqCount: rule.freqCount || item.freqCount || 1,
-              needOrder: this.ruleFlag(rule.needOrder !== undefined ? rule.needOrder : item.needOrder),
-              orderChannels: itemChannels,
-              needAudit: this.ruleFlag(rule.needAudit !== undefined ? rule.needAudit : item.needAudit)
-            };
+        let parsedIdentities = [];
+        try {
+          parsedIdentities = item.identitiesJson ? JSON.parse(item.identitiesJson) : [];
+          parsedIdentities = parsedIdentities.map(id => {
+            const option = this.idTypeOptions.find(value => value.code === id || value.name === id);
+            return option ? option.code : id;
           });
+        } catch (e) {
+          parsedIdentities = [];
+        }
 
+        let parsedChannels = [];
+        try {
+          parsedChannels = item.orderChannelsJson ? JSON.parse(item.orderChannelsJson) : [];
+        } catch (e) {
+          parsedChannels = [];
+        }
+
+        const projectItems = parsedItems.map(p => {
+          const rule = parsedItemRules.find(r => r.cat === p.cat && r.name === p.name) || {};
+          const itemChannels = (rule.orderChannels || parsedChannels).map(channel => {
+            const option = this.orderChannelOptions.find(value => value.code === channel || value.name === channel);
+            return option ? option.code : channel;
+          });
           return {
-            benefitCode: item.benefitCode,
-            kind: item.kind,
-            benefitName: item.benefitName,
-            supplier: item.supplier,
-            signOrg: item.signOrg || (this.allRightsList.find(value => value.benefitCode === item.benefitCode) || {}).signOrg,
-            regions: parsedRegions,
-            identities: parsedIdentities,
-            items: projectItems
+            cat: p.cat,
+            name: p.name,
+            freqUnlimited: this.ruleFlag(rule.freqUnlimited !== undefined ? rule.freqUnlimited : item.freqUnlimited),
+            freqYears: rule.freqYears || item.freqYears || 1,
+            freqAvgYears: rule.freqAvgYears || item.freqAvgYears || 1,
+            freqCount: rule.freqCount || item.freqCount || 1,
+            needOrder: this.ruleFlag(rule.needOrder !== undefined ? rule.needOrder : item.needOrder),
+            orderChannels: itemChannels,
+            needAudit: this.ruleFlag(rule.needAudit !== undefined ? rule.needAudit : item.needAudit)
           };
         });
+
+        return {
+          benefitCode: item.benefitCode,
+          kind: item.kind,
+          benefitName: item.benefitName,
+          supplier: item.supplier,
+          signOrg: item.signOrg || (this.allRightsList.find(value => value.benefitCode === item.benefitCode) || {}).signOrg,
+          regions: parsedRegions,
+          identities: parsedIdentities,
+          items: projectItems
+        };
+      });
     },
 
     // ===== 选择权益逻辑 =====
@@ -1175,69 +1177,69 @@ export default {
       }
     },
     buildDetailRows(items) {
-        const detailRows = [];
-        items.forEach(rule => {
-          const parsedItems = this.ruleProjects(rule);
+      const detailRows = [];
+      items.forEach(rule => {
+        const parsedItems = this.ruleProjects(rule);
 
-          let parsedItemRules = [];
-          try {
-            parsedItemRules = rule.itemRulesJson ? JSON.parse(rule.itemRulesJson) : [];
-          } catch (e) {
-            parsedItemRules = [];
+        let parsedItemRules = [];
+        try {
+          parsedItemRules = rule.itemRulesJson ? JSON.parse(rule.itemRulesJson) : [];
+        } catch (e) {
+          parsedItemRules = [];
+        }
+
+        const processItem = (cat, itemName) => {
+          const itemRule = parsedItemRules.find(r => r.cat === cat && r.name === itemName) || {};
+          const freqUnlim = itemRule.freqUnlimited !== undefined ? itemRule.freqUnlimited : rule.freqUnlimited;
+          const years = itemRule.freqYears || rule.freqYears;
+          const avgYears = itemRule.freqAvgYears || rule.freqAvgYears;
+          const count = itemRule.freqCount || rule.freqCount;
+
+          let freqStr = '不限次';
+          if (!this.ruleFlag(freqUnlim)) {
+            freqStr = `${years}年内平均${avgYears}年使用${count}次`;
           }
 
-          const processItem = (cat, itemName) => {
-            const itemRule = parsedItemRules.find(r => r.cat === cat && r.name === itemName) || {};
-            const freqUnlim = itemRule.freqUnlimited !== undefined ? itemRule.freqUnlimited : rule.freqUnlimited;
-            const years = itemRule.freqYears || rule.freqYears;
-            const avgYears = itemRule.freqAvgYears || rule.freqAvgYears;
-            const count = itemRule.freqCount || rule.freqCount;
+          const nOrder = itemRule.needOrder !== undefined ? itemRule.needOrder : rule.needOrder;
+          const nAudit = itemRule.needAudit !== undefined ? itemRule.needAudit : rule.needAudit;
+          const channels = itemRule.orderChannels || (rule.orderChannelsJson ? JSON.parse(rule.orderChannelsJson) : []);
 
-            let freqStr = '不限次';
-            if (!this.ruleFlag(freqUnlim)) {
-              freqStr = `${years}年内平均${avgYears}年使用${count}次`;
-            }
-
-            const nOrder = itemRule.needOrder !== undefined ? itemRule.needOrder : rule.needOrder;
-            const nAudit = itemRule.needAudit !== undefined ? itemRule.needAudit : rule.needAudit;
-            const channels = itemRule.orderChannels || (rule.orderChannelsJson ? JSON.parse(rule.orderChannelsJson) : []);
-
-            // 转换途径 Code 显示为 Name 名称[cite: 3]
-            let displayChannels = [];
-            if (Array.isArray(channels)) {
-              displayChannels = channels.map(code => {
-                const found = this.orderChannelOptions.find(c => (c.code || c) === code);
-                return found ? found.name || found : code;
-              });
-            }
-
-            detailRows.push({
-              benefitCode: rule.benefitCode,
-              benefitName: rule.benefitName,
-              kind: rule.kind,
-              category: cat,
-              itemName,
-              supplier: rule.supplier,
-              area: this.parseList(rule.regionsJson).join('、') || '—',
-              identity: this.parseList(rule.identitiesJson).map(code => {
-                const option = this.idTypeOptions.find(value => value.code === code);
-                return option ? option.name : code;
-              }).join('、') || '—',
-              frequency: freqStr,
-              needOrder: this.ruleFlag(nOrder) ? '是' : '否',
-              orderChannel: this.ruleFlag(nOrder) && displayChannels.length > 0 ? displayChannels.join('、') : '—',
-              needAudit: this.ruleFlag(nAudit) ? '是' : '否'
+          // 转换途径 Code 显示为 Name 名称[cite: 3]
+          let displayChannels = [];
+          if (Array.isArray(channels)) {
+            displayChannels = channels.map(code => {
+              const found = this.orderChannelOptions.find(c => (c.code || c) === code);
+              return found ? found.name || found : code;
             });
-          };
-
-          if (parsedItems.length > 0) {
-            parsedItems.forEach(p => processItem(p.cat, p.name));
-          } else {
-            processItem('—', '—');
           }
-        });
 
-        return detailRows;
+          detailRows.push({
+            benefitCode: rule.benefitCode,
+            benefitName: rule.benefitName,
+            kind: rule.kind,
+            category: cat,
+            itemName,
+            supplier: rule.supplier,
+            area: this.parseList(rule.regionsJson).join('、') || '—',
+            identity: this.parseList(rule.identitiesJson).map(code => {
+              const option = this.idTypeOptions.find(value => value.code === code);
+              return option ? option.name : code;
+            }).join('、') || '—',
+            frequency: freqStr,
+            needOrder: this.ruleFlag(nOrder) ? '是' : '否',
+            orderChannel: this.ruleFlag(nOrder) && displayChannels.length > 0 ? displayChannels.join('、') : '—',
+            needAudit: this.ruleFlag(nAudit) ? '是' : '否'
+          });
+        };
+
+        if (parsedItems.length > 0) {
+          parsedItems.forEach(p => processItem(p.cat, p.name));
+        } else {
+          processItem('—', '—');
+        }
+      });
+
+      return detailRows;
     },
 
     // ===== 导入/导出/模板下载 =====

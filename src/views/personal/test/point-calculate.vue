@@ -29,9 +29,9 @@
         <div v-if="currentScene === 0" class="form-row">
           <label class="form-label"><i>*</i>证件号</label>
           <el-input v-model.trim="calcForm.idNo" aria-label="证件号" placeholder="请输入证件号" clearable class="id-input" @keyup.enter.native="handleRunCalc" />
-          <el-button type="primary" @click="handleRunCalc">试算</el-button>
+          <el-button v-if="handleIsOwn('测算')" type="primary" :loading="calcLoading" :disabled="calcLoading || batchLoading" @click="handleRunCalc">试算</el-button>
           <el-button @click="handleReset">重置</el-button>
-          <el-button :loading="importLoading" @click="$refs.fileInput.click()">批量导入</el-button>
+          <el-button v-if="handleIsOwn('测算')" :loading="importLoading" @click="$refs.fileInput.click()">批量导入</el-button>
         </div>
       </el-form>
       <input ref="fileInput" type="file" accept=".csv" hidden @change="onFileChange">
@@ -44,7 +44,7 @@
             <el-table-column label="证件类型"><template slot-scope="{ row }">{{ formatIdType(row.idType) }}</template></el-table-column>
             <el-table-column label="证件号码"><template slot-scope="{ row }">{{ maskId(row.idNo) }}</template></el-table-column>
           </el-table>
-          <div class="form-row bottom-actions"><el-button type="primary" @click="submitBatch">提交试算</el-button><el-button @click="clearBatch">清空名单</el-button><span class="hint">提交后系统后台批量试算，人员较多时耗时较长</span></div>
+          <div class="form-row bottom-actions"><el-button v-if="handleIsOwn('测算')" type="primary" @click="submitBatch">提交试算</el-button><el-button @click="clearBatch">清空名单</el-button><span class="hint">提交后系统后台批量试算，人员较多时耗时较长</span></div>
         </div>
       </template>
       <template v-else>
@@ -58,7 +58,7 @@
           <el-table-column label="是否养老协同" width="120" align="center"><template slot-scope="{ row }"><el-checkbox v-model="row.pensionFlag" aria-label="是否养老协同" /></template></el-table-column>
           <el-table-column label="操作" width="70" align="center"><template slot-scope="{ $index }"><el-button type="text" size="mini" @click="productList.splice($index, 1)">删除</el-button></template></el-table-column>
         </el-table>
-        <div class="form-row bottom-actions"><el-button type="primary" @click="handleRunCalc">试算</el-button><el-button @click="handleReset">重置</el-button><span class="hint">支持添加多个产品一同试算，积分按各产品保费 × 险种系数合计</span></div>
+        <div class="form-row bottom-actions"><el-button type="primary" :loading="calcLoading" :disabled="calcLoading || batchLoading" @click="handleRunCalc">试算</el-button><el-button :disabled="calcLoading || batchLoading" @click="handleReset">重置</el-button><span class="hint">支持添加多个产品一同试算，积分按各产品保费 × 险种系数合计</span></div>
       </template>
     </el-card>
 
@@ -126,14 +126,14 @@
         <el-date-picker v-model="activeTaskQuery.dateFrom" type="date" placeholder="开始日期" value-format="yyyy-MM-dd" />
         <span class="hint">~</span>
         <el-date-picker v-model="activeTaskQuery.dateTo" type="date" placeholder="结束日期" value-format="yyyy-MM-dd" />
-        <el-button type="primary" @click="searchTasks">查询</el-button><el-button @click="resetTaskQuery">重置</el-button><el-button :loading="exportLoading" @click="exportTasks">导出</el-button>
+        <el-button type="primary" @click="searchTasks">查询</el-button><el-button @click="resetTaskQuery">重置</el-button><el-button v-if="handleIsOwn('导出')" :loading="exportLoading" @click="exportTasks">导出</el-button>
       </div>
       <el-table v-if="activeTaskTab === 'record'" v-loading="taskLoading" :data="taskRecordData" stripe size="mini">
         <el-table-column label="试算时间" min-width="160"><template slot-scope="{ row }">{{ displayTime(row.trialTime) }}</template></el-table-column>
         <el-table-column prop="cnt" label="试算人数" width="100" />
         <el-table-column label="申请人" min-width="100"><template slot-scope="{ row }">{{ value(row.operator) }}</template></el-table-column>
         <el-table-column label="状态" width="100"><template slot-scope="{ row }"><span class="status-pill" :class="statusClass(row.status)">{{ statusText(row.status) }}</span></template></el-table-column>
-        <el-table-column label="操作" min-width="220"><template slot-scope="{ row }"><el-button v-if="row.status !== 'RUNNING'" type="text" size="mini" @click="viewTaskResult(row)">试算结果</el-button><span v-else class="hint">试算进行中，完成后可查看结果</span></template></el-table-column>
+        <el-table-column label="操作" min-width="220"><template slot-scope="{ row }"><el-button v-if="row.status !== 'RUNNING' && handleIsOwn('查询')" type="text" size="mini" @click="viewTaskResult(row)">试算结果</el-button><span v-else class="hint">试算进行中，完成后可查看结果</span></template></el-table-column>
       </el-table>
       <el-table v-else v-loading="taskLoading" :data="taskDetailData" stripe size="mini">
         <el-table-column v-for="col in detailColumns" :key="col.key" :label="col.label" :min-width="col.width || 120" :align="col.numeric ? 'right' : 'left'"><template slot-scope="{ row }">{{ taskCell(row, col) }}</template></el-table-column>
@@ -202,8 +202,10 @@ function clean(params) {
     return result
   }, {})
 }
+import pagePermissions from '@/mixins/pagePermissions'
 
 export default {
+  mixins: [pagePermissions],
   name: 'TrialCalcPage',
   data() {
     return {

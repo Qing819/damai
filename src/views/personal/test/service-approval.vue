@@ -50,9 +50,9 @@
         <el-table-column label="申请时间" min-width="160"><template slot-scope="{ row }">{{ formatTime(row.applyTime) }}</template></el-table-column>
         <el-table-column label="状态" width="90"><template slot-scope="{ row }"><span :class="['status-badge', row.status]">{{ statusText(row.status) }}</span></template></el-table-column>
         <el-table-column label="审批通过时间" min-width="160"><template slot-scope="{ row }">{{ row.status === 'APPROVED' ? formatTime(row.auditTime) : '—' }}</template></el-table-column>
-        <el-table-column label="操作" width="80" fixed="right"><template slot-scope="{ row }">
-          <el-button v-if="row.status === 'PENDING'" type="text" size="small" @click="handleApprove(row)">审批</el-button>
-          <el-button v-else type="text" size="small" @click="handleView(row)">查看</el-button>
+        <el-table-column label="操作" width="120" fixed="right"><template slot-scope="{ row }">
+          <el-button v-if="row.status === 'PENDING' && handleIsOwn('审核')" type="text" size="small" @click="handleApprove(row)">审批</el-button>
+          <el-button v-else-if="handleIsOwn('查询')" type="text" size="small" @click="handleView(row)">查看</el-button>
         </template></el-table-column>
       </el-table>
       <div class="pagination-container"><el-pagination :current-page="currentPage" :page-size="pageSize" :total="total" :page-sizes="[10, 20, 50]" layout="total, sizes, prev, pager, next" @size-change="handleSizeChange" @current-change="handleCurrentChange" /></div>
@@ -73,8 +73,8 @@
         </template>
       </div>
       <div v-if="isApproveMode && currentDetail && !dialogLoading" slot="footer">
-        <el-button class="reject-button" size="medium" :disabled="submitLoading" :loading="submitLoading && submittingResult === 'REJECTED'" @click="handleAudit('REJECTED')">驳回</el-button>
-        <el-button type="primary" size="medium" :disabled="submitLoading" :loading="submitLoading && submittingResult === 'APPROVED'" @click="handleAudit('APPROVED')">审批通过</el-button>
+        <el-button v-if="handleIsOwn('驳回')" class="reject-button" size="medium" :disabled="submitLoading" :loading="submitLoading && submittingResult === 'REJECTED'" @click="handleAudit('REJECTED')">驳回</el-button>
+        <el-button v-if="handleIsOwn('通过')" type="primary" size="medium" :disabled="submitLoading" :loading="submitLoading && submittingResult === 'APPROVED'" @click="handleAudit('APPROVED')">审批通过</el-button>
       </div>
     </el-dialog>
   </div>
@@ -92,7 +92,9 @@ import BenefitAdjustRights from './components/benefit-adjust-rights'
 function newQuery() {
   return { idType: '', idNo: '', custName: '', custId: '', orgName: '', benefitCodes: [], status: '', dateFrom: '', dateTo: '', applicant: '' }
 }
+import pagePermissions from '@/mixins/pagePermissions'
 export default {
+  mixins: [pagePermissions],
   name: 'BenefitAdjustmentApproval',
   components: { BenefitAdjustRights },
   data() {

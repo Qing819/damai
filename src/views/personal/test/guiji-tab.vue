@@ -49,7 +49,7 @@
           <el-form-item class="query-actions">
             <el-button type="primary" @click="handleSearch">查询</el-button>
             <el-button @click="handleReset">重置</el-button>
-            <el-button :loading="exportLoading" @click="handleExport">导出</el-button>
+            <el-button v-if="handleIsOwn('导出')" :loading="exportLoading" @click="handleExport">导出</el-button>
           </el-form-item>
         </el-form>
       </el-card>
@@ -78,7 +78,7 @@
             <template slot-scope="{ row }"><span class="status-tag" :class="statusClass(row.switch_status)">{{ formatStatus(row.switch_status) }}</span></template>
           </el-table-column>
           <el-table-column label="操作" width="90" fixed="right" align="center">
-            <template slot-scope="{ row }"><el-button type="text" size="mini" @click="goTrackDetail(row)">查看轨迹</el-button></template>
+            <template slot-scope="{ row }"><el-button v-if="handleIsOwn('查看切换轨迹详情')" type="text" size="mini" @click="goTrackDetail(row)">查看轨迹</el-button></template>
           </el-table-column>
         </el-table>
         <div class="pagination-footer">
@@ -168,8 +168,10 @@ import { getSwitchRecordPageApi, getSwitchRecordDetailApi, switchRecordExportApi
 import { formatIdType, formatTime, parseList } from './benefit-adjust-model'
 
 const newQuery = () => ({ custId: '', custName: '', idType: '', idNo: '', orgName: '', switchStatus: '', switchTimeFrom: '', switchTimeTo: '' })
+import pagePermissions from '@/mixins/pagePermissions'
 
 export default {
+  mixins: [pagePermissions],
   name: 'RuleSwitchTrack',
   data() {
     return {

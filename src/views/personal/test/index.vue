@@ -634,7 +634,9 @@ export default {
           } finally {
             this.submitting = false
           }
-        }).catch(() => {})
+        }).catch(error => {
+          this.$message.error(error.message || '提交失败，请稍后重试')
+        })
       })
     },
 

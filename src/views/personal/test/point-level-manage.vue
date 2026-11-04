@@ -20,14 +20,6 @@
         </template>
       </el-alert>
 
-      <!-- 角色切换栏 -->
-      <div class="role-switch-row">
-        <el-radio-group v-model="userRole" size="medium">
-          <el-radio-button label="admin">系统管理员</el-radio-button>
-          <el-radio-button label="user">普通用户</el-radio-button>
-        </el-radio-group>
-      </div>
-
       <!-- 主 Tab 切换 -->
       <el-tabs v-model="activeTab" class="main-tabs">
         <!-- Tab 1: 等级分档配置 -->
@@ -56,7 +48,7 @@
                 </span>
 
                 <el-button
-                    v-if="userRole === 'admin'"
+                    v-if="handleIsOwn('新增等级')"
                     type="primary"
                     icon="el-icon-plus"
                     size="small"
@@ -111,7 +103,7 @@
                   {{ currentVersionObj.expireDate || '长期有效' }}
                 </template>
               </el-table-column>
-              <el-table-column v-if="userRole === 'admin'" label="操作" align="center" width="120">
+              <el-table-column v-if="handleIsOwn('编辑等级') || handleIsOwn('删除等级')" label="操作" align="center" width="120">
                 <template slot-scope="scope">
                   <el-button type="text" size="small" @click="handleEditSingle(scope.row)">编辑</el-button>
                   <el-button type="text" size="small" class="btn-danger-text" @click="handleDeleteSingle(scope.row)">删除</el-button>
@@ -135,13 +127,13 @@
         </el-tab-pane>
 
         <!-- Tab 2: 等级版本管理 -->
-        <el-tab-pane v-if="userRole === 'admin'" label="等级版本管理" name="versionConfig">
+        <el-tab-pane v-if="handleIsOwn('查看版本管理')" label="等级版本管理" name="versionConfig">
           <div class="tab-content">
             <div class="toolbar-header">
               <div class="section-title">等级版本管理</div>
               <div class="toolbar-actions">
                 <el-button
-                    v-if="userRole === 'admin'"
+                    v-if="handleIsOwn('新增版本')"
                     type="primary"
                     icon="el-icon-plus"
                     size="small"
@@ -173,7 +165,7 @@
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column v-if="userRole === 'admin'" label="操作" align="center" width="120">
+              <el-table-column v-if="handleIsOwn('作废版本') || handleIsOwn('修改版本') || handleIsOwn('删除版本')" label="操作" align="center" width="120">
                 <template slot-scope="scope">
                   <el-button
                       v-if="getVersionState(scope.row) === 'ACTIVE' && !scope.row.expireDate"
@@ -371,7 +363,7 @@ import {
   deleteGradeConfigVersionApi,
   deleteGradeConfigBandApi
 } from '@/api/test/index'
-import { getUserInfo } from '@/api/auth'
+import { getPlatformPageButtonMenuInfo } from '@/api/btnPermissions'
 
 const GRADE_NAMES = {
   PUXING: '普星',
@@ -475,19 +467,13 @@ export default {
     },
     async initUserRole() {
       try {
-        const res = await getUserInfo()
-        const userInfo = res && (res.userInfo || res.data || res.body && res.body.data || res)
-        const roles = userInfo && (userInfo.roles || userInfo.roleList || userInfo.authorities || [])
-        const roleValues = (Array.isArray(roles) ? roles : [roles]).map(role => {
-          if (typeof role === 'string') return role
-          return role && (role.roleCode || role.code || role.roleName || role.name || '')
-        }).join('|').toLowerCase()
-        const currentRole = userInfo && (userInfo.roleCode || userInfo.roleName || userInfo.role)
-        const roleText = `${currentRole || ''}|${roleValues}`.toLowerCase()
-        this.userRole = /admin|administrator|系统管理员|管理员/.test(roleText) ? 'admin' : 'user'
+        const res = await getPlatformPageButtonMenuInfo({ pageType: 'pointLevelManage' })
+        const buttons = (res && (res.list || res.data && res.data.list || res.body && res.body.data)) || []
+        const names = buttons.map(button => typeof button === 'string' ? button : button.name || button.buttonName || '')
+        const adminActions = ['新增版本', '编辑版本', '删除版本', '作废版本', '批量新增', '新增', '编辑', '删除', '作废']
+        this.userRole = names.some(name => adminActions.includes(name)) ? 'admin' : 'user'
       } catch (err) {
         this.userRole = 'user'
-        console.error('获取当前用户角色失败:', err)
       }
       await this.initData()
     },

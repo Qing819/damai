@@ -47,7 +47,7 @@
           </el-popover>
         </div>
       </el-card>
-      <div class="action-bar"><el-button type="primary" size="medium" @click="openWorkbench">＋ 新增权益调整</el-button></div>
+      <div class="action-bar"><el-button v-if="handleIsOwn('新增')" type="primary" size="medium" @click="openWorkbench">＋ 新增权益调整</el-button></div>
       <el-card shadow="never" class="main-card">
         <div slot="header" class="card-title">我的申请记录</div>
         <el-table v-loading="loading" :data="tableData" border stripe>
@@ -63,8 +63,8 @@
           <el-table-column label="申请人" width="90"><template slot-scope="{ row }">{{ row.applicant || '—' }}</template></el-table-column>
           <el-table-column label="申请时间" min-width="160"><template slot-scope="{ row }">{{ formatTime(row.applyTime) }}</template></el-table-column>
           <el-table-column label="状态" width="90"><template slot-scope="{ row }"><span :class="['status-badge', row.status]">{{ statusText(row.status) }}</span></template></el-table-column>
-          <el-table-column label="操作" width="150" fixed="right"><template slot-scope="{ row }">
-            <el-button type="text" size="small" @click="handleView(row)">查看</el-button>
+          <el-table-column label="操作" width="190" fixed="right"><template slot-scope="{ row }">
+            <el-button v-if="handleIsOwn('查询')" type="text" size="small" @click="handleView(row)">查看</el-button>
             <template v-if="row.status === 'REJECTED'"><span class="operation-divider">|</span><el-button type="text" size="small" @click="handleEdit(row)">编辑</el-button><span class="operation-divider">|</span><el-button type="text" size="small" class="danger-button" @click="handleDelete(row)">删除</el-button></template>
           </template></el-table-column>
         </el-table>
@@ -177,7 +177,9 @@ import { newForm, normalizeBenefit, formatIdType, formatGrade, formatTime, statu
 function newQuery() {
   return { idType: '', idNo: '', custName: '', custId: '', orgName: '', dateFrom: '', dateTo: '', benefitCodes: [], status: '' }
 }
+import pagePermissions from '@/mixins/pagePermissions'
 export default {
+  mixins: [pagePermissions],
   name: 'BenefitAdjustmentApply',
   components: { BenefitAdjustRights, BenefitAdjustForm },
   data() {

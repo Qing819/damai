@@ -52,7 +52,7 @@
         <el-form-item class="query-actions">
           <el-button type="primary" class="query-button" @click="handleQuery">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
-          <el-button :loading="exportLoading" @click="handleExport">导出</el-button>
+          <el-button v-if="handleIsOwn('导出')" :loading="exportLoading" @click="handleExport">导出</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -115,7 +115,7 @@
         <el-table-column prop="changeTime" label="变化时间" min-width="165" align="center" />
         <el-table-column label="操作" width="100" align="center" fixed="right">
           <template slot-scope="{ row }">
-            <el-button type="text" size="small" @click="handleDetail(row)">查看详情</el-button>
+            <el-button v-if="handleIsOwn('查看详情')" type="text" size="small" @click="handleDetail(row)">查看详情</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -190,8 +190,10 @@ const defaultQuery = () => ({
   channel: '', changeType: '', dateFrom: '2026-07-01', dateTo: '2026-08-25'
 })
 const emptySummary = () => ({ upgradeCount: 0, downgradeCount: 0, invalidCount: 0, totalCount: 0 })
+import pagePermissions from '@/mixins/pagePermissions'
 
 export default {
+  mixins: [pagePermissions],
   name: 'LevelChangeDetail',
   data() {
     return {

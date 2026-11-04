@@ -241,6 +241,7 @@
 </template>
 
 <script>
+import pagePermissions from '@/mixins/pagePermissions'
 import {
   getRulePageApi,
   getRuleDetailApi,
@@ -250,6 +251,7 @@ import {
 } from '@/api/test'
 
 export default {
+  mixins: [pagePermissions],
   name: 'PointsRules',
   data() {
     return {
@@ -401,7 +403,7 @@ export default {
 
     // 39. 新增规则接口 (IntegralRuleV2)
     handleAddRule(form) {
-      pointRuleAddApi(form).then(res => {
+      pointRuleAddApi(form).then(() => {
         this.$message.success('新增规则成功');
         this.fetchRulePage();
       }).catch(err => {
@@ -411,7 +413,7 @@ export default {
 
     // 40. 修改规则接口 (生成新版本)
     handleUpdateRule(form) {
-      pointRuleUpdateApi(form).then(res => {
+      pointRuleUpdateApi(form).then(() => {
         this.$message.success('修改规则成功');
         this.fetchRulePage();
       }).catch(err => {
@@ -421,7 +423,7 @@ export default {
 
     // 41. 停用规则接口
     handleDisableRule(id) {
-      pointRuleDisableApi(id).then(res => {
+      pointRuleDisableApi(id).then(() => {
         this.$message.success('停用规则成功');
         this.fetchRulePage();
       }).catch(err => {

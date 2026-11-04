@@ -153,9 +153,9 @@
           <template slot-scope="scope">{{ scope.row.auditTime || '—' }}</template>
         </el-table-column>
 
-        <el-table-column label="操作" width="80" align="center" fixed="right">
+        <el-table-column label="操作" width="120" align="center" fixed="right">
           <template slot-scope="scope">
-            <el-button
+            <el-button v-if="handleIsOwn(isPending(scope.row.status) ? '审核' : '查看审核详情')"
                 type="text"
                 size="mini"
                 @click="openAuditModal(scope.row)"
@@ -282,8 +282,8 @@
 
       <!-- 待审核时显示的底部按钮：按照 1.6 规范传对应编码 -->
       <div v-if="currentRow && isPending(currentRow.status)" slot="footer" class="dialog-footer">
-        <el-button type="danger" plain :loading="submitLoading" @click="handleAuditSubmit('REJECTED')">驳回</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleAuditSubmit('APPROVED')">审核通过</el-button>
+        <el-button v-if="handleIsOwn('驳回')" type="danger" plain :loading="submitLoading" @click="handleAuditSubmit('REJECTED')">驳回</el-button>
+        <el-button v-if="handleIsOwn('通过')" type="primary" :loading="submitLoading" @click="handleAuditSubmit('APPROVED')">审核通过</el-button>
       </div>
     </el-dialog>
   </div>
@@ -297,8 +297,10 @@ import {
   downloadAttachmentApi
 } from '@/api/test/point'
 import { downloadBlob } from '@/utils/exportFile'
+import pagePermissions from '@/mixins/pagePermissions'
 
 export default {
+  mixins: [pagePermissions],
   name: 'PointsAudit',
   data() {
     return {

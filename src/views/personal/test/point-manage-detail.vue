@@ -440,8 +440,7 @@
 
 <script>
 import { getCustPointDetailApi, getPointTraceSummaryApi, getPointTraceDetailApi, exportTraceApi, downloadAttachmentApi } from '@/api/test/point'
-import { getGradeTraceDetailApi } from '@/api/test/index'
-import { getBenefitTraceDetailApi } from '@/api/test/index'
+import { getGradeTraceDetailApi, getBenefitTraceDetailApi } from '@/api/test/index'
 import { assertExportBlob, downloadBlob } from '@/utils/exportFile'
 import PayDetailDialog from './pay-detail-dialog.vue'
 
@@ -662,7 +661,7 @@ export default {
             addTotal: data.addTotal ?? 0,
             reduceTotal: data.reduceTotal ?? 0,
             netChange: data.netChange ?? 0,
-            total: data.total !== undefined ? data.total : (data.totalCount || 0)
+            total: data.total !== undefined ? data.total : data.totalCount || 0
           }
         }
       } catch (err) {
