@@ -12,9 +12,7 @@
         <el-form-item label="证件类型">
           <el-select v-model="searchForm.idType" placeholder="请选择" style="width: 140px" clearable>
             <el-option label="全部证件类型" value="" />
-            <el-option label="身份证" value="IDCARD" />
-            <el-option label="护照" value="PASSPORT" />
-            <el-option label="其他" value="OTHER" />
+            <el-option v-for="item in idTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
 
@@ -32,17 +30,8 @@
 
         <el-form-item label="服务归属机构">
           <el-select v-model="searchForm.orgName" placeholder="全部服务归属机构" style="width: 170px" clearable>
-            <el-option label="总公司" value="总公司" />
-            <el-option label="北京分公司" value="北京分公司" />
-            <el-option label="天津分公司" value="天津分公司" />
-            <el-option label="河北分公司" value="河北分公司" />
-            <el-option label="山西分公司" value="山西分公司" />
-            <el-option label="辽宁分公司" value="辽宁分公司" />
-            <el-option label="大连分公司" value="大连分公司" />
-            <el-option label="陕西分公司" value="陕西分公司" />
-            <el-option label="湖北分公司" value="湖北分公司" />
-            <el-option label="四川分公司" value="四川分公司" />
-            <el-option label="上海分公司" value="上海分公司" />
+            <el-option label="全部服务归属机构" value="" />
+            <el-option v-for="org in orgOptions" :key="org" :label="org" :value="org" />
             <el-option label="江苏分公司" value="江苏分公司" />
           </el-select>
         </el-form-item>
@@ -296,6 +285,7 @@ import {
   auditPointAdjustApi,
   downloadAttachmentApi
 } from '@/api/test/point'
+import { getPlatformIdTypesApi, getPlatformOrgApi } from '@/api/test'
 import { downloadBlob } from '@/utils/exportFile'
 import pagePermissions from '@/mixins/pagePermissions'
 
@@ -359,6 +349,8 @@ export default {
       pageSize: 10,
       total: 0,
       tableData: [],
+      orgOptions: [],
+      idTypeOptions: [],
       dialogVisible: false,
       currentRow: null,
       auditRemark: ''
@@ -366,9 +358,31 @@ export default {
   },
   created() {
     this.appliedQuery = { ...this.searchForm }
+    this.fetchOrgOptions()
+    this.fetchIdTypeOptions()
     this.fetchPageList()
   },
   methods: {
+    async fetchOrgOptions() {
+      try {
+        const response = await getPlatformOrgApi()
+        const data = response && (response.data || response.body && response.body.data)
+        const list = Array.isArray(data) ? data : (data && (data.list || data.data)) || []
+        this.orgOptions = list.map(item => typeof item === 'string' ? item : item.orgName || item.name || item.org_name).filter(Boolean)
+      } catch (error) {
+        this.$message.error('服务归属机构加载失败，请刷新重试')
+      }
+    },
+    async fetchIdTypeOptions() {
+      try {
+        const response = await getPlatformIdTypesApi()
+        const data = response && (response.data || response.body && response.body.data)
+        const list = Array.isArray(data) ? data : (data && (data.list || data.data)) || []
+        this.idTypeOptions = list.map(item => typeof item === 'string' ? { label: item, value: item } : { label: item.name || item.label || item.idTypeName || item.code, value: item.code || item.idType || item.value }).filter(item => item.label && item.value)
+      } catch (error) {
+        this.$message.error('证件类型加载失败，请刷新重试')
+      }
+    },
     async downloadAttachment() {
       if (!this.currentRow || !this.currentRow.attachment) return
       const filePath = this.currentRow.attachment

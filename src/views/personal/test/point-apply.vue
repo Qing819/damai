@@ -11,9 +11,8 @@
         <el-form :inline="true" :model="searchForm" size="small" class="custom-filter-form prototype-filter-form">
           <el-form-item label="证件类型">
             <el-select v-model="searchForm.idType" placeholder="全部证件类型" clearable style="width: 150px">
-              <el-option label="身份证" value="IDCARD" />
-              <el-option label="护照" value="PASSPORT" />
-              <el-option label="其他" value="OTHER" />
+              <el-option label="全部证件类型" value="" />
+              <el-option v-for="item in idTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
             </el-select>
           </el-form-item>
           <el-form-item label="证件号码">
@@ -27,15 +26,8 @@
           </el-form-item>
           <el-form-item label="服务归属机构">
             <el-select v-model="searchForm.orgName" placeholder="全部服务归属机构" clearable style="width: 170px">
-              <el-option label="总公司" value="总公司" />
-              <el-option label="北京分公司" value="北京分公司" />
-              <el-option label="天津分公司" value="天津分公司" />
-              <el-option label="河北分公司" value="河北分公司" />
-              <el-option label="山西分公司" value="山西分公司" />
-              <el-option label="辽宁分公司" value="辽宁分公司" />
-              <el-option label="大连分公司" value="大连分公司" />
-              <el-option label="江苏分公司" value="江苏分公司" />
-              <el-option label="上海分公司" value="上海分公司" />
+              <el-option label="全部服务归属机构" value="" />
+              <el-option v-for="org in orgOptions" :key="org" :label="org" :value="org" />
             </el-select>
           </el-form-item>
           <el-form-item label="申请日期">
@@ -52,6 +44,7 @@
           </el-form-item>
           <el-form-item label="调整类型">
             <el-select v-model="searchForm.adjustType" placeholder="全部调整类型" clearable style="width: 150px">
+              <el-option label="全部调整类型" value="" />
               <el-option label="加分" value="ADD" />
               <el-option label="减分" value="SUB" />
             </el-select>
@@ -60,6 +53,7 @@
           <!-- 按规范将 value 调整为状态编码 -->
           <el-form-item label="状态">
             <el-select v-model="searchForm.status" placeholder="全部状态" clearable style="width: 130px">
+              <el-option label="全部状态" value="" />
               <el-option label="待审核" value="PENDING" />
               <el-option label="已通过" value="APPROVED" />
               <el-option label="已驳回" value="REJECTED" />
@@ -631,6 +625,7 @@ import {
   modifyPointAdjustApi,
   deletePointAdjustApi
 } from '@/api/test/point'
+import { getPlatformIdTypesApi, getPlatformOrgApi } from '@/api/test'
 import { assertExportBlob } from '@/utils/exportFile'
 import pagePermissions from '@/mixins/pagePermissions'
 
@@ -663,6 +658,8 @@ export default {
       editLoading: false,
       attachmentUploading: false,
       pointTypeMap: { PREMIUM: '保费积分', PENSION: '养老协同积分', LOYALTY: '忠诚积分', MANUAL: '人工调整' },
+      orgOptions: [],
+      idTypeOptions: [],
 
       // 证件类型字典映射 (规范 1.8)
       idTypeMap: {
@@ -766,6 +763,8 @@ export default {
   },
   created() {
     this.appliedQuery = { ...this.searchForm }
+    this.fetchOrgOptions()
+    this.fetchIdTypeOptions()
     this.fetchPageList()
   },
   beforeDestroy() {
@@ -773,6 +772,26 @@ export default {
     this.customerRequest++
   },
   methods: {
+    async fetchOrgOptions() {
+      try {
+        const response = await getPlatformOrgApi()
+        const data = response && response.data
+        const list = Array.isArray(data) ? data : (data && data.list) || []
+        this.orgOptions = list.map(item => typeof item === 'string' ? item : item.orgName || item.name || item.org_name).filter(Boolean)
+      } catch (error) {
+        this.$message.error('服务归属机构加载失败，请刷新重试')
+      }
+    },
+    async fetchIdTypeOptions() {
+      try {
+        const response = await getPlatformIdTypesApi()
+        const data = response && (response.data || response.body && response.body.data)
+        const list = Array.isArray(data) ? data : (data && (data.list || data.data)) || []
+        this.idTypeOptions = list.map(item => typeof item === 'string' ? { label: item, value: item } : { label: item.name || item.label || item.idTypeName || item.code, value: item.code || item.idType || item.value }).filter(item => item.label && item.value)
+      } catch (error) {
+        this.$message.error('证件类型加载失败，请刷新重试')
+      }
+    },
     async handleCustomerSearch() {
       const custId = String(this.customerSearchKey || '').trim()
       if (!custId) {

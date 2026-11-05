@@ -1,6 +1,29 @@
 .el-table {
   font-size: 12px;
 
+  /* Keep fixed columns opaque and aligned with the scrolling table layer. */
+  .el-table__fixed,
+  .el-table__fixed-right {
+    height: 100% !important;
+    background-color: #fff;
+    z-index: 4;
+  }
+
+  .el-table__fixed-right {
+    box-shadow: -6px 0 10px -8px rgba(31, 45, 61, .18);
+  }
+
+  .el-table__fixed-body-wrapper,
+  .el-table__fixed-header-wrapper {
+    background-color: #fff;
+  }
+
+  .el-table__fixed .el-table__cell,
+  .el-table__fixed-right .el-table__cell {
+    position: relative;
+    background-color: #fff;
+  }
+
   .el-table__cell {
     padding: 6px 0;
   }

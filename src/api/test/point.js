@@ -139,9 +139,6 @@ export function uploadAttachmentApi(data) {
   return fetch({
     url: '/platform/attachment/upload',
     method: 'post',
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    },
     data
   });
 }

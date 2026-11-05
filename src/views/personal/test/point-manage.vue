@@ -12,6 +12,7 @@
           <el-col :span="4">
             <el-form-item>
               <el-select v-model="queryForm.pointSystem" placeholder="全部积分体系" clearable style="width: 100%;">
+                <el-option label="全部积分体系" value="" />
                 <el-option label="新积分体系" value="V2_2027" />
                 <el-option label="老积分体系" value="V1_LEGACY" />
               </el-select>
@@ -32,25 +33,16 @@
           <el-col :span="4">
             <el-form-item>
               <el-select v-model="queryForm.channel" placeholder="全部所属渠道" clearable style="width: 100%;">
-                <el-option label="个险渠道" value="INDIVIDUAL" />
-                <el-option label="银保渠道" value="BANCA" />
-                <el-option label="经代渠道" value="INTERMEDIARY" />
-                <el-option label="电销/网销渠道" value="E_SALES" />
+                <el-option label="全部所属渠道" value="" />
+                <el-option v-for="channel in channelOptions" :key="channel.value" :label="channel.label" :value="channel.value" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="4">
             <el-form-item>
               <el-select v-model="queryForm.orgName" placeholder="全部服务机构" clearable style="width: 100%;">
-                <el-option label="总公司" value="总公司" />
-                <el-option label="天津分公司" value="天津分公司" />
-                <el-option label="北京分公司" value="北京分公司" />
-                <el-option label="河北分公司" value="河北分公司" />
-                <el-option label="山西分公司" value="山西分公司" />
-                <el-option label="辽宁分公司" value="辽宁分公司" />
-                <el-option label="大连分公司" value="大连分公司" />
-                <el-option label="江苏分公司" value="江苏分公司" />
-                <el-option label="上海分公司" value="上海分公司" />
+                <el-option label="全部服务机构" value="" />
+                <el-option v-for="org in orgOptions" :key="org" :label="org" :value="org" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -71,9 +63,8 @@
           <el-col :span="4">
             <el-form-item>
               <el-select v-model="queryForm.idType" placeholder="全部证件类型" clearable style="width: 100%;">
-                <el-option label="居民身份证" value="IDCARD" />
-                <el-option label="中国护照" value="PASSPORT" />
-                <el-option label="港澳居民来往内地通行证" value="HKMO_PASS" />
+                <el-option label="全部证件类型" value="" />
+                <el-option v-for="item in idTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -244,6 +235,7 @@
 import pagePermissions from '@/mixins/pagePermissions'
 import * as echarts from 'echarts'
 import { getCustPointListApi, getCustPointStatsApi, exportCustListApi } from 'api/test/point'
+import { getPlatformChannelsApi, getPlatformIdTypesApi, getPlatformOrgApi } from '@/api/test'
 import { assertExportBlob } from '@/utils/exportFile'
 
 export default {
@@ -275,6 +267,9 @@ export default {
         idNo: '',
         mobile: ''
       },
+      orgOptions: [],
+      channelOptions: [],
+      idTypeOptions: [],
       page: {
         currentPage: 1,
         pageSize: 10
@@ -285,6 +280,9 @@ export default {
   },
   mounted() {
     this.appliedQuery = { ...this.queryForm }
+    this.fetchOrgOptions()
+    this.fetchChannelOptions()
+    this.fetchIdTypeOptions()
     this.fetchTableData()
     // 确保 DOM 挂载完成后初始化图表
     this.$nextTick(() => {
@@ -299,6 +297,39 @@ export default {
     this.chartInstances.forEach(instance => instance && instance.dispose())
   },
   methods: {
+    async fetchOrgOptions() {
+      try {
+        const response = await getPlatformOrgApi()
+        const data = response && (response.data || response.body && response.body.data)
+        const list = Array.isArray(data) ? data : (data && (data.list || data.data)) || []
+        this.orgOptions = list.map(item => typeof item === 'string' ? item : item.orgName || item.name || item.org_name).filter(Boolean)
+      } catch (error) {
+        this.$message.error('服务机构加载失败，请刷新重试')
+      }
+    },
+    async fetchChannelOptions() {
+      try {
+        const response = await getPlatformChannelsApi()
+        const data = response && (response.data || response.body && response.body.data)
+        const list = Array.isArray(data) ? data : (data && (data.list || data.data)) || []
+        this.channelOptions = list.map(item => {
+          if (typeof item === 'string') return { label: item, value: item }
+          return { label: item.name || item.channelName || item.label || item.code, value: item.code || item.channelCode || item.value }
+        }).filter(item => item.label && item.value)
+      } catch (error) {
+        this.$message.error('所属渠道加载失败，请刷新重试')
+      }
+    },
+    async fetchIdTypeOptions() {
+      try {
+        const response = await getPlatformIdTypesApi()
+        const data = response && (response.data || response.body && response.body.data)
+        const list = Array.isArray(data) ? data : (data && (data.list || data.data)) || []
+        this.idTypeOptions = list.map(item => typeof item === 'string' ? { label: item, value: item } : { label: item.name || item.label || item.idTypeName || item.code, value: item.code || item.idType || item.value }).filter(item => item.label && item.value)
+      } catch (error) {
+        this.$message.error('证件类型加载失败，请刷新重试')
+      }
+    },
     // 格式化数字方法
     formatNumber(val) {
       if (val === null || val === undefined || val === '') return '0'

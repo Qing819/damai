@@ -6,11 +6,11 @@
     </div>
     <el-card shadow="never" class="search-card">
       <el-form :inline="true" class="query-form" @submit.native.prevent="handleSearch">
-        <el-form-item><el-select v-model="queryForm.idType" placeholder="全部证件类型" clearable class="query-medium"><el-option v-for="item in idTypes" :key="item" :label="formatIdType(item)" :value="item" /></el-select></el-form-item>
+        <el-form-item><el-select v-model="queryForm.idType" placeholder="全部证件类型" clearable class="query-medium"><el-option label="全部证件类型" value="" /><el-option v-for="item in idTypes" :key="item" :label="formatIdType(item)" :value="item" /></el-select></el-form-item>
         <el-form-item><el-input v-model="queryForm.idNo" placeholder="证件号码" clearable class="query-number" /></el-form-item>
         <el-form-item><el-input v-model="queryForm.custName" placeholder="客户姓名" clearable class="query-medium" /></el-form-item>
         <el-form-item><el-input v-model="queryForm.custId" placeholder="客户号" clearable class="query-medium" /></el-form-item>
-        <el-form-item><el-select v-model="queryForm.orgName" placeholder="全部服务归属机构" clearable class="query-org"><el-option v-for="item in orgs" :key="item" :label="item" :value="item" /></el-select></el-form-item>
+        <el-form-item><el-select v-model="queryForm.orgName" placeholder="全部服务归属机构" clearable class="query-org"><el-option label="全部服务归属机构" value="" /><el-option v-for="item in orgs" :key="item" :label="item" :value="item" /></el-select></el-form-item>
         <el-form-item>
           <el-popover placement="bottom-start" width="290" trigger="click">
             <el-input v-model="benefitKeyword" size="small" placeholder="搜索服务权益ID或名称" clearable />
@@ -24,7 +24,7 @@
             <el-button slot="reference" class="benefit-filter"><span>{{ selectedBenefitNames }}</span><i class="el-icon-arrow-down" /></el-button>
           </el-popover>
         </el-form-item>
-        <el-form-item><el-select v-model="queryForm.status" placeholder="全部状态" clearable class="query-medium"><el-option v-for="item in statuses" :key="item" :label="statusText(item)" :value="item" /></el-select></el-form-item>
+        <el-form-item><el-select v-model="queryForm.status" placeholder="全部状态" clearable class="query-medium"><el-option label="全部状态" value="" /><el-option v-for="item in statuses" :key="item" :label="statusText(item)" :value="item" /></el-select></el-form-item>
         <el-form-item class="query-dates">
           <el-date-picker v-model="queryForm.dateFrom" type="date" value-format="yyyy-MM-dd" placeholder="开始日期" />
           <span class="date-separator">~</span>

@@ -145,7 +145,7 @@
     <el-dialog title="选择险种" :visible.sync="productDialogVisible" width="1000px" custom-class="trial-dialog" :close-on-click-modal="false">
       <div class="dialog-query">
         <el-input v-model.trim="riskQuery.riskCode" placeholder="险种编码" clearable /><el-input v-model.trim="riskQuery.riskName" placeholder="险种名称" clearable class="wide-input" />
-        <el-select v-for="(options, index) in riskClasses" :key="index" v-model="riskQuery['type' + (index + 1)]" :placeholder="'全部分类' + ['一', '二', '三', '四'][index]" clearable><el-option v-for="option in options" :key="option" :label="option" :value="option" /></el-select>
+        <el-select v-for="(options, index) in riskClasses" :key="index" v-model="riskQuery['type' + (index + 1)]" :placeholder="'全部分类' + ['一', '二', '三', '四'][index]" clearable><el-option :label="'全部分类' + ['一', '二', '三', '四'][index]" value="" /><el-option v-for="option in options" :key="option" :label="option" :value="option" /></el-select>
         <el-button type="primary" @click="searchRisks">查询</el-button><el-button @click="resetRisks">重置</el-button>
       </div>
       <el-table ref="riskTable" v-loading="riskLoading" :data="riskRows" stripe size="mini" max-height="340" highlight-current-row @current-change="selectRisk">
