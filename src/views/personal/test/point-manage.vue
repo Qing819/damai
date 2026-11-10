@@ -79,8 +79,8 @@
             </el-form-item>
           </el-col>
           <el-col :span="12" class="btn-container">
-            <el-button class="btn-search" size="mini" type="primary" @click="handleSearch">查询</el-button>
-            <el-button class="btn-reset" size="mini" @click="handleReset">重置</el-button>
+            <el-button v-if="handleIsOwn('查询')" class="btn-search" size="mini" type="primary" @click="handleSearch">查询</el-button>
+            <el-button v-if="handleIsOwn('查询')" class="btn-reset" size="mini" @click="handleReset">重置</el-button>
             <el-button v-if="handleIsOwn('导出')" class="btn-export" size="mini" @click="handleExport">导出</el-button>
           </el-col>
         </el-row>

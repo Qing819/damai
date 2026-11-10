@@ -7,10 +7,12 @@
 | 文件 | 用途 |
 | --- | --- |
 | `check-grade-config.cjs` | 等级分档区间、批量保存参数、分页、角色及版本日期 |
+| `check-request-feedback.cjs` | 公共请求失败判定、后端错误保留、操作成功反馈及失败提示去重 |
+| `check-acceptance-fixes.cjs` | 需求对照修复：空权限与别名路由、姓名脱敏、列表竞态、试算独立权限及错误去重、输入长度和至少保留一个产品 |
 | `check-level-trace.cjs` | 等级轨迹字段、查询参数、分页、详情及异步响应 |
 | `check-benefit-apply.cjs` | 权益申请、客户选择、上传、编辑及提交保护 |
 | `check-benefit-approval.cjs` | 权益审批查询、详情、通过/驳回及重复提交保护 |
-| `check-service-rules.cjs` | 服务规则、00/01编码、修改记录快照及保存/导入参数 |
+| `check-service-rules.cjs` | 服务规则机构树、00/01编码、修改记录快照及保存/导入参数；保存测试使用已授权权限桩 |
 | `integrate-service-rules.cjs` | 服务规则真实接口及已发现的后端问题复测 |
 | `test-utils.cjs` | 回归脚本共用的源码读取、Babel转换和Vue模板编译 |
 | `check-menu-audit.js` | 全菜单核对中补充的积分组件回归；`--live` 只读检查各菜单主要接口 |
@@ -21,6 +23,8 @@
 
 ```sh
 node scripts/check-grade-config.cjs
+node --unhandled-rejections=strict scripts/check-request-feedback.cjs
+node scripts/check-acceptance-fixes.cjs
 node scripts/check-level-trace.cjs
 node scripts/check-benefit-apply.cjs
 node scripts/check-benefit-approval.cjs

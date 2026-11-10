@@ -31,6 +31,7 @@ const messages = []
 function makeVM() {
   const vm = {
     ...component.data(),
+    handleIsOwn: () => true,
     $message: Object.fromEntries(['error', 'warning', 'success'].map(type => [type, text => messages.push({ type, text })])),
     $nextTick: callback => callback(), $confirm: async () => {},
     $refs: { editTableRef: { toggleRowExpansion() {} }, rightsPicker: { clearSelection() {} } }
@@ -47,10 +48,16 @@ async function run() {
     { code: 'POLICYHOLDER', name: '投保人' }, { code: 'INSURED', name: '有效保单被保险人' }
   ] }
   responses['/platform/dict/ORDER_CHANNEL'] = { data: [{ code: '00', name: '官微' }, { code: '01', name: 'PC端' }, { code: '02', name: '客服电话95348' }] }
-  responses['/platform/dict/biz/orgs'] = { data: ['天津分公司'] }
+  responses['/platform/dict/biz/orgTree'] = { data: [{ name: '天津分公司', children: ['天津中心支公司', '天津中心支公司'] }] }
   await vm.fetchDictOptions()
   assert.ok(!calls.some(call => call.url.includes('idTypes')))
-  assert.deepStrictEqual(vm.orgOptions, ['全国', '天津分公司'])
+  assert.deepStrictEqual(vm.orgOptions, [{ name: '天津分公司', children: ['天津中心支公司'] }])
+  assert.deepStrictEqual(vm.regionTreeOptions, [{
+    value: '全国', label: '全国', children: [{
+      value: '天津分公司', label: '天津分公司',
+      children: [{ value: '天津中心支公司', label: '天津中心支公司' }]
+    }]
+  }])
   assert.strictEqual(vm.flag('0'), false)
   assert.strictEqual(vm.flag('1'), true)
   assert.strictEqual(vm.ruleFlag('00'), true)

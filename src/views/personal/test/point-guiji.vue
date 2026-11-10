@@ -51,10 +51,10 @@
           <el-select v-model="queryParams.pointType" placeholder="全部积分类型" clearable class="form-item-input">
             <el-option label="全部积分类型" value="" />
             <el-option
-                v-for="(name, code) in pointTypeMap"
-                :key="code"
-                :label="name"
-                :value="code"
+                v-for="item in pointTypeOptions"
+                :key="item.code"
+                :label="item.name"
+                :value="item.code"
             />
           </el-select>
         </el-form-item>
@@ -82,8 +82,8 @@
 
         <!-- 按钮组 -->
         <el-form-item class="search-btn-group">
-          <el-button class="btn-search" type="primary" @click="handleQuery">查询</el-button>
-          <el-button class="btn-reset" @click="resetQuery">重置</el-button>
+          <el-button v-if="handleIsOwn('查询')" class="btn-search" type="primary" @click="handleQuery">查询</el-button>
+          <el-button v-if="handleIsOwn('查询')" class="btn-reset" @click="resetQuery">重置</el-button>
           <el-button v-if="handleIsOwn('导出')" class="btn-export" @click="handleExport">导出</el-button>
         </el-form-item>
       </el-form>
@@ -290,7 +290,7 @@
           <div class="section-title">
             触发规则 <span class="sub-tip">系统自动调整，无需审批</span>
           </div>
-          <el-row :gutter="12" class="info-row">
+          <el-row :gutter="12" class="info-row trigger-rule-row">
             <el-col :span="12">
               积分类型：
               <el-tag size="mini" :type="getPointTypeTagType(detailData.pointType)" effect="light">
@@ -299,7 +299,7 @@
             </el-col>
             <el-col :span="12">触发规则：<strong>{{ detailData.ruleName || '—' }}</strong></el-col>
             <el-col :span="12">规则版本：<strong>{{ detailData.ruleVersion || '—' }}</strong></el-col>
-            <el-col :span="12">实收记录：<el-button v-if="detailData.payRecordNo" type="text" @click="$refs.payDetail.open(detailData.payRecordNo)">{{ detailData.payRecordNo }}</el-button><strong v-else>—</strong></el-col>
+            <el-col :span="12">实收记录：<el-button v-if="detailData.payRecordNo" class="pay-record-link" type="text" @click="$refs.payDetail.open(detailData.payRecordNo)">{{ detailData.payRecordNo }}</el-button><strong v-else>—</strong></el-col>
             <el-col :span="12">缴费间隔：<strong>{{ detailData.payInterval || '—' }}</strong></el-col>
             <el-col :span="12">交费年期：<strong>{{ detailData.payYears != null ? `${detailData.payYears} 年` : '—' }}</strong></el-col>
             <el-col :span="12">缴费次数：<strong>{{ detailData.payCount != null ? `${detailData.payCount} 次` : '—' }}</strong></el-col>
@@ -340,7 +340,7 @@
 
 <script>
 import { getPointTracePageApi, getPointTraceSummaryApi, getPointTraceDetailApi, exportTraceApi, downloadAttachmentApi } from '@/api/test/point'
-import { getPlatformOrgApi } from '@/api/test'
+import { getPlatformOrgApi, getPlatformPointTypesApi } from '@/api/test'
 import { assertExportBlob, downloadBlob } from '@/utils/exportFile'
 import PayDetailDialog from './pay-detail-dialog.vue'
 import pagePermissions from '@/mixins/pagePermissions'
@@ -377,11 +377,15 @@ export default {
         SYSTEM: '系统调整'
       },
 
+      pointTypeOptions: [],
       pointTypeMap: {
         PREMIUM: '保费积分',
         LOYALTY: '忠诚积分',
         PENSION: '养老协同积分',
-        MANUAL: '人工调整'
+        MANUAL: '人工调整',
+        RB_FIX: '回退修正积分',
+        CM_FIX: '转移修正积分',
+        LV_FIX: '等级评定修正积分'
       },
 
       queryParams: {
@@ -421,9 +425,21 @@ export default {
   created() {
     this.appliedQuery = { ...this.queryParams }
     this.fetchOrgOptions()
+    this.fetchPointTypeOptions()
     this.loadData()
   },
   methods: {
+    async fetchPointTypeOptions() {
+      try {
+        const response = await getPlatformPointTypesApi()
+        this.pointTypeOptions = Array.isArray(response && response.data) ? response.data : []
+        this.pointTypeOptions.forEach(item => {
+          this.$set(this.pointTypeMap, item.code, item.name)
+        })
+      } catch (error) {
+        if (!error.messageShown) this.$message.error('积分类型加载失败，请刷新重试')
+      }
+    },
     async fetchOrgOptions() {
       try {
         const response = await getPlatformOrgApi()
@@ -466,8 +482,24 @@ export default {
 
     formatPointType(code) {
       if (!code) return '—'
-      const name = this.pointTypeMap[code]
-      return name || code
+      const normalizedCode = String(code).trim().toUpperCase()
+      const name = this.pointTypeMap[normalizedCode]
+      return name || String(code).trim()
+    },
+
+    formatRuleName(name, code) {
+      if (name && /[\u4e00-\u9fff]/.test(name)) return name
+      const value = String(code || name || '').trim()
+      const names = {
+        PREMIUM_SINGLE: '趸交保费积分',
+        PREMIUM_TERM: '期交保费积分',
+        PREMIUM_SHORT: '短期险保费积分',
+        PENSION_BONUS: '养老协同加成',
+        LOYALTY_CONTINUOUS_YEARLY: '连续缴费忠诚积分',
+        LOYALTY_REINVEST_NEW: '二次投保忠诚积分',
+        LOYALTY_YEAR5: '连续缴费第5年忠诚积分'
+      }
+      return names[value.toUpperCase()] || name || value || '—'
     },
 
     formatDateOnly(value) {
@@ -484,8 +516,10 @@ export default {
     },
 
     getPointTypeTagType(code) {
-      if (code === 'MANUAL' || code === '人工调整') return 'warning'
-      if (code === 'PENSION' || code === '养老协同积分') return 'purple'
+      const normalizedCode = String(code || '').trim().toUpperCase()
+      if (normalizedCode === 'MANUAL' || code === '人工调整') return 'warning'
+      if (normalizedCode === 'PENSION' || code === '养老协同积分') return 'purple'
+      if (['RB_FIX', 'CM_FIX', 'LV_FIX'].includes(normalizedCode)) return 'success'
       return 'primary'
     },
 
@@ -666,7 +700,7 @@ export default {
         approver: item.approver,
         approveTime: item.approve_time || item.approveTime,
         approveRemark: item.approve_remark || item.approveRemark,
-        ruleName: item.rule_name || item.ruleName || item.rule_code || item.ruleCode,
+        ruleName: this.formatRuleName(item.rule_name || item.ruleName, item.rule_code || item.ruleCode),
         ruleVersion: item.rule_version || item.ruleVersion,
         payRecordNo: item.pay_record_no || item.payRecordNo || item.pay_no || item.payNo,
         payInterval: item.pay_interval || item.payInterval,
@@ -973,6 +1007,39 @@ export default {
 
 .info-row .adjustment-amount-row {
   clear: left;
+}
+
+.trigger-rule-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  column-gap: 24px;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.trigger-rule-row::before,
+.trigger-rule-row::after {
+  display: none;
+}
+
+.trigger-rule-row .el-col {
+  align-self: start;
+  width: auto;
+  min-height: 0;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.trigger-rule-row .pay-record-link {
+  height: auto;
+  padding: 0;
+  line-height: inherit;
+  vertical-align: baseline;
+}
+
+.trigger-rule-row .el-col:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
 }
 
 .change-card {

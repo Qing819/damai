@@ -27,42 +27,75 @@ function vmFor(component = components['service-apply.vue']) {
   Object.entries(component.computed || {}).forEach(([name, getter]) => Object.defineProperty(vm, name, { get: () => getter.call(vm) }))
   return vm
 }
-function deferred() { let resolve; const promise = new Promise(done => { resolve = done }); return { promise, resolve } }
+function deferred() { let resolve, reject; const promise = new Promise((done, fail) => { resolve = done; reject = fail }); return { promise, resolve, reject } }
 async function run() {
   const vm = vmFor()
+  const editVM = vmFor()
+  const oldEdit = deferred(), newEdit = deferred()
+  editVM.readDetail = row => row.id === 1 ? oldEdit.promise : newEdit.promise
+  const editingOld = editVM.handleEdit({ id: 1, status: 'REJECTED' })
+  const editingNew = editVM.handleEdit({ id: 2, status: 'REJECTED' })
+  newEdit.resolve({ id: 2, status: 'REJECTED', benefitDetails: [] })
+  await editingNew
+  oldEdit.resolve({ id: 1, status: 'REJECTED', benefitDetails: [] })
+  await editingOld
+  assert.strictEqual(editVM.editForm.id, 2, 'A late edit response must not replace the last selected application')
+  const staleError = deferred()
+  editVM.readDetail = row => row.id === 3 ? staleError.promise : Promise.resolve({ id: 4, status: 'REJECTED', benefitDetails: [] })
+  const oldFailure = editVM.handleEdit({ id: 3, status: 'REJECTED' })
+  await editVM.handleEdit({ id: 4, status: 'REJECTED' })
+  const beforeStaleError = messages.length
+  staleError.reject(new Error('obsolete request'))
+  await oldFailure
+  assert.strictEqual(messages.length, beforeStaleError)
+  assert.strictEqual(editVM.editForm.id, 4)
+  const leaving = deferred()
+  editVM.editVisible = false
+  editVM.readDetail = () => leaving.promise
+  const pendingEdit = editVM.handleEdit({ id: 5, status: 'REJECTED' })
+  components['service-apply.vue'].beforeDestroy.call(editVM)
+  leaving.resolve({ id: 5, status: 'REJECTED', benefitDetails: [] })
+  await pendingEdit
+  assert.strictEqual(editVM.editVisible, false, 'Destroying the page invalidates pending editing')
+  const dateTo = model.today()
+  const dateFrom = `${dateTo.slice(0, 8)}01`
+  assert.strictEqual(vm.queryForm.dateFrom, dateFrom)
+  assert.strictEqual(vm.queryForm.dateTo, dateTo)
   vm.queryForm = { ...vm.queryForm, custId: ' 1001 ', idType: '身份证', dateFrom: '2026-01-01', dateTo: '2026-12-31' }
   vm.currentPage = 3
   await vm.handleSearch()
-  assert.deepStrictEqual(calls.pop().params, { custId: '1001', idType: '身份证', dateFrom: '2026-01-01', dateTo: '2026-12-31', pageNum: 1, pageSize: 100 })
+  assert.deepStrictEqual(calls.pop().params, { custId: '1001', idType: '身份证', dateFrom: '2026-01-01', dateTo: '2026-12-31', pageNum: 1, pageSize: 10 })
   vm.queryForm.dateTo = '2025-01-01'
   const countBefore = calls.length
   vm.handleSearch()
   assert.strictEqual(calls.length, countBefore)
   await vm.handleReset()
   assert.strictEqual(vm.activeQuery.custId, '')
-  // A multi-benefit filter unions all server pages before local pagination.
-  const many = Array.from({ length: 101 }, (_, i) => ({ id: i + 1, custId: i % 2 ? '1001' : '1002', applyTime: '2026-10-01' }))
+  assert.deepStrictEqual(calls[calls.length - 1].params, { dateFrom, dateTo, pageNum: 1, pageSize: 10 })
+  // One comma-separated OR filter uses server totals and pagination.
+  const many = Array.from({ length: 102 }, (_, i) => ({ id: 102 - i, custId: i % 2 ? '1001' : '1002', applyTime: '2026-10-01' }))
   handler = async config => {
     const p = config.params
-    const data = p.benefitCode === 'QY0001' ? many : [many[0], { id: 102, custId: '1003', applyTime: '2026-10-02' }]
-    return { data: { list: data.slice((p.pageNum - 1) * p.pageSize, p.pageNum * p.pageSize), total: data.length } }
+    assert.strictEqual(p.benefitCode, 'QY0001,QY0002')
+    return { data: { list: many.slice((p.pageNum - 1) * p.pageSize, p.pageNum * p.pageSize), total: many.length } }
   }
   vm.queryForm.benefitCodes = ['QY0001', 'QY0002']
+  const beforeMulti = calls.length
   await vm.handleSearch()
+  assert.strictEqual(calls.length, beforeMulti + 1)
   assert.strictEqual(vm.total, 102)
   assert.strictEqual(vm.tableData[0].id, 102)
   assert.strictEqual(vm.tableData.length, 10)
-  assert.ok(calls.some(call => call.params.benefitCode === 'QY0001' && call.params.pageNum === 2))
+  vm.queryForm.benefitCodes = ['not-yet-queried']
   await vm.handleCurrentChange(11)
+  assert.strictEqual(calls.length, beforeMulti + 2)
+  assert.strictEqual(calls[calls.length - 1].params.pageNum, 11)
   assert.strictEqual(vm.tableData.length, 2)
-  assert.strictEqual(vm.customerOptions.length, 3)
-  vm.selectListCustomer('1003')
-  assert.strictEqual(vm.total, 1)
-  assert.strictEqual(vm.tableData[0].custId, '1003')
-  assert.strictEqual(vm.currentPage, 1)
-  vm.selectListCustomer('')
   assert.strictEqual(vm.total, 102)
-  assert.ok(!calls.some(call => call.params && String(call.params.benefitCode).includes(',')))
+  await vm.handleSizeChange(20)
+  assert.strictEqual(vm.currentPage, 1)
+  assert.strictEqual(vm.tableData.length, 20)
+  assert.strictEqual(vm.total, 102)
   // Input starts searching immediately; old requests cannot overwrite newer results.
   const first = deferred(), second = deferred()
   handler = config => config.params.keyword === '1' ? first.promise : second.promise
@@ -112,6 +145,19 @@ async function run() {
   assert.strictEqual(model.validateForm(vm.applyForm), '')
   assert.ok(model.validateForm({ ...vm.applyForm, validEndDate: '2020-01-01' }))
   assert.ok(model.validateForm({ ...vm.applyForm, reasonCode: 'invalid' }))
+  for (const [key, length] of [['policyNo', 30], ['oaNo', 50], ['remark', 200]]) {
+    assert.strictEqual(model.validateForm({ ...vm.applyForm, [key]: 'X'.repeat(length) }), '')
+    assert.ok(model.validateForm({ ...vm.applyForm, [key]: 'X'.repeat(length + 1) }), `${key} must reject overlong values`)
+  }
+  const formVM = vmFor(components['components/benefit-adjust-form.vue'])
+  formVM.form = { validEndDate: '2020-01-01' }
+  const warningsBefore = messages.length
+  formVM.handleValidEndChange('2020-01-01')
+  assert.strictEqual(formVM.form.validEndDate, model.today())
+  assert.strictEqual(messages.length, warningsBefore + 1)
+  formVM.handleValidEndChange(model.today())
+  formVM.handleValidEndChange('')
+  assert.strictEqual(messages.length, warningsBefore + 1, 'Valid or cleared dates must not emit a correction warning')
   // 与交付 SQL 的 sys_dict_v2 及接口文档 2.4 一致，不能将 03/05 对调。
   assert.strictEqual(model.payloadFor({ ...vm.applyForm, reasonCode: 'REASON03' }).reasonName, '权益派发错误')
   assert.strictEqual(model.payloadFor({ ...vm.applyForm, reasonCode: 'REASON05' }).reasonName, '历史权益修正')

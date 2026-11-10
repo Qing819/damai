@@ -50,8 +50,8 @@
           <el-date-picker v-model="queryForm.dateTo" aria-label="变化结束日期" type="date" placeholder="结束日期" value-format="yyyy-MM-dd" />
         </el-form-item>
         <el-form-item class="query-actions">
-          <el-button type="primary" class="query-button" @click="handleQuery">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
+          <el-button v-if="handleIsOwn('查询')" type="primary" class="query-button" @click="handleQuery">查询</el-button>
+          <el-button v-if="handleIsOwn('查询')" @click="handleReset">重置</el-button>
           <el-button v-if="handleIsOwn('导出')" :loading="exportLoading" @click="handleExport">导出</el-button>
         </el-form-item>
       </el-form>

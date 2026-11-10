@@ -24,6 +24,10 @@ function deferred() { let resolve; const promise = new Promise(done => { resolve
 const pending = { id: 6, applyNo: 'BEN-TEST', custId: '1001', custName: '测试客户', status: 'PENDING', applyTime: 1790127346000, benefitDetails: [{ benefitCode: 'QY0001', regionsJson: '["全国"]', identitiesJson: '["有效保单被保险人"]', freqCount: 2 }] }
 async function run() {
   const vm = makeVM()
+  const dateTo = model.today()
+  const dateFrom = `${dateTo.slice(0, 8)}01`
+  assert.strictEqual(vm.queryForm.dateFrom, dateFrom)
+  assert.strictEqual(vm.queryForm.dateTo, dateTo)
   handler = async () => ({ data: [] })
   await vm.loadResources()
   vm.queryForm = {
@@ -47,24 +51,28 @@ async function run() {
   vm.handleSearch()
   assert.strictEqual(calls.length, beforeInvalid)
   await vm.handleReset()
-  assert.deepStrictEqual(calls[calls.length - 1].params, { pageNum: 1, pageSize: 20 })
+  assert.deepStrictEqual(calls[calls.length - 1].params, { dateFrom, dateTo, pageNum: 1, pageSize: 20 })
   assert.deepStrictEqual(vm.queryForm.benefitCodes, [])
-  // Multi-select must union every matching server page before paginating.
-  const rows = Array.from({ length: 101 }, (_, index) => ({ id: index + 1, applyTime: '2026-10-01' }))
+  // One comma-separated OR filter uses server totals and pagination.
+  const rows = Array.from({ length: 102 }, (_, index) => ({ id: 102 - index, applyTime: '2026-10-01' }))
   handler = async config => {
     const p = config.params
-    const data = p.benefitCode === 'QY0001' ? rows : [rows[0], { id: 102, applyTime: '2026-10-02' }]
-    return { data: { list: data.slice((p.pageNum - 1) * p.pageSize, p.pageNum * p.pageSize), total: data.length } }
+    assert.strictEqual(p.benefitCode, 'QY0001,QY0002')
+    return { data: { list: rows.slice((p.pageNum - 1) * p.pageSize, p.pageNum * p.pageSize), total: rows.length } }
   }
   vm.pageSize = 10
   vm.queryForm.benefitCodes = ['QY0001', 'QY0002']
+  const beforeMulti = calls.length
   await vm.handleSearch()
+  assert.strictEqual(calls.length, beforeMulti + 1)
   assert.strictEqual(vm.total, 102)
   assert.strictEqual(vm.tableData[0].id, 102)
+  vm.queryForm.benefitCodes = ['not-yet-queried']
   await vm.handleCurrentChange(11)
+  assert.strictEqual(calls.length, beforeMulti + 2)
+  assert.strictEqual(calls[calls.length - 1].params.pageNum, 11)
   assert.strictEqual(vm.tableData.length, 2)
-  assert.ok(calls.some(call => call.params && call.params.benefitCode === 'QY0001' && call.params.pageNum === 2))
-  assert.ok(!calls.some(call => call.params && String(call.params.benefitCode).includes(',')))
+  assert.strictEqual(vm.total, 102)
   // Slower requests cannot replace the current search or detail.
   const listOld = deferred(), listNew = deferred()
   vm.activeQuery.benefitCodes = []
@@ -108,6 +116,20 @@ async function run() {
   // Approving allows an empty opinion; double clicks/closing are blocked until the response.
   handler = async () => ({ data: { ...pending } })
   await vm.handleApprove(pending)
+  vm.approvalRemark = '审'.repeat(501)
+  const beforeOverlong = calls.length
+  await vm.handleAudit('APPROVED')
+  await vm.handleAudit('REJECTED')
+  assert.strictEqual(calls.length, beforeOverlong, 'Neither audit result may submit an overlong opinion')
+  assert.strictEqual(vm.opinionInvalid, true)
+  vm.approvalRemark = '审'.repeat(500)
+  handler = async () => { throw new Error('isolated boundary failure') }
+  await vm.handleAudit('REJECTED')
+  assert.strictEqual(calls.length, beforeOverlong + 1, 'A 500-character rejection opinion is accepted')
+  assert.strictEqual(calls[calls.length - 1].data.opinion.length, 500)
+  assert.strictEqual(vm.dialogVisible, true)
+  assert.strictEqual(vm.approvalRemark.length, 500)
+  vm.approvalRemark = ''
   const post = deferred()
   handler = config => config.method === 'post' ? post.promise : Promise.resolve({ data: { list: [], total: 0 } })
   const approve = vm.handleAudit('APPROVED')
@@ -171,7 +193,7 @@ async function run() {
   await vm.handleApprove(pending)
   assert.strictEqual(vm.dialogVisible, false)
   assert.strictEqual(vm.currentDetail, null)
-  console.log('PASS: template; all query parameters and snapshots; dates/reset/page size; multi-benefit union/dedup across pages; stale list/detail requests; missing detail fails closed; pending-only audit; rejection validation; unwrapped success; empty approval opinion; duplicate/close guards; failure retains input; completed application is readonly')
+  console.log('PASS: template; all query parameters and snapshots; dates/reset/page size; comma-separated multi-benefit filter and server pagination; stale list/detail requests; missing detail fails closed; pending-only audit; rejection validation; unwrapped success; empty approval opinion; duplicate/close guards; failure retains input; completed application is readonly')
   if (!process.argv.includes('--live')) return
   // Live verification never sends an approval or rejection to the business database.
   handler = async config => {

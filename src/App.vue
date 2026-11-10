@@ -1,5 +1,6 @@
 <template>
   <div id="point-system">
+    <temporary-point-nav />
     <keep-alive>
       <router-view v-if="$route.meta.keepAlive"></router-view>
     </keep-alive>
@@ -8,8 +9,11 @@
 </template>
 
 <script>
+import TemporaryPointNav from './components/TemporaryPointNav'
+
 export default {
-  name: 'point-system'
+  name: 'point-system',
+  components: { TemporaryPointNav }
 }
 </script>
 

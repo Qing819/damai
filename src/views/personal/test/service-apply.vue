@@ -35,19 +35,10 @@
             </el-popover>
           </el-form-item>
           <el-form-item><el-select v-model="queryForm.status" placeholder="全部状态" clearable class="query-medium"><el-option label="全部状态" value="" /><el-option v-for="item in statuses" :key="item" :label="statusText(item)" :value="item" /></el-select></el-form-item>
-          <el-form-item class="query-actions"><el-button type="primary" native-type="submit">查询</el-button><el-button @click="handleReset">重置</el-button></el-form-item>
+          <el-form-item class="query-actions"><el-button v-if="handleIsOwn('查询')" type="primary" native-type="submit">查询</el-button><el-button v-if="handleIsOwn('查询')" @click="handleReset">重置</el-button></el-form-item>
         </el-form>
-        <div v-if="hasSearched && customerOptions.length > 1" class="list-customer-filter">
-          <span>查询到 <b>{{ customerOptions.length }}</b> 位客户，请选择要查看的客户</span>
-          <el-popover v-model="listCustomerPickerVisible" placement="bottom-start" width="528" trigger="click">
-            <div class="list-customer-row list-customer-header"><span>姓名</span><span>证件类型</span><span>证件号</span><span>客户号</span></div>
-            <div :class="['list-customer-row', { 'candidate-selected': !listCustomerId }]" role="button" tabindex="0" @click="selectListCustomer('')" @keydown.enter="selectListCustomer('')"><span>全部客户</span><span>—</span><span>—</span><span>{{ customerOptions.length }} 位</span></div>
-            <div v-for="item in customerOptions" :key="item.custId" :class="['list-customer-row', { 'candidate-selected': listCustomerId === item.custId }]" role="button" tabindex="0" @click="selectListCustomer(item.custId)" @keydown.enter="selectListCustomer(item.custId)"><span>{{ item.custName || '—' }}</span><span>{{ formatIdType(item.idType) }}</span><span>{{ item.idNo || '—' }}</span><span>{{ item.custId }}</span></div>
-            <el-button slot="reference" class="list-customer-button">{{ listCustomerLabel }} <i class="el-icon-arrow-down" /></el-button>
-          </el-popover>
-        </div>
       </el-card>
-      <div class="action-bar"><el-button v-if="handleIsOwn('新增')" type="primary" size="medium" @click="openWorkbench">＋ 新增权益调整</el-button></div>
+      <div class="action-bar"><el-button v-if="handleIsOwn('新建')" type="primary" size="medium" @click="openWorkbench">＋ 新增权益调整</el-button></div>
       <el-card shadow="never" class="main-card">
         <div slot="header" class="card-title">我的申请记录</div>
         <el-table v-loading="loading" :data="tableData" border stripe>
@@ -63,9 +54,12 @@
           <el-table-column label="申请人" width="90"><template slot-scope="{ row }">{{ row.applicant || '—' }}</template></el-table-column>
           <el-table-column label="申请时间" min-width="160"><template slot-scope="{ row }">{{ formatTime(row.applyTime) }}</template></el-table-column>
           <el-table-column label="状态" width="90"><template slot-scope="{ row }"><span :class="['status-badge', row.status]">{{ statusText(row.status) }}</span></template></el-table-column>
-          <el-table-column label="操作" width="190" fixed="right"><template slot-scope="{ row }">
-            <el-button v-if="handleIsOwn('查询')" type="text" size="small" @click="handleView(row)">查看</el-button>
-            <template v-if="row.status === 'REJECTED'"><span class="operation-divider">|</span><el-button type="text" size="small" @click="handleEdit(row)">编辑</el-button><span class="operation-divider">|</span><el-button type="text" size="small" class="danger-button" @click="handleDelete(row)">删除</el-button></template>
+          <el-table-column label="操作" width="220" align="center" fixed="right"><template slot-scope="{ row }">
+            <el-button v-if="handleIsOwn('查询')" type="text" size="mini" @click="handleView(row)">查看</el-button>
+            <template v-if="row.status === 'REJECTED'">
+              <el-button v-if="handleIsOwn('编辑')" type="text" size="mini" @click="handleEdit(row)">编辑</el-button>
+              <el-button v-if="handleIsOwn('删除')" type="text" size="mini" class="danger-button" @click="handleDelete(row)">删除</el-button>
+            </template>
           </template></el-table-column>
         </el-table>
         <div class="pagination-container"><el-pagination :current-page="currentPage" :page-size="pageSize" :total="total" :page-sizes="[10, 20, 50]" layout="total, sizes, prev, pager, next" @size-change="handleSizeChange" @current-change="handleCurrentChange" /></div>
@@ -125,7 +119,7 @@
         <el-card shadow="never" class="workspace-card">
           <div slot="header" class="card-title">权益调整操作区</div>
           <benefit-adjust-form :form="applyForm" :catalog="catalog" :regions="regions" :identities="identities" :channels="channels" :uploading="uploading" @file-change="uploadFile($event, applyForm)" />
-          <el-button type="primary" size="medium" :disabled="uploading" @click="openConfirmation">提交调整</el-button><el-button size="medium" :disabled="uploading" @click="resetAdjustment">重置</el-button>
+          <el-button v-if="handleIsOwn('提交')" type="primary" size="medium" :disabled="uploading" @click="openConfirmation">提交调整</el-button><el-button size="medium" :disabled="uploading" @click="resetAdjustment">重置</el-button>
           <p class="muted submit-hint">提交前弹窗二次确认，展示客户姓名、调整权益及调整原因；确认提交后自动返回权益调整申请列表</p>
         </el-card>
       </template>
@@ -154,11 +148,11 @@
     <el-dialog title="编辑申请" :visible.sync="editVisible" width="1280px" top="0" custom-class="benefit-edit-dialog" append-to-body :close-on-click-modal="false" :close-on-press-escape="!submitting" :show-close="!submitting" :before-close="closeEdit">
       <p class="edit-customer">申请单号：<strong>{{ editForm.applyNo }}</strong><span>客户：<strong>{{ customerText(editForm) }}</strong></span></p>
       <benefit-adjust-form :form="editForm" :catalog="catalog" :regions="regions" :identities="identities" :channels="channels" :uploading="uploading" editing @file-change="uploadFile($event, editForm)" />
-      <div slot="footer"><el-button size="medium" :disabled="submitting" @click="editVisible = false">取消</el-button><el-button type="primary" size="medium" :loading="submitting" :disabled="uploading" @click="saveEdit">保存并重新提交</el-button></div>
+      <div slot="footer"><el-button size="medium" :disabled="submitting" @click="editVisible = false">取消</el-button><el-button v-if="handleIsOwn('编辑')" type="primary" size="medium" :loading="submitting" :disabled="uploading" @click="saveEdit">保存并重新提交</el-button></div>
     </el-dialog>
     <el-dialog title="确认调整" :visible.sync="confirmVisible" width="520px" append-to-body :close-on-click-modal="false" :close-on-press-escape="!submitting" :show-close="!submitting" :before-close="closeConfirmation" custom-class="benefit-confirm-dialog">
       <div v-for="field in confirmationFields" :key="field[0]" class="confirmation-field"><span>{{ field[0] }}</span><strong>{{ field[1] }}</strong></div>
-      <div slot="footer"><el-button size="medium" :disabled="submitting" @click="confirmVisible = false">取消</el-button><el-button type="primary" size="medium" :loading="submitting" @click="submitConfirmed">确认提交</el-button></div>
+      <div slot="footer"><el-button size="medium" :disabled="submitting" @click="confirmVisible = false">取消</el-button><el-button v-if="handleIsOwn('提交')" type="primary" size="medium" :loading="submitting" @click="submitConfirmed">确认提交</el-button></div>
     </el-dialog>
   </div>
 </template>
@@ -172,10 +166,11 @@ import {
 import { searchCustomerProfileApi, uploadAttachmentApi, downloadAttachmentApi } from '@/api/test/point'
 import BenefitAdjustRights from './components/benefit-adjust-rights'
 import BenefitAdjustForm from './components/benefit-adjust-form'
-import { newForm, normalizeBenefit, formatIdType, formatGrade, formatTime, statusText, flag, payloadFor, validateForm, reasons } from './benefit-adjust-model'
+import { newForm, normalizeBenefit, formatIdType, formatGrade, formatTime, statusText, flag, payloadFor, validateForm, reasons, today } from './benefit-adjust-model'
 
 function newQuery() {
-  return { idType: '', idNo: '', custName: '', custId: '', orgName: '', dateFrom: '', dateTo: '', benefitCodes: [], status: '' }
+  const dateTo = today()
+  return { idType: '', idNo: '', custName: '', custId: '', orgName: '', dateFrom: `${dateTo.slice(0, 8)}01`, dateTo, benefitCodes: [], status: '' }
 }
 import pagePermissions from '@/mixins/pagePermissions'
 export default {
@@ -185,7 +180,6 @@ export default {
   data() {
     return {
       queryForm: newQuery(), activeQuery: newQuery(), statuses: ['PENDING', 'APPROVED', 'REJECTED'],
-      hasSearched: false, allMatchingRows: [], listCustomerId: '', listCustomerPickerVisible: false,
       benefitKeyword: '', catalog: [], orgs: [], idTypes: [], identities: [], channels: [],
       tableData: [], total: 0, pageSize: 10, currentPage: 1, loading: false, listRequest: 0,
       customerKeyword: '', candidates: [], selectedCustomer: null, customer: null,
@@ -193,7 +187,7 @@ export default {
       currentBenefits: [], traces: [], applyForm: newForm(), editForm: newForm(),
       detailVisible: false, detailLoading: false, currentDetail: null, detailBenefits: [],
       editVisible: false, confirmVisible: false, submitting: false, uploading: false,
-      confirmation: null, resourcesPromise: null, detailRequest: 0
+      confirmation: null, resourcesPromise: null, detailRequest: 0, editRequest: 0
     }
   },
   computed: {
@@ -209,11 +203,6 @@ export default {
         const item = this.catalog.find(value => value.benefitCode === code)
         return item ? item.benefitName : code
       }).join('、') || '全部调整权益'
-    },
-    customerOptions() { return Array.from(new Map(this.allMatchingRows.map(row => [row.custId, row])).values()) },
-    listCustomerLabel() {
-      const customer = this.customerOptions.find(item => item.custId === this.listCustomerId)
-      return customer ? this.customerText(customer) : `全部客户（${this.customerOptions.length} 位）`
     },
     customerFields() {
       const c = this.customer || {}
@@ -239,7 +228,7 @@ export default {
     this.resourcesPromise = this.loadResources()
     if (!this.inWorkbench) this.fetchList()
   },
-  beforeDestroy() { this.listRequest++; this.customerRequest++; this.detailRequest++ },
+  beforeDestroy() { this.listRequest++; this.customerRequest++; this.detailRequest++; this.editRequest++ },
   methods: {
     formatIdType, formatTime, statusText,
     customerText(row) { return `${row.custName || '—'}（${row.custId || '—'}）` },
@@ -269,67 +258,33 @@ export default {
         .filter(([key, value]) => key !== 'benefitCodes' && value !== '' && value != null)
         .map(([key, value]) => [key, typeof value === 'string' ? value.trim() : value]))
     },
-    async fetchAllForBenefit(params, benefitCode) {
-      const rows = []
-      for (let pageNum = 1; ; pageNum++) {
-        const res = await getBenefitAdjustPageApi({ ...params, ...benefitCode ? { benefitCode } : {}, pageNum, pageSize: 100 })
-        const page = res.data
-        const batch = page.list || []
-        rows.push(...batch)
-        if (!batch.length || rows.length >= Number(page.total)) return rows
-      }
-    },
     async fetchList() {
       const request = ++this.listRequest
       this.loading = true
       try {
         const params = this.queryParams()
         const codes = this.activeQuery.benefitCodes
-        let rows, total
-        if (this.hasSearched || codes.length > 1) {
-          const groups = await Promise.all((codes.length ? codes : [null]).map(code => this.fetchAllForBenefit(params, code)))
-          const merged = Array.from(new Map([].concat(...groups).map(row => [row.id, row])).values())
-            .sort((a, b) => String(b.applyTime).localeCompare(String(a.applyTime)) || Number(b.id) - Number(a.id))
-          if (request !== this.listRequest) return
-          this.allMatchingRows = merged
-          if (!merged.some(row => row.custId === this.listCustomerId)) this.listCustomerId = ''
-          const selected = this.listCustomerId ? merged.filter(row => row.custId === this.listCustomerId) : merged
-          total = selected.length
-          rows = selected.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
-        } else {
-          const res = await getBenefitAdjustPageApi({ ...params, ...codes.length ? { benefitCode: codes[0] } : {}, pageNum: this.currentPage, pageSize: this.pageSize })
-          rows = res.data.list || []
-          total = Number(res.data.total) || 0
-        }
+        const res = await getBenefitAdjustPageApi({ ...params, ...(codes.length ? { benefitCode: codes.join(',') } : {}), pageNum: this.currentPage, pageSize: this.pageSize })
         if (request !== this.listRequest) return
-        this.tableData = rows
-        this.total = total
+        this.tableData = res.data.list || []
+        this.total = Number(res.data.total) || 0
       } catch (error) {
-        if (request === this.listRequest) { this.tableData = []; this.allMatchingRows = []; this.total = 0; this.$message.error('申请记录加载失败，请重试') }
+        if (request === this.listRequest) { this.tableData = []; this.total = 0; this.$message.error('申请记录加载失败，请重试') }
       } finally { if (request === this.listRequest) this.loading = false }
     },
     handleSearch() {
       if (this.queryForm.dateFrom && this.queryForm.dateTo && this.queryForm.dateFrom > this.queryForm.dateTo) return this.$message.warning('开始日期不能晚于结束日期')
       this.activeQuery = { ...this.queryForm, benefitCodes: [...this.queryForm.benefitCodes] }
-      this.hasSearched = true
-      this.listCustomerId = ''
       this.currentPage = 1
       return this.fetchList()
     },
     handleReset() {
       this.queryForm = newQuery(); this.activeQuery = newQuery(); this.benefitKeyword = ''
-      this.hasSearched = false; this.allMatchingRows = []; this.listCustomerId = ''; this.listCustomerPickerVisible = false
       this.currentPage = 1
       return this.fetchList()
     },
-    paginateMatches() {
-      const rows = this.listCustomerId ? this.allMatchingRows.filter(row => row.custId === this.listCustomerId) : this.allMatchingRows
-      this.total = rows.length
-      this.tableData = rows.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
-    },
-    selectListCustomer(id) { this.listCustomerId = id; this.listCustomerPickerVisible = false; this.currentPage = 1; this.paginateMatches() },
-    handleSizeChange(size) { this.pageSize = size; this.currentPage = 1; return this.hasSearched ? this.paginateMatches() : this.fetchList() },
-    handleCurrentChange(page) { this.currentPage = page; return this.hasSearched ? this.paginateMatches() : this.fetchList() },
+    handleSizeChange(size) { this.pageSize = size; this.currentPage = 1; return this.fetchList() },
+    handleCurrentChange(page) { this.currentPage = page; return this.fetchList() },
     openWorkbench() { this.$router.push({ path: this.$route.path, query: { view: 'workbench' } }) },
     returnToList() { this.$router.push({ path: this.$route.path, query: {} }) },
     clearCustomer() {
@@ -404,8 +359,10 @@ export default {
     },
     async handleEdit(row) {
       if (row.status !== 'REJECTED') return
+      const request = ++this.editRequest
       try {
         const detail = await this.readDetail(row)
+        if (request !== this.editRequest) return
         if (detail.status !== 'REJECTED') return this.$message.warning('仅已驳回的申请可以编辑，请刷新列表')
         const reason = reasons.find(item => item.name === detail.reasonName)
         this.editForm = {
@@ -413,7 +370,7 @@ export default {
           attachmentName: this.attachmentName(detail.attachment), selectedBenefits: this.normalizedDetails(detail)
         }
         this.editVisible = true
-      } catch (error) { this.$message.error('编辑内容加载失败，请重试') }
+      } catch (error) { if (request === this.editRequest) this.$message.error('编辑内容加载失败，请重试') }
     },
     async handleDelete(row) {
       if (row.status !== 'REJECTED') return
@@ -423,7 +380,7 @@ export default {
         this.$message.success('删除成功')
         if (this.tableData.length === 1 && this.currentPage > 1) this.currentPage--
         await this.fetchList()
-      } catch (error) { if (error !== 'cancel' && error !== 'close') this.$message.error('删除失败，请重试') }
+      } catch (error) { if (error !== 'cancel' && error !== 'close' && (!error || !error.messageShown)) this.$message.error('删除失败，请重试') }
     },
     openConfirmation() {
       if (this.uploading || this.submitting) return
@@ -459,7 +416,7 @@ export default {
         this.currentPage = 1
         if (this.inWorkbench) this.returnToList()
         else await this.fetchList()
-      } catch (error) { this.$message.error('提交失败，请重试') } finally { this.submitting = false }
+      } catch (error) { if (!error || !error.messageShown) this.$message.error('提交失败，请重试') } finally { this.submitting = false }
     },
     attachmentName(value) { return String(value || '').split('/').pop() },
     async uploadFile(file, form) {
@@ -508,16 +465,10 @@ export default {
 .date-separator { padding: 0 8px; color: #5a6472; }
 .query-actions .el-button { width: 62px; height: 36px; padding: 0; font-size: 14px; }
 .query-actions .el-button + .el-button { margin-left: 8px; }
-.benefit-filter { width: 190px; height: 32px; padding: 0 10px; font-size: 13px; text-align: left; }
+.benefit-filter { width: 190px; height: 40px; padding: 0 15px; font-size: 14px; font-weight: 400; text-align: left; }
 .benefit-filter ::v-deep > span { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .benefit-filter ::v-deep > span > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .benefit-filter i { float: right; margin-top: 2px; }
-.list-customer-filter { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 14px; font-size: 13px; color: #5a6472; }
-.list-customer-button { width: 250px; height: 35px; padding: 7px 12px; text-align: left; font-size: 13px; }
-.list-customer-button i { float: right; }
-.list-customer-row { display: grid; grid-template-columns: 84px 100px minmax(0, 178px) 118px; padding: 8px 12px; font-size: 13px; cursor: pointer; }
-.list-customer-header { color: #98a1ad; font-size: 12px; background: #f2f4f7; cursor: default; }
-.list-customer-row.candidate-selected { color: #2f5496; background: #ebf1fa; font-weight: 600; }
 .filter-benefits { max-height: 260px; overflow: auto; margin-top: 12px; }
 .filter-benefits .el-checkbox { display: block; margin: 0 0 10px; }
 .filter-footer { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #edf0f5; color: #5a6472; font-size: 12px; }
@@ -525,7 +476,6 @@ export default {
 .card-title { font-size: 15px; font-weight: 600; }
 .main-card ::v-deep .el-card__header, .workspace-card ::v-deep .el-card__header { padding: 13px 18px; }
 .pagination-container { display: flex; justify-content: flex-end; margin-top: 16px; }
-.operation-divider { padding: 0 5px; color: #cfd5df; }
 .danger-button { color: #c62828; }
 .status-badge { display: inline-block; padding: 2px 12px; border-radius: 12px; line-height: 18px; font-size: 12px; }
 .PENDING { background: #fdf3e7; color: #e67e22; }

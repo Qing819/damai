@@ -223,7 +223,7 @@
           <el-table-column prop="cat" label="参数分类" width="140"></el-table-column>
           <el-table-column prop="name" label="参数名称" width="180">
             <template slot-scope="scope">
-              <span style="color: #1890ff; cursor: pointer;">{{ scope.row.name }}</span>
+              <span style="color: #2F5496;font-weight: 600;">{{ scope.row.name }}</span>
             </template>
           </el-table-column>
           <el-table-column prop="code" label="参数编码" width="220"></el-table-column>
@@ -376,7 +376,7 @@ export default {
   methods: {
     // 37. 规则分页查询接口
     fetchRulePage() {
-      getRulePageApi(this.ruleQuery).then(res => {
+      return getRulePageApi(this.ruleQuery).then(res => {
         const data = res.body ? res.body.data : res.data;
         if (data && data.list) {
           this.ruleTableData = data.list;
@@ -386,48 +386,53 @@ export default {
         }
       }).catch(err => {
         console.error('获取规则分页失败', err);
+        if (!err || !err.messageShown) this.$message.error('获取规则列表失败，请重试');
       });
     },
 
     // 38. 规则详情接口
     fetchRuleDetail(id) {
-      getRuleDetailApi(id).then(res => {
+      return getRuleDetailApi(id).then(res => {
         const data = res.body ? res.body.data : res.data;
         if (data) {
           this.$message.success('获取规则详情成功');
         }
       }).catch(err => {
         console.error('获取规则详情失败', err);
+        if (!err || !err.messageShown) this.$message.error('获取规则详情失败，请重试');
       });
     },
 
     // 39. 新增规则接口 (IntegralRuleV2)
     handleAddRule(form) {
-      pointRuleAddApi(form).then(() => {
+      return pointRuleAddApi(form).then(() => {
         this.$message.success('新增规则成功');
         this.fetchRulePage();
       }).catch(err => {
         console.error('新增规则失败', err);
+        if (!err || !err.messageShown) this.$message.error('新增规则失败，请重试');
       });
     },
 
     // 40. 修改规则接口 (生成新版本)
     handleUpdateRule(form) {
-      pointRuleUpdateApi(form).then(() => {
+      return pointRuleUpdateApi(form).then(() => {
         this.$message.success('修改规则成功');
         this.fetchRulePage();
       }).catch(err => {
         console.error('修改规则失败', err);
+        if (!err || !err.messageShown) this.$message.error('修改规则失败，请重试');
       });
     },
 
     // 41. 停用规则接口
     handleDisableRule(id) {
-      pointRuleDisableApi(id).then(() => {
+      return pointRuleDisableApi(id).then(() => {
         this.$message.success('停用规则成功');
         this.fetchRulePage();
       }).catch(err => {
         console.error('停用规则失败', err);
+        if (!err || !err.messageShown) this.$message.error('停用规则失败，请重试');
       });
     }
   }

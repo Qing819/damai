@@ -47,8 +47,8 @@
             </el-form-item>
           </div>
           <el-form-item class="query-actions">
-            <el-button type="primary" @click="handleSearch">查询</el-button>
-            <el-button @click="handleReset">重置</el-button>
+            <el-button v-if="handleIsOwn('查询')" type="primary" @click="handleSearch">查询</el-button>
+            <el-button v-if="handleIsOwn('查询')" @click="handleReset">重置</el-button>
             <el-button v-if="handleIsOwn('导出')" :loading="exportLoading" @click="handleExport">导出</el-button>
           </el-form-item>
         </el-form>
@@ -207,7 +207,7 @@ export default {
       const data = this.custInfo
       return [
         { label: '客户号', value: data.custId }, { label: '核心客户号', value: data.coreCustId },
-        { label: '客户姓名', value: data.custName }, { label: '证件类型', value: formatIdType(data.idType) },
+        { label: '客户姓名', value: this.maskName(data.custName) }, { label: '证件类型', value: formatIdType(data.idType) },
         { label: '证件号码', value: data.idNo }, { label: '手机号码', value: data.mobile },
         { label: '所属渠道', value: data.channel }, { label: '服务归属机构', value: data.orgName },
         { label: '二级机构', value: data.org2Name }, { label: '三级机构', value: data.org3Name },

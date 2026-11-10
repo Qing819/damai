@@ -36,6 +36,8 @@ export function parseTrialCsv(text, idTypes) {
   if (rows.length === 1) throw new Error('导入名单不能为空')
   return rows.slice(1).map((cells, index) => {
     if (cells.length !== 3 || cells.some(cell => !cell)) throw new Error(`第 ${index + 2} 行须填写客户姓名、证件类型和证件号`)
+    if (cells[0].length > 50) throw new Error(`第 ${index + 2} 行客户姓名不能超过50个字符`)
+    if (cells[2].length > 30) throw new Error(`第 ${index + 2} 行证件号码不能超过30个字符`)
     const type = idTypes.find(item => item.code === cells[1] || item.name === cells[1] ||
       (item.code === 'IDCARD' && cells[1] === '居民身份证') || (item.code === 'PASSPORT' && cells[1] === '中国护照'))
     if (!type) throw new Error(`第 ${index + 2} 行证件类型不在当前字典中`)

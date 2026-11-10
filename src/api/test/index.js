@@ -561,6 +561,12 @@ export function getPlatformOrgApi(params) {
     params
   });
 }
+export function getPlatformPointTypesApi() {
+  return fetch({
+    url: '/platform/dict/POINT_TYPE',
+    method: 'get'
+  });
+}
 export function getPlatformOrgTreeApi(params) {
   return fetch({
     url: '/platform/dict/biz/orgTree',

@@ -66,8 +66,8 @@
             <el-date-picker v-model="queryForm.effectDateTo" aria-label="生效结束日期" type="date" placeholder="结束日期" value-format="yyyy-MM-dd" />
           </el-form-item>
           <el-form-item class="query-actions">
-            <el-button type="primary" @click="handleSearch">查询</el-button>
-            <el-button @click="handleReset">重置</el-button>
+            <el-button v-if="handleIsOwn('查询')" type="primary" @click="handleSearch">查询</el-button>
+            <el-button v-if="handleIsOwn('查询')" @click="handleReset">重置</el-button>
           </el-form-item>
         </el-form>
         <el-table ref="applyTable" v-loading="loading" :data="tableData" stripe size="mini" row-key="id" @selection-change="selectedRows = $event">
@@ -145,7 +145,7 @@
           <div class="notice"><b>待生效说明</b><span>切换生效前新系统积分等级尚未核算，无法展示实际对比，可前往「积分等级试算」预估新规则下的积分与等级。</span><el-button size="small" @click="$router.push('/personal/pointCalculated')">前往积分等级试算</el-button></div>
           <div class="notice"><b>自动生效说明</b><span>无需人工切换；到切换生效日期当天，系统自动跑批重新计算，客户自生效日起看到新积分。</span></div>
         </template>
-        <div v-else-if="detailData.status === 'SWITCHED'" class="notice"><b>数据口径说明</b><span>切换后积分为该次跑批的核算结果，不随客户后续业绩与业务状态变动而更新；如需查看客户当前积分与等级，请前往「客户积分管理」查询。</span><el-button size="small" @click="goTrackDetail(detailData)">查看切换轨迹</el-button></div>
+        <div v-else-if="detailData.status === 'SWITCHED'" class="notice"><b>数据口径说明</b><span>切换后积分为该次跑批的核算结果，不随客户后续业绩与业务状态变动而更新；如需查看客户当前积分与等级，请前往「客户积分管理」查询。</span><el-button v-if="handleIsOwn('查看切换轨迹')" size="small" @click="goTrackDetail(detailData)">查看切换轨迹</el-button></div>
         <div class="notice orange"><b>不可逆提醒</b><span>客户完成新规则切换后，系统锁定规则类型，禁止再次切换回老规则（后台支持特殊情况处理）。</span></div>
       </el-card>
       <el-card shadow="never" class="detail-card">
@@ -169,7 +169,7 @@
         <div class="hint">客户看到新积分的日期，可选次日及以后；到期系统自动跑批重新计算</div>
       </el-form>
       <div class="notice"><b>提示</b><span>提交后无需人工切换；到切换生效日期当天系统自动跑批重新计算，客户自生效日起看到新积分。生效后规则类型锁定、不可逆。</span></div>
-      <span slot="footer"><el-button :disabled="addLoading" @click="addDialogVisible = false">取消</el-button><el-button type="primary" :loading="addLoading" @click="submitSingleAdd">提交申请</el-button></span>
+      <span slot="footer"><el-button :disabled="addLoading" @click="addDialogVisible = false">取消</el-button><el-button v-if="handleIsOwn('单条录入切换申请')" type="primary" :loading="addLoading" @click="submitSingleAdd">提交申请</el-button></span>
     </el-dialog>
 
     <el-dialog title="批量修改切换生效日期" :visible.sync="batchEditVisible" width="520px" custom-class="switch-dialog" :close-on-click-modal="false" :close-on-press-escape="!batchLoading" :show-close="!batchLoading">
@@ -179,13 +179,13 @@
       <div class="hint">只能选择次日及以后的日期</div>
       <p class="hint">已选择 {{ batchSelectionCount }} 条申请，其中 {{ batchRows.length }} 条待生效</p>
       <div class="notice"><b>说明</b><span>批量修改仅调整「切换生效日期」，到期由系统自动跑批重新计算，客户自生效日起看到新积分；已生效的申请不会被修改。</span></div>
-      <span slot="footer"><el-button :disabled="batchLoading" @click="batchEditVisible = false">取消</el-button><el-button type="primary" :loading="batchLoading" @click="submitBatchEdit">确认修改</el-button></span>
+      <span slot="footer"><el-button :disabled="batchLoading" @click="batchEditVisible = false">取消</el-button><el-button v-if="handleIsOwn('批量修改生效日期')" type="primary" :loading="batchLoading" @click="submitBatchEdit">确认修改</el-button></span>
     </el-dialog>
 
     <el-dialog title="确认移除切换申请" :visible.sync="batchRemoveVisible" width="460px" custom-class="switch-dialog" :close-on-click-modal="false" :close-on-press-escape="!batchLoading" :show-close="!batchLoading">
       <div class="hint">已选择 {{ batchSelectionCount }} 条申请，其中 {{ batchRows.length }} 条待生效</div>
       <div class="notice red-notice"><b>提示</b><span>移除后该申请的切换计划将被取消，客户不会按原定日期切换到新规则；如需恢复需重新提交申请。已生效的申请不可移除。</span></div>
-      <span slot="footer"><el-button :disabled="batchLoading" @click="batchRemoveVisible = false">取消</el-button><el-button class="remove-button" :loading="batchLoading" @click="submitBatchRemove">确认移除</el-button></span>
+      <span slot="footer"><el-button :disabled="batchLoading" @click="batchRemoveVisible = false">取消</el-button><el-button v-if="handleIsOwn('批量移除')" class="remove-button" :loading="batchLoading" @click="submitBatchRemove">确认移除</el-button></span>
     </el-dialog>
   </div>
 </template>
@@ -357,7 +357,7 @@ export default {
         this.addDialogVisible = false
         await this.fetchPageData()
       } catch (error) {
-        this.$message.error('新增切换申请失败，请核对客户信息后重试')
+        if (!error || !error.messageShown) this.$message.error('新增切换申请失败，请核对客户信息后重试')
       } finally {
         this.addLoading = false
       }
@@ -384,7 +384,7 @@ export default {
         this.currentPage = 1
         await this.fetchPageData()
       } catch (error) {
-        this.$message.error('导入失败，请检查模板格式与客户信息后重试')
+        if (!error || !error.messageShown) this.$message.error('导入失败，请检查模板格式与客户信息后重试')
       } finally {
         this.importLoading = false
         input.value = ''
@@ -462,7 +462,7 @@ export default {
         this.batchRows = []
         await this.fetchPageData()
       } catch (error) {
-        this.$message.error(`批量${action === 'edit' ? '修改' : '移除'}失败，请刷新申请状态后重试`)
+        if (!error || !error.messageShown) this.$message.error(`批量${action === 'edit' ? '修改' : '移除'}失败，请刷新申请状态后重试`)
       } finally { this.batchLoading = false }
     },
     async goDetail(row) {

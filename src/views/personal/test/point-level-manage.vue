@@ -105,8 +105,8 @@
               </el-table-column>
               <el-table-column v-if="handleIsOwn('编辑等级') || handleIsOwn('删除等级')" label="操作" align="center" width="120">
                 <template slot-scope="scope">
-                  <el-button type="text" size="small" @click="handleEditSingle(scope.row)">编辑</el-button>
-                  <el-button type="text" size="small" class="btn-danger-text" @click="handleDeleteSingle(scope.row)">删除</el-button>
+                  <el-button v-if="handleIsOwn('编辑等级')" type="text" size="small" @click="handleEditSingle(scope.row)">编辑</el-button>
+                  <el-button v-if="handleIsOwn('删除等级')" type="text" size="small" class="btn-danger-text" @click="handleDeleteSingle(scope.row)">删除</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -168,7 +168,7 @@
               <el-table-column v-if="handleIsOwn('作废版本') || handleIsOwn('修改版本') || handleIsOwn('删除版本')" label="操作" align="center" width="120">
                 <template slot-scope="scope">
                   <el-button
-                      v-if="getVersionState(scope.row) === 'ACTIVE' && !scope.row.expireDate"
+                      v-if="getVersionState(scope.row) === 'ACTIVE' && !scope.row.expireDate && handleIsOwn('作废版本')"
                       type="text"
                       size="small"
                       class="btn-danger-text"
@@ -177,8 +177,8 @@
                     作废
                   </el-button>
                   <template v-else-if="getVersionState(scope.row) === 'PENDING_EFFECTIVE'">
-                    <el-button type="text" size="small" @click="handleModifyVersion(scope.row)">修改</el-button>
-                    <el-button type="text" size="small" class="btn-danger-text" @click="handleDeleteVersion(scope.row)">删除</el-button>
+                    <el-button v-if="handleIsOwn('修改版本')" type="text" size="small" @click="handleModifyVersion(scope.row)">修改</el-button>
+                    <el-button v-if="handleIsOwn('删除版本')" type="text" size="small" class="btn-danger-text" @click="handleDeleteVersion(scope.row)">删除</el-button>
                   </template>
                   <span v-else>-</span>
                 </template>
@@ -208,7 +208,7 @@
 
       <div class="batch-action-bar">
         <span class="sub-tip">点击 + 可批量添加多条等级分档，系统实时校验区间是否重叠</span>
-        <el-button type="text" icon="el-icon-plus" @click="addBatchRow">新增一行</el-button>
+        <el-button v-if="handleIsOwn('新增等级')" type="text" icon="el-icon-plus" @click="addBatchRow">新增一行</el-button>
       </div>
 
       <el-table :data="batchRows" max-height="400" border size="small" class="batch-table" style="width: 100%; margin-top: 10px;">
@@ -253,6 +253,7 @@
           <template slot-scope="scope">
             <div class="batch-row-actions">
               <button
+                  v-if="handleIsOwn('新增等级')"
                   type="button"
                   class="batch-row-action batch-row-remove"
                   title="删除此行"
@@ -261,6 +262,7 @@
                   @click="removeBatchRow(scope.$index)"
               >−</button>
               <button
+                  v-if="handleIsOwn('新增等级')"
                   type="button"
                   class="batch-row-action batch-row-add"
                   title="新增一行"
@@ -278,7 +280,7 @@
 
       <div slot="footer" class="dialog-footer">
         <el-button size="small" @click="dialogBatchVisible = false">取消</el-button>
-        <el-button type="primary" size="small" :loading="submitLoading" @click="handleSaveBatchBands">保存</el-button>
+        <el-button v-if="canSaveBands" type="primary" size="small" :loading="submitLoading" @click="handleSaveBatchBands">保存</el-button>
       </div>
     </el-dialog>
 
@@ -312,7 +314,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button size="small" @click="dialogVersionVisible = false">取消</el-button>
-        <el-button type="primary" size="small" :loading="submitLoading" @click="handleCreateVersion">保存</el-button>
+        <el-button v-if="handleIsOwn('新增版本')" type="primary" size="small" :loading="submitLoading" @click="handleCreateVersion">保存</el-button>
       </div>
     </el-dialog>
 
@@ -347,7 +349,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button size="small" @click="dialogObsoleteVisible = false">取消</el-button>
-        <el-button type="primary" size="small" :loading="submitLoading" @click="handleConfirmObsolete">确认作废</el-button>
+        <el-button v-if="handleIsOwn('作废版本')" type="primary" size="small" :loading="submitLoading" @click="handleConfirmObsolete">确认作废</el-button>
       </div>
     </el-dialog>
   </div>
@@ -378,7 +380,7 @@ export default {
   name: 'CustomerLevelConfig',
   data() {
     return {
-      userRole: 'user',
+      allowBtn: [],
       activeTab: 'bandConfig',
       currentVersionId: null,
 
@@ -418,6 +420,9 @@ export default {
     }
   },
   computed: {
+    canSaveBands() {
+      return this.batchRows.length > 0 && this.batchRows.every(row => this.handleIsOwn(row.id == null ? '新增等级' : '编辑等级'))
+    },
     batchValidationMessage() {
       const rows = this.batchRows.filter(row => row.gradeName.trim() && row.displayGradeName.trim())
       return rows.length ? this.validateBandRows(rows) : ''
@@ -440,14 +445,15 @@ export default {
     }
   },
   watch: {
-    userRole(role) {
-      if (role !== 'admin' && this.activeTab === 'versionConfig') {
+    allowBtn() {
+      if (!this.handleIsOwn('查看版本管理') && this.activeTab === 'versionConfig') {
         this.activeTab = 'bandConfig'
       }
     }
   },
   created() {
-    this.initUserRole()
+    this.initPermissions()
+    this.initData()
   },
   methods: {
     normalizeBand(row) {
@@ -465,17 +471,21 @@ export default {
       return Object.keys(GRADE_NAMES).find(code => GRADE_NAMES[code] === name)
         || name
     },
-    async initUserRole() {
+    handleIsOwn(action) {
+      // Existing backend "编辑" applies to grade bands only.
+      return this.allowBtn.some(button => {
+        const name = typeof button === 'string' ? button : button.name || button.buttonName
+        return name === action || (action === '编辑等级' && name === '编辑')
+      })
+    },
+    async initPermissions() {
       try {
         const res = await getPlatformPageButtonMenuInfo({ pageType: 'pointLevelManage' })
-        const buttons = (res && (res.list || res.data && res.data.list || res.body && res.body.data)) || []
-        const names = buttons.map(button => typeof button === 'string' ? button : button.name || button.buttonName || '')
-        const adminActions = ['新增版本', '编辑版本', '删除版本', '作废版本', '批量新增', '新增', '编辑', '删除', '作废']
-        this.userRole = names.some(name => adminActions.includes(name)) ? 'admin' : 'user'
+        const buttons = res && (res.list || res.data && res.data.list)
+        this.allowBtn = Array.isArray(buttons) ? buttons : []
       } catch (err) {
-        this.userRole = 'user'
+        this.allowBtn = []
       }
-      await this.initData()
     },
 
     formatPointBoundary(point, boundary, isMin) {
@@ -556,6 +566,7 @@ export default {
         }
       } catch (err) {
         console.error('获取版本列表失败:', err)
+        if (!err || !err.messageShown) this.$message.error('获取版本列表失败，请重试')
       } finally {
         this.versionLoading = false
       }
@@ -572,6 +583,7 @@ export default {
         this.bandPage = Math.min(this.bandPage, lastPage)
       } catch (err) {
         console.error('获取分档列表失败:', err)
+        if (!err || !err.messageShown) this.$message.error('获取等级分档失败，请重试')
       } finally {
         if (this.currentVersionId === versionId) this.bandLoading = false
       }
@@ -684,7 +696,7 @@ export default {
         this.$message.success('保存成功！')
         this.dialogBatchVisible = false
       } catch (err) {
-        this.$message.error('保存失败，请检查区间校验')
+        if (!err || !err.messageShown) this.$message.error('保存失败，请检查区间校验')
       } finally {
         this.submitLoading = false
       }
@@ -714,7 +726,7 @@ export default {
             this.$message.success('删除成功')
             await this.fetchBands(this.currentVersionId)
           } catch (err) {
-            this.$message.error('删除失败，请检查分档连续性')
+            if (!err || !err.messageShown) this.$message.error('删除失败，请检查分档连续性')
           }
         })
         .catch(() => null)
@@ -761,7 +773,7 @@ export default {
         this.dialogVersionVisible = false
         await this.initData()
       } catch (err) {
-        this.$message.error('新增版本失败')
+        if (!err || !err.messageShown) this.$message.error('新增版本失败')
       } finally {
         this.submitLoading = false
       }
@@ -804,7 +816,7 @@ export default {
         this.dialogObsoleteVisible = false
         await this.initData()
       } catch (err) {
-        this.$message.error('作废操作失败')
+        if (!err || !err.messageShown) this.$message.error('作废操作失败')
       } finally {
         this.submitLoading = false
       }
@@ -816,7 +828,7 @@ export default {
         this.$message.success('版本删除成功')
         await this.initData()
       } catch (err) {
-        if (err !== 'cancel' && err !== 'close') this.$message.error('版本删除失败')
+        if (err !== 'cancel' && err !== 'close' && (!err || !err.messageShown)) this.$message.error('版本删除失败')
       }
     }
   }

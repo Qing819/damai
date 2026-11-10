@@ -31,7 +31,7 @@
           <el-date-picker v-model="queryForm.dateTo" type="date" value-format="yyyy-MM-dd" placeholder="结束日期" />
         </el-form-item>
         <el-form-item><el-input v-model="queryForm.applicant" placeholder="申请人" clearable class="query-medium" /></el-form-item>
-        <el-form-item class="query-actions"><el-button type="primary" native-type="submit">查询</el-button><el-button @click="handleReset">重置</el-button></el-form-item>
+        <el-form-item class="query-actions"><el-button v-if="handleIsOwn('查询')" type="primary" native-type="submit">查询</el-button><el-button v-if="handleIsOwn('查询')" @click="handleReset">重置</el-button></el-form-item>
       </el-form>
     </el-card>
     <el-card shadow="never" class="main-card">
@@ -50,9 +50,9 @@
         <el-table-column label="申请时间" min-width="160"><template slot-scope="{ row }">{{ formatTime(row.applyTime) }}</template></el-table-column>
         <el-table-column label="状态" width="90"><template slot-scope="{ row }"><span :class="['status-badge', row.status]">{{ statusText(row.status) }}</span></template></el-table-column>
         <el-table-column label="审批通过时间" min-width="160"><template slot-scope="{ row }">{{ row.status === 'APPROVED' ? formatTime(row.auditTime) : '—' }}</template></el-table-column>
-        <el-table-column label="操作" width="120" fixed="right"><template slot-scope="{ row }">
-          <el-button v-if="row.status === 'PENDING' && handleIsOwn('审核')" type="text" size="small" @click="handleApprove(row)">审批</el-button>
-          <el-button v-else-if="handleIsOwn('查询')" type="text" size="small" @click="handleView(row)">查看</el-button>
+        <el-table-column label="操作" width="120" align="center" fixed="right"><template slot-scope="{ row }">
+          <el-button v-if="row.status === 'PENDING' && handleIsOwn('审核')" type="text" size="mini" @click="handleApprove(row)">审批</el-button>
+          <el-button v-else-if="handleIsOwn('查询')" type="text" size="mini" @click="handleView(row)">查看</el-button>
         </template></el-table-column>
       </el-table>
       <div class="pagination-container"><el-pagination :current-page="currentPage" :page-size="pageSize" :total="total" :page-sizes="[10, 20, 50]" layout="total, sizes, prev, pager, next" @size-change="handleSizeChange" @current-change="handleCurrentChange" /></div>
@@ -69,7 +69,7 @@
           <div class="section-title">附件</div><el-button v-if="currentDetail.attachment" type="text" class="attachment-link" @click="downloadAttachment(currentDetail.attachment)">{{ attachmentName(currentDetail.attachment) }}</el-button><span v-else class="detail-text">无</span>
           <div class="section-title">审批意见<span class="sub-hint">（驳回时必填）</span></div>
           <div v-if="!isApproveMode" class="detail-fields review-result"><div><span>审批结果</span><strong>{{ statusText(currentDetail.status) }}</strong></div></div>
-          <el-input ref="opinionInput" v-model="approvalRemark" class="approval-opinion" :class="{ 'has-error': opinionInvalid }" type="textarea" :rows="3" placeholder="请输入审批意见" :readonly="!isApproveMode" :disabled="submitLoading" @input="opinionInvalid = false" />
+          <el-input ref="opinionInput" v-model="approvalRemark" class="approval-opinion" :class="{ 'has-error': opinionInvalid }" type="textarea" :rows="3" :maxlength="isApproveMode ? 500 : undefined" placeholder="请输入审批意见" :readonly="!isApproveMode" :disabled="submitLoading" @input="opinionInvalid = false" />
         </template>
       </div>
       <div v-if="isApproveMode && currentDetail && !dialogLoading" slot="footer">
@@ -86,11 +86,12 @@ import {
   getBenefitItemsApi, getPlatformIdTypesApi, getPlatformOrgApi, getServiceRuleIdentitiesApi, getPlatformOrderChannelApi
 } from '@/api/test'
 import { downloadAttachmentApi } from '@/api/test/point'
-import { normalizeBenefit, formatIdType, formatTime, statusText } from './benefit-adjust-model'
+import { normalizeBenefit, formatIdType, formatTime, statusText, today } from './benefit-adjust-model'
 import BenefitAdjustRights from './components/benefit-adjust-rights'
 
 function newQuery() {
-  return { idType: '', idNo: '', custName: '', custId: '', orgName: '', benefitCodes: [], status: '', dateFrom: '', dateTo: '', applicant: '' }
+  const dateTo = today()
+  return { idType: '', idNo: '', custName: '', custId: '', orgName: '', benefitCodes: [], status: '', dateFrom: `${dateTo.slice(0, 8)}01`, dateTo, applicant: '' }
 }
 import pagePermissions from '@/mixins/pagePermissions'
 export default {
@@ -153,37 +154,16 @@ export default {
         .filter(([key, value]) => key !== 'benefitCodes' && value != null && String(value).trim() !== '')
         .map(([key, value]) => [key, String(value).trim()]))
     },
-    async fetchBenefitPages(params, benefitCode) {
-      const rows = []
-      for (let pageNum = 1; ; pageNum++) {
-        const res = await getBenefitAdjustPageApi({ ...params, benefitCode, pageNum, pageSize: 100 })
-        const page = res.data
-        const batch = page.list || []
-        rows.push(...batch)
-        if (!batch.length || rows.length >= Number(page.total)) return rows
-      }
-    },
     async fetchTableData() {
       const request = ++this.listRequest
       this.loading = true
       try {
         const params = this.queryParams()
         const codes = this.activeQuery.benefitCodes
-        let rows, total
-        if (codes.length > 1) {
-          const groups = await Promise.all(codes.map(code => this.fetchBenefitPages(params, code)))
-          const merged = Array.from(new Map([].concat(...groups).map(row => [row.id, row])).values())
-            .sort((a, b) => String(b.applyTime).localeCompare(String(a.applyTime)) || Number(b.id) - Number(a.id))
-          total = merged.length
-          rows = merged.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
-        } else {
-          const res = await getBenefitAdjustPageApi({ ...params, ...codes.length ? { benefitCode: codes[0] } : {}, pageNum: this.currentPage, pageSize: this.pageSize })
-          rows = res.data.list || []
-          total = Number(res.data.total) || 0
-        }
+        const res = await getBenefitAdjustPageApi({ ...params, ...(codes.length ? { benefitCode: codes.join(',') } : {}), pageNum: this.currentPage, pageSize: this.pageSize })
         if (request !== this.listRequest) return
-        this.tableData = rows
-        this.total = total
+        this.tableData = res.data.list || []
+        this.total = Number(res.data.total) || 0
       } catch (error) {
         if (request === this.listRequest) { this.tableData = []; this.total = 0; this.$message.error('权益审批列表加载失败，请重试') }
       } finally { if (request === this.listRequest) this.loading = false }
@@ -228,6 +208,12 @@ export default {
       if (this.submitLoading || this.dialogLoading || !this.dialogVisible || !this.isApproveMode || !this.currentDetail || this.currentDetail.status !== 'PENDING' || this.currentDetail.id == null) return
       if (!['APPROVED', 'REJECTED'].includes(result)) return
       const opinion = this.approvalRemark.trim()
+      if (opinion.length > 500) {
+        this.opinionInvalid = true
+        this.$message.warning('审批意见不能超过500个字符')
+        this.$nextTick(() => this.$refs.opinionInput.focus())
+        return
+      }
       if (result === 'REJECTED' && !opinion) {
         this.opinionInvalid = true
         this.$message.warning('驳回时审批意见为必填，请填写驳回原因')
@@ -245,7 +231,7 @@ export default {
         if (this.tableData.length === 1 && this.currentPage > 1 && this.activeQuery.status === 'PENDING') this.currentPage--
         await this.fetchTableData()
       } catch (error) {
-        this.$message.error('审批提交失败，请核对申请最新状态后重试')
+        if (!error || !error.messageShown) this.$message.error('审批提交失败，请核对申请最新状态后重试')
       } finally { this.submitLoading = false; this.submittingResult = '' }
     },
     attachmentName(value) { return String(value || '').split('/').pop() },
@@ -282,7 +268,7 @@ export default {
 .date-separator { padding: 0 8px; color: #5a6472; }
 .query-actions .el-button { width: 62px; height: 36px; padding: 0; font-size: 14px; }
 .query-actions .el-button + .el-button { margin-left: 8px; }
-.benefit-filter { width: 190px; height: 32px; padding: 0 10px; font-size: 13px; text-align: left; }
+.benefit-filter { width: 190px; height: 40px; padding: 0 15px; font-size: 14px; font-weight: 400; text-align: left; }
 .benefit-filter ::v-deep > span { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .benefit-filter ::v-deep > span > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .approval-benefit-options { max-height: 260px; overflow: auto; margin-top: 12px; }

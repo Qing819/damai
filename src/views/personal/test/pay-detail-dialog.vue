@@ -27,7 +27,7 @@ export default {
       requestId: 0,
       record: {},
       fields: [
-        ['policyTypeNo', '保单险种号码'], ['payCount', '第几次交费'],
+        ['polno', '保单险种号码'], ['payCount', '第几次交费'],
         ['grpContno', '集体合同号码'], ['grpPolno', '集体保单号码'],
         ['contno', '个人合同号码'], ['manageOrg', '管理机构'],
         ['agentOrg', '代理机构'], ['agentSubOrg', '代理机构内部分类'],

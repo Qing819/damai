@@ -4,15 +4,15 @@
     <benefit-adjust-rights v-model="form.selectedBenefits" :catalog="catalog" :regions="regions" :identities="identities" :channels="channels" :hint="editing ? '客户信息不可修改，仅可调整权益申请内容；' : ''" />
     <el-form label-position="top" class="adjust-fields">
       <el-form-item label="权益有效期" required>
-        <el-date-picker v-model="form.validEndDate" type="date" value-format="yyyy-MM-dd" :clearable="false" :picker-options="dateOptions" />
+        <el-date-picker v-model="form.validEndDate" type="date" value-format="yyyy-MM-dd" :clearable="false" @change="handleValidEndChange" />
         <span class="field-tip">默认为当年年底，可修改；仅支持选择当日及以后的日期</span>
       </el-form-item>
-      <el-form-item label="关联保单号"><el-input v-model="form.policyNo" /></el-form-item>
-      <el-form-item label="OA流水号" required><el-input v-model="form.oaNo" /></el-form-item>
+      <el-form-item label="关联保单号"><el-input v-model="form.policyNo" maxlength="30" /></el-form-item>
+      <el-form-item label="OA流水号" required><el-input v-model="form.oaNo" maxlength="50" /></el-form-item>
       <el-form-item label="调整原因" required>
         <el-select v-model="form.reasonCode"><el-option v-for="item in reasons" :key="item.code" :label="item.name" :value="item.code" /></el-select>
       </el-form-item>
-      <el-form-item label="详细说明"><el-input v-model="form.remark" type="textarea" :rows="3" /></el-form-item>
+      <el-form-item label="详细说明"><el-input v-model="form.remark" type="textarea" :rows="3" maxlength="200" /></el-form-item>
       <el-form-item label="附件上传">
         <input ref="file" class="file-input" type="file" accept=".jpg,.jpeg,.png,.pdf" @change="chooseFile">
         <el-button size="small" :loading="uploading" @click="$refs.file.click()">选择文件</el-button>
@@ -40,11 +40,17 @@ export default {
   },
   data() {
     return {
-      reasons,
-      dateOptions: { disabledDate: date => date.getTime() < new Date(`${today()}T00:00:00`).getTime() }
+      reasons
     }
   },
   methods: {
+    handleValidEndChange(value) {
+      const current = today()
+      if (value && value < current) {
+        this.form.validEndDate = current
+        this.$message.warning('权益有效期不能早于当日，已恢复为当日')
+      }
+    },
     chooseFile(event) {
       const file = event.target.files[0]
       if (file) this.$emit('file-change', file)

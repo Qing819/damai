@@ -95,6 +95,9 @@ export function validateForm(form) {
   if (!form.selectedBenefits.length) return '请至少选择一项服务权益'
   if (!form.validEndDate || form.validEndDate < today()) return '权益有效期只能选择当日及以后的日期'
   if (!String(form.oaNo || '').trim()) return '请输入OA流水号'
+  if (String(form.policyNo || '').length > 30) return '关联保单号不能超过30个字符'
+  if (String(form.oaNo || '').length > 50) return 'OA流水号不能超过50个字符'
+  if (String(form.remark || '').length > 200) return '详细说明不能超过200个字符'
   if (!reasons.some(reason => reason.code === form.reasonCode)) return '请选择调整原因'
   return ''
 }

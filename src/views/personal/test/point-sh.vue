@@ -32,7 +32,6 @@
           <el-select v-model="searchForm.orgName" placeholder="全部服务归属机构" style="width: 170px" clearable>
             <el-option label="全部服务归属机构" value="" />
             <el-option v-for="org in orgOptions" :key="org" :label="org" :value="org" />
-            <el-option label="江苏分公司" value="江苏分公司" />
           </el-select>
         </el-form-item>
 
@@ -71,8 +70,8 @@
         </el-form-item>
 
         <el-form-item class="form-btn-item">
-          <el-button class="btn-search" type="primary" @click="handleSearch">查询</el-button>
-          <el-button class="btn-reset" @click="handleReset">重置</el-button>
+          <el-button v-if="handleIsOwn('查询')" class="btn-search" type="primary" @click="handleSearch">查询</el-button>
+          <el-button v-if="handleIsOwn('查询')" class="btn-reset" @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -571,7 +570,7 @@ export default {
         this.fetchPageList()
       } catch (err) {
         console.error('审核提交异常:', err)
-        this.$message.error('提交失败，请重试')
+        if (!err || !err.messageShown) this.$message.error('提交失败，请重试')
       } finally {
         this.submitLoading = false
       }

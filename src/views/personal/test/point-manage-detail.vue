@@ -550,8 +550,10 @@ export default {
     },
 
     getPointTypeTagType(type) {
-      if (['MANUAL', '人工调整'].includes(type)) return 'warning'
-      if (['PENSION', '养老协同积分'].includes(type)) return 'purple'
+      const normalizedType = String(type || '').trim().toUpperCase()
+      if (normalizedType === 'MANUAL' || type === '人工调整') return 'warning'
+      if (normalizedType === 'PENSION' || type === '养老协同积分') return 'purple'
+      if (['RB_FIX', 'CM_FIX', 'LV_FIX'].includes(normalizedType)) return 'success'
       return 'primary'
     },
 
@@ -564,9 +566,13 @@ export default {
         PREMIUM: '保费积分',
         LOYALTY: '忠诚积分',
         PENSION: '养老协同积分',
-        MANUAL: '人工调整'
+        MANUAL: '人工调整',
+        RB_FIX: '回退修正积分',
+        CM_FIX: '转移修正积分',
+        LV_FIX: '等级评定修正积分'
       }
-      return typeMap[type] || type || '—'
+      const normalizedType = String(type || '').trim().toUpperCase()
+      return typeMap[normalizedType] || String(type || '').trim() || '—'
     },
 
     formatGrade(grade) {

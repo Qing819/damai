@@ -57,8 +57,8 @@
             <el-date-picker v-model="queryForm.dateTo" aria-label="动作结束日期" type="date" placeholder="结束日期" value-format="yyyy-MM-dd" />
           </el-form-item>
           <el-form-item class="query-actions">
-            <el-button type="primary" @click="handleSearch">查询</el-button>
-            <el-button @click="handleReset">重置</el-button>
+            <el-button v-if="handleIsOwn('查询')" type="primary" @click="handleSearch">查询</el-button>
+            <el-button v-if="handleIsOwn('查询')" @click="handleReset">重置</el-button>
             <el-button v-if="handleIsOwn('导出')" :loading="exportLoading" @click="handleExport">导出</el-button>
           </el-form-item>
         </div>
@@ -232,7 +232,8 @@ export default {
     formatIdType,
     formatTime,
     displayValue(value) { return value == null || value === '' ? '-' : value },
-    formatCustomer(row) { return row.custName ? `${row.custName}（${row.custId || '-'}）` : this.displayValue(row.custId) },
+    maskName(name) { return name ? `${String(name).slice(0, 1)}${'*'.repeat(Math.max(String(name).length - 1, 1))}` : '-' },
+    formatCustomer(row) { return row.custName ? `${this.maskName(row.custName)}（${row.custId || '-'}）` : this.displayValue(row.custId) },
     formatChange(value) { return value > 0 ? `+${value}` : this.displayValue(value) },
     // 后端序列化会省略 NULL 字段，remainCount 缺省与 NULL 均表示不限。
     formatRemain(value) { return value == null ? '不限' : this.displayValue(value) },

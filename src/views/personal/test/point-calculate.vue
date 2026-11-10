@@ -11,27 +11,27 @@
     <el-card shadow="never" class="trial-card">
       <div slot="header" class="card-heading">
         <span>试算条件</span>
-        <el-button v-if="currentScene === 0" class="task-entry" @click="openTaskDialog">试算任务</el-button>
+        <el-button v-if="currentScene === 0 && handleIsOwn('查询')" class="task-entry" @click="openTaskDialog">试算任务</el-button>
       </div>
       <el-form :model="calcForm" class="calc-form" @submit.native.prevent="handleRunCalc">
         <div class="form-row">
           <label class="form-label"><i>*</i>{{ currentScene === 0 ? '客户姓名' : '客户名称' }}</label>
-          <el-input v-model.trim="calcForm.custName" aria-label="客户姓名" placeholder="请输入客户姓名" clearable class="name-input" />
+          <el-input v-model.trim="calcForm.custName" maxlength="50" aria-label="客户姓名" placeholder="请输入客户姓名" clearable class="name-input" />
           <label class="form-label short-label"><i>*</i>证件类型</label>
           <el-select v-model="calcForm.idType" aria-label="证件类型" placeholder="请选择证件类型" class="type-input">
             <el-option v-for="item in idTypeOptions" :key="item.code" :label="formatIdType(item.name)" :value="item.code" />
           </el-select>
           <template v-if="currentScene === 1">
             <label class="form-label short-label"><i>*</i>证件号码</label>
-            <el-input v-model.trim="calcForm.idNo" aria-label="证件号码" placeholder="请输入证件号码" clearable class="id-input" />
+            <el-input v-model.trim="calcForm.idNo" maxlength="30" aria-label="证件号码" placeholder="请输入证件号码" clearable class="id-input" />
           </template>
         </div>
         <div v-if="currentScene === 0" class="form-row">
           <label class="form-label"><i>*</i>证件号</label>
-          <el-input v-model.trim="calcForm.idNo" aria-label="证件号" placeholder="请输入证件号" clearable class="id-input" @keyup.enter.native="handleRunCalc" />
-          <el-button v-if="handleIsOwn('测算')" type="primary" :loading="calcLoading" :disabled="calcLoading || batchLoading" @click="handleRunCalc">试算</el-button>
+          <el-input v-model.trim="calcForm.idNo" maxlength="30" aria-label="证件号" placeholder="请输入证件号" clearable class="id-input" @keyup.enter.native="handleRunCalc" />
+          <el-button v-if="handleIsOwn('场景一试算（老客户转新规则）')" type="primary" :loading="calcLoading" :disabled="calcLoading || batchLoading" @click="handleRunCalc">试算</el-button>
           <el-button @click="handleReset">重置</el-button>
-          <el-button v-if="handleIsOwn('测算')" :loading="importLoading" @click="$refs.fileInput.click()">批量导入</el-button>
+          <el-button v-if="handleIsOwn('批量导入试算名单')" :loading="importLoading" @click="$refs.fileInput.click()">批量导入</el-button>
         </div>
       </el-form>
       <input ref="fileInput" type="file" accept=".csv" hidden @change="onFileChange">
@@ -44,7 +44,7 @@
             <el-table-column label="证件类型"><template slot-scope="{ row }">{{ formatIdType(row.idType) }}</template></el-table-column>
             <el-table-column label="证件号码"><template slot-scope="{ row }">{{ maskId(row.idNo) }}</template></el-table-column>
           </el-table>
-          <div class="form-row bottom-actions"><el-button v-if="handleIsOwn('测算')" type="primary" @click="submitBatch">提交试算</el-button><el-button @click="clearBatch">清空名单</el-button><span class="hint">提交后系统后台批量试算，人员较多时耗时较长</span></div>
+          <div class="form-row bottom-actions"><el-button v-if="handleIsOwn('提交批量试算')" type="primary" @click="submitBatch">提交试算</el-button><el-button @click="clearBatch">清空名单</el-button><span class="hint">提交后系统后台批量试算，人员较多时耗时较长</span></div>
         </div>
       </template>
       <template v-else>
@@ -56,9 +56,9 @@
           <el-table-column label="年交保费（元）" min-width="150"><template slot-scope="{ row }"><el-input-number v-model="row.premium" :controls="false" :min="0" :precision="2" aria-label="年交保费" /></template></el-table-column>
           <el-table-column label="缴费方式" min-width="150"><template slot-scope="{ row }"><el-select v-model="row.payMode" aria-label="缴费方式"><el-option v-for="item in payModes" :key="item.value" :label="item.label" :value="item.value" /></el-select></template></el-table-column>
           <el-table-column label="是否养老协同" width="120" align="center"><template slot-scope="{ row }"><el-checkbox v-model="row.pensionFlag" aria-label="是否养老协同" /></template></el-table-column>
-          <el-table-column label="操作" width="70" align="center"><template slot-scope="{ $index }"><el-button type="text" size="mini" @click="productList.splice($index, 1)">删除</el-button></template></el-table-column>
+          <el-table-column label="操作" width="70" align="center"><template slot-scope="{ $index }"><el-button type="text" size="mini" :disabled="productList.length <= 1" @click="removeProduct($index)">删除</el-button></template></el-table-column>
         </el-table>
-        <div class="form-row bottom-actions"><el-button type="primary" :loading="calcLoading" :disabled="calcLoading || batchLoading" @click="handleRunCalc">试算</el-button><el-button :disabled="calcLoading || batchLoading" @click="handleReset">重置</el-button><span class="hint">支持添加多个产品一同试算，积分按各产品保费 × 险种系数合计</span></div>
+        <div class="form-row bottom-actions"><el-button v-if="handleIsOwn('场景二试算（加保 / 购新）')" type="primary" :loading="calcLoading" :disabled="calcLoading || batchLoading" @click="handleRunCalc">试算</el-button><el-button :disabled="calcLoading || batchLoading" @click="handleReset">重置</el-button><span class="hint">支持添加多个产品一同试算，积分按各产品保费 × 险种系数合计</span></div>
       </template>
     </el-card>
 
@@ -126,14 +126,14 @@
         <el-date-picker v-model="activeTaskQuery.dateFrom" type="date" placeholder="开始日期" value-format="yyyy-MM-dd" />
         <span class="hint">~</span>
         <el-date-picker v-model="activeTaskQuery.dateTo" type="date" placeholder="结束日期" value-format="yyyy-MM-dd" />
-        <el-button type="primary" @click="searchTasks">查询</el-button><el-button @click="resetTaskQuery">重置</el-button><el-button v-if="handleIsOwn('导出')" :loading="exportLoading" @click="exportTasks">导出</el-button>
+        <el-button v-if="handleIsOwn('查询')" type="primary" @click="searchTasks">查询</el-button><el-button v-if="handleIsOwn('查询')" @click="resetTaskQuery">重置</el-button><el-button v-if="handleIsOwn('导出')" :loading="exportLoading" @click="exportTasks">导出</el-button>
       </div>
       <el-table v-if="activeTaskTab === 'record'" v-loading="taskLoading" :data="taskRecordData" stripe size="mini">
         <el-table-column label="试算时间" min-width="160"><template slot-scope="{ row }">{{ displayTime(row.trialTime) }}</template></el-table-column>
         <el-table-column prop="cnt" label="试算人数" width="100" />
         <el-table-column label="申请人" min-width="100"><template slot-scope="{ row }">{{ value(row.operator) }}</template></el-table-column>
         <el-table-column label="状态" width="100"><template slot-scope="{ row }"><span class="status-pill" :class="statusClass(row.status)">{{ statusText(row.status) }}</span></template></el-table-column>
-        <el-table-column label="操作" min-width="220"><template slot-scope="{ row }"><el-button v-if="row.status !== 'RUNNING' && handleIsOwn('查询')" type="text" size="mini" @click="viewTaskResult(row)">试算结果</el-button><span v-else class="hint">试算进行中，完成后可查看结果</span></template></el-table-column>
+        <el-table-column label="操作" min-width="220"><template slot-scope="{ row }"><el-button v-if="row.status !== 'RUNNING' && handleIsOwn('查询')" type="text" size="mini" @click="viewTaskResult(row)">试算结果</el-button><span v-else-if="row.status === 'RUNNING'" class="hint">试算进行中，完成后可查看结果</span></template></el-table-column>
       </el-table>
       <el-table v-else v-loading="taskLoading" :data="taskDetailData" stripe size="mini">
         <el-table-column v-for="col in detailColumns" :key="col.key" :label="col.label" :min-width="col.width || 120" :align="col.numeric ? 'right' : 'left'"><template slot-scope="{ row }">{{ taskCell(row, col) }}</template></el-table-column>
@@ -321,11 +321,14 @@ export default {
       this.resultData = {}
       this.hasCalculated = false
       this.productList = []
+      if (this.currentScene === 1) this.addProduct()
       this.clearBatch()
     },
     async handleRunCalc() {
+      if (!this.handleIsOwn(this.currentScene === 0 ? '场景一试算（老客户转新规则）' : '场景二试算（加保 / 购新）')) return
       if (this.calcLoading || this.batchLoading) return
       if (!this.calcForm.custName || !this.calcForm.idNo || !this.idTypeOptions.some(item => item.code === this.calcForm.idType)) return this.$message.warning('请填写客户姓名、证件类型和证件号码')
+      if (this.calcForm.custName.length > 50 || this.calcForm.idNo.length > 30) return this.$message.warning('客户姓名不能超过50个字符，证件号码不能超过30个字符')
       if (this.currentScene === 1 && (!this.productList.length || this.productList.some(item => !item.riskCode || !Number.isFinite(item.premium) || item.premium <= 0))) return this.$message.warning('请至少添加一个险种，并填写大于 0 的年交保费')
       this.calcLoading = true
       this.hasCalculated = false
@@ -343,7 +346,7 @@ export default {
         }
         this.resultData = res.data
         this.hasCalculated = true
-      } catch (error) { this.$message.error(error.message || '试算失败，请核对客户信息后重试') } finally { this.calcLoading = false }
+      } catch (error) { if (!error || !error.messageShown) this.$message.error(error && error.message || '试算失败，请核对客户信息后重试') } finally { this.calcLoading = false }
     },
     clearBatch() { this.importRequestId++; this.importLoading = false; this.batchRows = [] },
     async onFileChange(event) {
@@ -364,6 +367,7 @@ export default {
       }
     },
     async submitBatch() {
+      if (!this.handleIsOwn('提交批量试算')) return
       if (this.batchLoading || !this.batchRows.length) return
       this.batchLoading = true
       try {
@@ -374,9 +378,10 @@ export default {
         this.$message[res.data.fail ? 'warning' : 'success'](`共 ${res.data.total} 条，成功 ${res.data.success} 条，失败 ${res.data.fail} 条，任务号：${res.data.taskNo}`)
         this.clearBatch()
         this.queuedVisible = true
-      } catch (error) { this.$message.error(error.message || '批量试算提交失败，请重试') } finally { this.batchLoading = false }
+      } catch (error) { if (!error || !error.messageShown) this.$message.error(error && error.message || '批量试算提交失败，请重试') } finally { this.batchLoading = false }
     },
     addProduct() { this.productList.push({ riskCode: '', riskName: '', type: '', premium: 0, payMode: 'year', pensionFlag: false }) },
+    removeProduct(index) { if (this.productList.length > 1) this.productList.splice(index, 1) },
     openProductDialog(index) {
       this.productIndex = index
       this.selectedRisk = null

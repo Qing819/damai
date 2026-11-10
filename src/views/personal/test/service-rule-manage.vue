@@ -23,7 +23,7 @@
     <template v-if="activeTab === 'rules'">
     <div class="action-bar">
       <div class="left-btn-group">
-        <el-button v-if="handleIsOwn('新增')" type="primary" size="medium" @click="handleAddRule">＋ 新增服务规则</el-button>
+        <el-button v-if="handleIsOwn('新建')" type="primary" size="medium" @click="handleAddRule">＋ 新增服务规则</el-button>
         <el-button v-if="handleIsOwn('发起服务规则修改')" size="medium" @click="handleStartModification">发起服务规则修改</el-button>
         <el-button v-if="handleIsOwn('模板下载')" size="medium" @click="handleDownloadTemplate">模板下载</el-button>
         <el-button v-if="handleIsOwn('批量导入')" size="medium" :loading="importing" @click="triggerImport">批量导入</el-button>
@@ -329,7 +329,7 @@
       <!-- 底部固定吸附按钮区 -->
       <div slot="footer">
         <el-button @click="editDialogVisible = false" size="medium" :disabled="saving">取消</el-button>
-        <el-button type="primary" @click="handleSaveRule" size="medium" :loading="saving" :disabled="formLoading">保存</el-button>
+        <el-button v-if="handleIsOwn(isEditMode ? '编辑' : isModification ? '发起服务规则修改' : '新建')" type="primary" @click="handleSaveRule" size="medium" :loading="saving" :disabled="formLoading">保存</el-button>
       </div>
     </el-dialog>
 
@@ -454,6 +454,8 @@ export default {
   data() {
     return {
       loading: false,
+      tableRequest: 0,
+      gradeStatusRequest: 0,
       activeTab: 'rules',
       pageNo: 1,
       pageSize: 10,
@@ -666,7 +668,7 @@ export default {
         await deleteServiceRuleModApi(record.id);
         this.$message.success('已删除服务规则修改记录');
         await this.fetchChangeRecords();
-      } catch (error) { this.$message.error('删除失败，请刷新记录状态后重试'); }
+      } catch (error) { if (!error || !error.messageShown) this.$message.error('删除失败，请刷新记录状态后重试'); }
     },
     flag(value) {
       return value === true || value === 1 || value === '1';
@@ -795,27 +797,30 @@ export default {
     },
     // 获取版本下各个等级配置状态
     async fetchGradeConfigStatus(versionTag = this.selectedVersion) {
+      const request = ++this.gradeStatusRequest;
       try {
         const res = await getBenefitGradeListApi({ versionTag });
-        if (versionTag !== this.selectedVersion) return;
+        if (request !== this.gradeStatusRequest || versionTag !== this.selectedVersion) return;
         this.gradeConfigList = res.data || [];
       } catch (err) {
-        this.$message.error('获取等级状态失败');
+        if (request === this.gradeStatusRequest && versionTag === this.selectedVersion) this.$message.error('获取等级状态失败');
       }
     },
     // 查询等级列表汇总
     async fetchTableData() {
+      const request = ++this.tableRequest;
       this.loading = true;
       const versionTag = this.selectedVersion;
       try {
         const res = await getGradeListApi({ versionTag });
-        if (versionTag !== this.selectedVersion) return;
+        if (request !== this.tableRequest || versionTag !== this.selectedVersion) return;
         this.tableData = res.data || [];
       } catch (err) {
+        if (request !== this.tableRequest || versionTag !== this.selectedVersion) return;
         this.tableData = [];
         this.$message.error('获取服务规则数据失败');
       } finally {
-        this.loading = false;
+        if (request === this.tableRequest) this.loading = false;
       }
     },
     handleVersionChange() {
@@ -1138,7 +1143,7 @@ export default {
         this.editDialogVisible = false;
         await Promise.all([this.fetchTableData(), this.fetchGradeConfigStatus(), this.fetchChangeRecords()]);
       } catch (err) {
-        this.$message.error('保存失败');
+        if (!err || !err.messageShown) this.$message.error('保存失败');
       } finally {
         this.saving = false;
       }
@@ -1289,7 +1294,7 @@ export default {
         this.fetchTableData();
         this.fetchGradeConfigStatus();
       } catch (err) {
-        this.$message.error('导入失败');
+        if (!err || !err.messageShown) this.$message.error('导入失败');
       } finally {
         this.importing = false;
         e.target.value = '';

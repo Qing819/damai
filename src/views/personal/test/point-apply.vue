@@ -61,8 +61,8 @@
           </el-form-item>
 
           <el-form-item>
-            <el-button class="btn-search" type="primary" @click="handleQuery">查询</el-button>
-            <el-button class="btn-reset" @click="resetQuery">重置</el-button>
+            <el-button v-if="handleIsOwn('查询')" class="btn-search" type="primary" @click="handleQuery">查询</el-button>
+            <el-button v-if="handleIsOwn('查询')" class="btn-reset" @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
       </el-card>
@@ -132,7 +132,7 @@
             <template slot-scope="scope">
               <el-button v-if="handleIsOwn('查询')" type="text" size="mini" @click="openDetail(scope.row)">查看</el-button>
               <template v-if="scope.row.status === 'REJECTED' || scope.row.status === '已驳回'">
-                <el-button v-if="handleIsOwn('修改')" type="text" size="mini" @click="openEdit(scope.row)">修改</el-button>
+                <el-button v-if="handleIsOwn('编辑')" type="text" size="mini" @click="openEdit(scope.row)">修改</el-button>
                 <el-button v-if="handleIsOwn('删除')" type="text" size="mini" class="text-danger" @click="handleDelete(scope.row)">删除</el-button>
               </template>
             </template>
@@ -335,11 +335,11 @@
               </el-form-item>
 
               <el-form-item label="关联保单号" prop="policyNo">
-                <el-input v-model="adjustForm.policyNo" placeholder="选填，与特定保单相关时填写" style="width: 100%" />
+                <el-input v-model="adjustForm.policyNo" maxlength="32" placeholder="选填，与特定保单相关时填写" style="width: 100%" />
               </el-form-item>
 
               <el-form-item label="OA流水号" prop="oaNo" required>
-                <el-input v-model="adjustForm.oaNo" placeholder="请输入OA审批流程流水号" style="width: 100%" />
+                <el-input v-model="adjustForm.oaNo" maxlength="30" placeholder="请输入OA审批流程流水号" style="width: 100%" />
               </el-form-item>
 
               <el-form-item label="调整原因" prop="reasonCode" required>
@@ -354,7 +354,7 @@
               </el-form-item>
 
               <el-form-item label="详细说明" prop="remark">
-                <el-input v-model="adjustForm.remark" type="textarea" :rows="3" placeholder="请输入详细说明" />
+                <el-input v-model="adjustForm.remark" maxlength="500" type="textarea" :rows="3" placeholder="请输入详细说明" />
               </el-form-item>
 
               <el-form-item label="附件上传">
@@ -376,7 +376,7 @@
 
               <el-form-item class="form-action-item">
                 <el-button v-if="handleIsOwn('提交')" icon="el-icon-check" type="primary" :loading="submitLoading" @click="submitAdjust">提交调整</el-button>
-                <el-button icon="el-icon-refresh" :disabled="submitLoading" @click="resetAdjust">重置</el-button>
+                <el-button icon="el-icon-refresh" :disabled="submitLoading || attachmentUploading" @click="resetAdjust">重置</el-button>
               </el-form-item>
             </el-form>
           </el-card>
@@ -513,11 +513,11 @@
           </el-form-item>
 
           <el-form-item label="关联保单号">
-            <el-input v-model="editForm.policyNo" placeholder="选填，与特定保单相关时填写" style="width: 100%" />
+            <el-input v-model="editForm.policyNo" maxlength="32" placeholder="选填，与特定保单相关时填写" style="width: 100%" />
           </el-form-item>
 
           <el-form-item label="OA流水号" required>
-            <el-input v-model="editForm.oaNo" style="width: 100%" />
+            <el-input v-model="editForm.oaNo" maxlength="30" style="width: 100%" />
           </el-form-item>
 
           <el-form-item label="调整原因" required>
@@ -532,7 +532,7 @@
           </el-form-item>
 
           <el-form-item label="详细说明">
-            <el-input v-model="editForm.remark" type="textarea" :rows="3" />
+            <el-input v-model="editForm.remark" maxlength="500" type="textarea" :rows="3" />
           </el-form-item>
 
           <el-form-item label="附件上传">
@@ -555,7 +555,7 @@
       </div>
       <div slot="footer" class="dialog-footer">
         <el-button size="small" :disabled="editLoading" @click="editDialogVisible = false">取消</el-button>
-        <el-button type="primary" size="small" :loading="editLoading" @click="saveEdit">保存并重新提交</el-button>
+        <el-button v-if="handleIsOwn('编辑')" type="primary" size="small" :loading="editLoading" @click="saveEdit">保存并重新提交</el-button>
       </div>
     </el-dialog>
 
@@ -770,6 +770,8 @@ export default {
   beforeDestroy() {
     clearTimeout(this.customerSearchTimer)
     this.customerRequest++
+    this.pointsRequest++
+    this.morePointsRequest++
   },
   methods: {
     async fetchOrgOptions() {
@@ -802,6 +804,7 @@ export default {
       const request = ++this.customerRequest
       try {
         const searchRes = await searchCustomerProfileApi(custId)
+        if (request !== this.customerRequest) return
         const candidates = searchRes?.data || searchRes?.body?.data || []
         const normalizedCandidates = (Array.isArray(candidates) ? candidates : []).map(item => ({
           ...item,
@@ -832,6 +835,7 @@ export default {
         this.adjustForm.idNo = profile.idNo
         this.adjustForm.orgName = current.orgName || profile.orgName || ''
         await this.loadCustomerPoints()
+        if (request !== this.customerRequest) return
         this.hasSearchedCustomer = true
       } catch (err) {
         if (request !== this.customerRequest) return
@@ -902,7 +906,10 @@ export default {
       const selectedId = this.selectedCustomerId
       const selectedName = this.selectedCustomerName
       this.customerSearchKey = selectedId
-      await this.handleCustomerSearch()
+      const pending = this.handleCustomerSearch()
+      const request = this.customerRequest
+      await pending
+      if (request !== this.customerRequest) return
       if (this.hasSearchedCustomer) {
         this.customerSearchKey = `${selectedName}（${selectedId}）`
         this.selectedCustomerId = ''
@@ -1372,7 +1379,7 @@ export default {
           this.$message.success('删除成功')
           this.fetchPageList()
         } catch (err) {
-          this.$message.error('删除失败')
+          if (!err || !err.messageShown) this.$message.error('删除失败')
         }
       }).catch(() => null)
     },
@@ -1393,13 +1400,14 @@ export default {
               this.currentView = 'list'
               this.fetchPageList()
             } catch (err) {
-              this.$message.error('提交失败')
+              if (!err || !err.messageShown) this.$message.error('提交失败')
             }
           }).catch(() => null).finally(() => { this.submitLoading = false })
         }
       })
     },
     resetAdjust() {
+      if (this.submitLoading || this.attachmentUploading) return
       this.$refs.adjustForm.resetFields()
       this.adjustForm.attachment = ''
     },
@@ -1412,7 +1420,7 @@ export default {
         this.editDialogVisible = false
         this.fetchPageList()
       } catch (err) {
-        this.$message.error('修改失败')
+        if (!err || !err.messageShown) this.$message.error('修改失败')
       } finally {
         this.editLoading = false
       }
@@ -1424,6 +1432,18 @@ export default {
       }
       if (!String(form.oaNo || '').trim() || !form.reasonCode) {
         this.$message.warning('请填写 OA 流水号和调整原因')
+        return false
+      }
+      if (String(form.policyNo || '').length > 32) {
+        this.$message.warning('关联保单号不能超过32个字符')
+        return false
+      }
+      if (String(form.oaNo || '').length > 30) {
+        this.$message.warning('OA流水号不能超过30个字符')
+        return false
+      }
+      if (String(form.remark || '').length > 500) {
+        this.$message.warning('详细说明不能超过500个字符')
         return false
       }
       if (form.validType === 'custom' && !form.validEndDate) {

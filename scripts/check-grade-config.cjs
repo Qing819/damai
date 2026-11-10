@@ -9,7 +9,7 @@ const api = new Proxy({}, {
     return responses[name] || { data: [] }
   }
 })
-const { component } = loadComponent('src/views/personal/test/point-level-manage.vue', () => api)
+const { component, template } = loadComponent('src/views/personal/test/point-level-manage.vue', () => api)
 const messages = []
 const vm = Object.assign(component.data(), component.methods, {
   $message: {
@@ -27,6 +27,69 @@ const band = (gradeName, minPoint, maxPoint, extra = {}) => ({
   minPoint, maxPoint, minBoundary: '含', maxBoundary: '不含', ...extra
 })
 async function run() {
+  const actions = ['新增等级', '编辑等级', '删除等级', '查看版本管理', '新增版本', '修改版本', '删除版本', '作废版本']
+  assert.ok(actions.every(action => !vm.handleIsOwn(action)))
+  responses.getPlatformPageButtonMenuInfo = {
+    data: { list: ['查询', '导出', '编辑', '等级变更', '查看详情'].map(name => ({ name })) }
+  }
+  await vm.initPermissions()
+  assert.deepStrictEqual(actions.filter(action => vm.handleIsOwn(action)), ['编辑等级'])
+  assert.strictEqual(calls.filter(call => call.name === 'getPlatformPageButtonMenuInfo').length, 1)
+  assert.deepStrictEqual(calls[0].args, [{ pageType: 'pointLevelManage' }])
+
+  const ast = require('vue-template-compiler').compile(template.content).ast
+  const elements = []
+  function visit(node) {
+    if (!node || node.type !== 1 || elements.includes(node)) return
+    elements.push(node)
+    ;(node.children || []).forEach(visit)
+    ;(node.ifConditions || []).forEach(condition => visit(condition.block))
+    Object.values(node.scopedSlots || {}).forEach(visit)
+  }
+  visit(ast)
+  const visible = (handler, row = {}) => {
+    const node = elements.find(element => element.attrsMap['@click'] === handler)
+    assert.ok(node && node.attrsMap['v-if'], `${handler} needs its own permission condition`)
+    return new Function('scope', `with (this) { return ${node.attrsMap['v-if']} }`).call(vm, { row })
+  }
+  const buttons = {
+    '新增等级': 'openBatchAddDialog',
+    '编辑等级': 'handleEditSingle(scope.row)',
+    '删除等级': 'handleDeleteSingle(scope.row)',
+    '新增版本': 'openVersionDialog',
+    '修改版本': 'handleModifyVersion(scope.row)',
+    '删除版本': 'handleDeleteVersion(scope.row)',
+    '作废版本': 'openObsoleteDialog(scope.row)'
+  }
+  for (const action of actions) {
+    vm.allowBtn = [{ name: action }]
+    for (const [permission, handler] of Object.entries(buttons)) {
+      assert.strictEqual(visible(handler, { displayStatus: 'ACTIVE' }), permission === action, `${action}: ${handler}`)
+    }
+  }
+  vm.allowBtn = ['作废版本']
+  assert.strictEqual(visible('openObsoleteDialog(scope.row)', { displayStatus: 'PENDING_EFFECTIVE' }), false)
+  vm.batchRows = [{ id: 1 }]
+  vm.allowBtn = ['编辑']
+  assert.strictEqual(vm.canSaveBands, true)
+  assert.strictEqual(visible('addBatchRow'), false)
+  vm.batchRows.push({})
+  assert.strictEqual(vm.canSaveBands, false)
+  vm.allowBtn.push('新增等级')
+  assert.strictEqual(vm.canSaveBands, true)
+  responses.getPlatformPageButtonMenuInfo = { data: { list: null } }
+  await vm.initPermissions()
+  assert.ok(actions.every(action => !vm.handleIsOwn(action)))
+  const { component: failingComponent } = loadComponent('src/views/personal/test/point-level-manage.vue', () => ({
+    getPlatformPageButtonMenuInfo: async () => { throw Error('offline') }
+  }))
+  vm.allowBtn = ['新增等级']
+  await failingComponent.methods.initPermissions.call(vm)
+  assert.strictEqual(vm.allowBtn.length, 0)
+  vm.allowBtn = actions.map(buttonName => ({ buttonName }))
+  assert.ok(actions.every(action => vm.handleIsOwn(action)))
+  vm.allowBtn = []
+
   vm.currentVersionId = 2
   vm.bandData = []
   vm.openBatchAddDialog()
@@ -87,7 +150,7 @@ async function run() {
   assert.strictEqual(vm.bandPage, 1)
   assert.strictEqual(vm.pagedBandData.length, 20)
   vm.activeTab = 'versionConfig'
-  component.watch.userRole.call(vm, 'user')
+  component.watch.allowBtn.call(vm)
   assert.strictEqual(vm.activeTab, 'bandConfig')
   const originalInit = vm.initData
   vm.initData = async () => {}
@@ -119,7 +182,7 @@ async function run() {
   await vm.initData()
   assert.strictEqual(vm.currentVersionId, null)
   assert.strictEqual(vm.bandData.length, 0)
-  console.log('PASS: grade config template, intervals, batch payload, edit, pagination, roles and version dates')
+  console.log('PASS: grade config permissions, individual buttons, failed/empty response, intervals, batch payload, edit, pagination and version dates')
 }
 run().catch(error => {
   console.error(error)

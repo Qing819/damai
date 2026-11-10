@@ -10,8 +10,11 @@ const PAGE_TYPES = {
   '/personal/lc': 'levelChange',
   '/personal/srm': 'serviceRuleManage',
   '/personal/serviceApply': 'serviceApply',
+  '/personal/service-apply': 'serviceApply',
   '/personal/serviceApproval': 'serviceApproval',
+  '/personal/service-approval': 'serviceApproval',
   '/personal/serviceGuiJi': 'serviceGuiJi',
+  '/personal/service-guiji': 'serviceGuiJi',
   '/personal/otn': 'oldToNew',
   '/personal/guiJiTab': 'guiJiTab',
   '/personal/pointCalculated': 'pointCalculate'
@@ -25,15 +28,17 @@ export default {
     const pageType = PAGE_TYPES[this.$route && this.$route.path]
     if (!pageType) return
     getPlatformPageButtonMenuInfo({ pageType }).then(response => {
-      const list = response && (response.list || response.data && response.data.list)
+      const list = response && (response.data && response.data.list || response.list)
       this.allowBtn = Array.isArray(list) ? list : []
       this.permissionsLoaded = true
-    }).catch(() => { this.permissionsLoaded = true })
+    }).catch(() => { this.allowBtn = []; this.permissionsLoaded = true })
   },
   methods: {
-    handleIsOwn() {
-      // The backend response is additive: buttons absent from it remain visible by default.
-      return true
+    handleIsOwn(action) {
+      return this.allowBtn.some(button => {
+        const name = typeof button === 'string' ? button : button && (button.name || button.buttonName)
+        return name === action
+      })
     }
   }
 }
