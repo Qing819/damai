@@ -16,13 +16,13 @@
             </el-select>
           </el-form-item>
           <el-form-item label="证件号码">
-            <el-input v-model.trim="searchForm.idNo" placeholder="请输入证件号码" clearable style="width: 160px" @keyup.enter.native="handleQuery" />
+            <el-input v-model.trim="searchForm.idNo" maxlength="30" placeholder="请输入证件号码" clearable style="width: 160px" @keyup.enter.native="handleQuery" />
           </el-form-item>
           <el-form-item label="客户名称">
-            <el-input v-model.trim="searchForm.custName" placeholder="请输入客户名称" clearable style="width: 140px" @keyup.enter.native="handleQuery" />
+            <el-input v-model.trim="searchForm.custName" maxlength="100" placeholder="请输入客户名称" clearable style="width: 140px" @keyup.enter.native="handleQuery" />
           </el-form-item>
           <el-form-item label="客户号">
-            <el-input v-model.trim="searchForm.custId" placeholder="请输入客户号" clearable style="width: 140px" @keyup.enter.native="handleQuery" />
+            <el-input v-model.trim="searchForm.custId" maxlength="30" placeholder="请输入客户号" clearable style="width: 140px" @keyup.enter.native="handleQuery" />
           </el-form-item>
           <el-form-item label="服务归属机构">
             <el-select v-model="searchForm.orgName" placeholder="全部服务归属机构" clearable style="width: 170px">

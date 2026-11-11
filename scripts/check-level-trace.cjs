@@ -85,13 +85,14 @@ async function run() {
 
   const count = calls.length
   vm.queryForm.dateFrom = '2026-09-01'
+  vm.queryForm.dateTo = '2026-08-25'
   await vm.handleQuery()
   await vm.handleExport()
   assert.strictEqual(calls.length, count, 'Invalid date range must not query or export')
   await vm.handleReset()
   assert.strictEqual(vm.queryForm.idType, '')
-  assert.strictEqual(vm.queryForm.dateFrom, '2026-07-01')
-  assert.strictEqual(vm.queryForm.dateTo, '2026-08-25')
+  assert.strictEqual(vm.queryForm.dateFrom, '')
+  assert.strictEqual(vm.queryForm.dateTo, '')
   responses['/platform/grade/trace/page'] = { data: null }
   await vm.fetchData()
   assert.deepStrictEqual(vm.tableData, [])

@@ -12,9 +12,9 @@
       <el-card shadow="never" class="search-card">
         <el-form :inline="true" class="query-form" @submit.native.prevent="handleSearch">
           <el-form-item><el-select v-model="queryForm.idType" placeholder="全部证件类型" clearable class="query-medium"><el-option label="全部证件类型" value="" /><el-option v-for="item in idTypes" :key="item" :label="formatIdType(item)" :value="item" /></el-select></el-form-item>
-          <el-form-item><el-input v-model="queryForm.idNo" placeholder="证件号码" clearable class="query-number" /></el-form-item>
-          <el-form-item><el-input v-model="queryForm.custName" placeholder="客户名称" clearable class="query-medium" /></el-form-item>
-          <el-form-item><el-input v-model="queryForm.custId" placeholder="客户号" clearable class="query-medium" /></el-form-item>
+          <el-form-item><el-input v-model="queryForm.idNo" maxlength="30" placeholder="证件号码" clearable class="query-number" /></el-form-item>
+          <el-form-item><el-input v-model="queryForm.custName" maxlength="50" placeholder="客户名称" clearable class="query-medium" /></el-form-item>
+          <el-form-item><el-input v-model="queryForm.custId" maxlength="30" placeholder="客户号" clearable class="query-medium" /></el-form-item>
           <el-form-item><el-select v-model="queryForm.orgName" placeholder="全部服务归属机构" clearable class="query-org"><el-option label="全部服务归属机构" value="" /><el-option v-for="item in orgs" :key="item" :label="item" :value="item" /></el-select></el-form-item>
           <el-form-item class="query-dates">
             <el-date-picker v-model="queryForm.dateFrom" type="date" value-format="yyyy-MM-dd" placeholder="开始日期" />
@@ -250,7 +250,7 @@ export default {
           this[names[index]] = Array.isArray(data) ? data : (data && data.list) || []
         }
       })
-      if (results.some(result => result.status === 'rejected')) this.$message.error('部分筛选或权益字典加载失败，请刷新后重试')
+      if (results.some(result => result.status === 'rejected' && (!result.reason || !result.reason.messageShown))) this.$message.error('部分筛选或权益字典加载失败，请刷新后重试')
     },
     toggleAllBenefits(checked) { this.queryForm.benefitCodes = checked ? this.catalog.map(item => item.benefitCode) : [] },
     queryParams() {

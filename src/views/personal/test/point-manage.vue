@@ -48,12 +48,12 @@
           </el-col>
           <el-col :span="4">
             <el-form-item>
-              <el-input v-model="queryForm.custId" placeholder="客户号" clearable />
+              <el-input v-model="queryForm.custId" maxlength="30" placeholder="客户号" clearable />
             </el-form-item>
           </el-col>
           <el-col :span="4">
             <el-form-item>
-              <el-input v-model="queryForm.custName" placeholder="客户姓名" clearable />
+              <el-input v-model="queryForm.custName" maxlength="100" placeholder="客户姓名" clearable />
             </el-form-item>
           </el-col>
         </el-row>
@@ -70,12 +70,12 @@
           </el-col>
           <el-col :span="4">
             <el-form-item>
-              <el-input v-model="queryForm.idNo" placeholder="证件号码" clearable />
+              <el-input v-model="queryForm.idNo" maxlength="30" placeholder="证件号码" clearable />
             </el-form-item>
           </el-col>
           <el-col :span="4">
             <el-form-item>
-              <el-input v-model="queryForm.mobile" placeholder="手机号码" clearable />
+              <el-input v-model="queryForm.mobile" maxlength="11" placeholder="手机号码" clearable />
             </el-form-item>
           </el-col>
           <el-col :span="12" class="btn-container">

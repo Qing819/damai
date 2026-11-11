@@ -17,15 +17,15 @@
           class="compact-query-form prototype-filter-form"
       >
         <el-form-item label="客户号" prop="custId">
-          <el-input v-model.trim="queryParams.custId" placeholder="请输入客户号" clearable @keyup.enter.native="handleQuery" class="form-item-input" />
+          <el-input v-model.trim="queryParams.custId" maxlength="30" placeholder="请输入客户号" clearable @keyup.enter.native="handleQuery" class="form-item-input" />
         </el-form-item>
 
         <el-form-item label="客户姓名" prop="custName">
-          <el-input v-model.trim="queryParams.custName" placeholder="请输入姓名" clearable @keyup.enter.native="handleQuery" class="form-item-input" />
+          <el-input v-model.trim="queryParams.custName" maxlength="100" placeholder="请输入姓名" clearable @keyup.enter.native="handleQuery" class="form-item-input" />
         </el-form-item>
 
         <el-form-item label="保单号" prop="policyNo">
-          <el-input v-model.trim="queryParams.policyNo" placeholder="请输入保单号" clearable @keyup.enter.native="handleQuery" class="form-item-input" />
+          <el-input v-model.trim="queryParams.policyNo" maxlength="32" placeholder="请输入保单号" clearable @keyup.enter.native="handleQuery" class="form-item-input" />
         </el-form-item>
 
         <el-form-item label="服务归属机构" prop="orgName">

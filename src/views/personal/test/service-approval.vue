@@ -7,9 +7,9 @@
     <el-card shadow="never" class="search-card">
       <el-form :inline="true" class="query-form" @submit.native.prevent="handleSearch">
         <el-form-item><el-select v-model="queryForm.idType" placeholder="全部证件类型" clearable class="query-medium"><el-option label="全部证件类型" value="" /><el-option v-for="item in idTypes" :key="item" :label="formatIdType(item)" :value="item" /></el-select></el-form-item>
-        <el-form-item><el-input v-model="queryForm.idNo" placeholder="证件号码" clearable class="query-number" /></el-form-item>
-        <el-form-item><el-input v-model="queryForm.custName" placeholder="客户姓名" clearable class="query-medium" /></el-form-item>
-        <el-form-item><el-input v-model="queryForm.custId" placeholder="客户号" clearable class="query-medium" /></el-form-item>
+        <el-form-item><el-input v-model="queryForm.idNo" maxlength="30" placeholder="证件号码" clearable class="query-number" /></el-form-item>
+        <el-form-item><el-input v-model="queryForm.custName" maxlength="50" placeholder="客户姓名" clearable class="query-medium" /></el-form-item>
+        <el-form-item><el-input v-model="queryForm.custId" maxlength="30" placeholder="客户号" clearable class="query-medium" /></el-form-item>
         <el-form-item><el-select v-model="queryForm.orgName" placeholder="全部服务归属机构" clearable class="query-org"><el-option label="全部服务归属机构" value="" /><el-option v-for="item in orgs" :key="item" :label="item" :value="item" /></el-select></el-form-item>
         <el-form-item>
           <el-popover placement="bottom-start" width="290" trigger="click">
@@ -30,7 +30,7 @@
           <span class="date-separator">~</span>
           <el-date-picker v-model="queryForm.dateTo" type="date" value-format="yyyy-MM-dd" placeholder="结束日期" />
         </el-form-item>
-        <el-form-item><el-input v-model="queryForm.applicant" placeholder="申请人" clearable class="query-medium" /></el-form-item>
+        <el-form-item><el-input v-model="queryForm.applicant" maxlength="50" placeholder="申请人" clearable class="query-medium" /></el-form-item>
         <el-form-item class="query-actions"><el-button v-if="handleIsOwn('查询')" type="primary" native-type="submit">查询</el-button><el-button v-if="handleIsOwn('查询')" @click="handleReset">重置</el-button></el-form-item>
       </el-form>
     </el-card>
@@ -146,7 +146,7 @@ export default {
           this[keys[index]] = Array.isArray(data) ? data : (data && data.list) || []
         }
       })
-      if (results.some(result => result.status === 'rejected')) this.$message.error('部分权益或筛选字典加载失败，请刷新后重试')
+      if (results.some(result => result.status === 'rejected' && (!result.reason || !result.reason.messageShown))) this.$message.error('部分权益或筛选字典加载失败，请刷新后重试')
     },
     toggleAllBenefits(checked) { this.queryForm.benefitCodes = checked ? this.catalog.map(item => item.benefitCode) : [] },
     queryParams() {

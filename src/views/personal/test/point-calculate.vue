@@ -117,11 +117,11 @@
       </el-tabs>
       <div class="dialog-query">
         <template v-if="activeTaskTab === 'detail'">
-          <el-input v-model.trim="detailQueryForm.custName" placeholder="客户" clearable />
-          <el-input v-model.trim="detailQueryForm.idNo" placeholder="证件号码" clearable class="wide-input" />
+          <el-input v-model.trim="detailQueryForm.custName" maxlength="50" placeholder="客户" clearable />
+          <el-input v-model.trim="detailQueryForm.idNo" maxlength="30" placeholder="证件号码" clearable class="wide-input" />
           <el-select v-model="detailQueryForm.status" placeholder="全部状态" clearable><el-option label="全部状态" value="" /><el-option label="已完成" value="DONE" /><el-option label="试算中" value="RUNNING" /><el-option label="失败" value="FAILED" /></el-select>
         </template>
-        <el-input v-model.trim="activeTaskQuery.applicant" placeholder="申请人" clearable />
+        <el-input v-model.trim="activeTaskQuery.applicant" maxlength="20" placeholder="申请人" clearable />
         <span class="hint">申请时间</span>
         <el-date-picker v-model="activeTaskQuery.dateFrom" type="date" placeholder="开始日期" value-format="yyyy-MM-dd" />
         <span class="hint">~</span>
@@ -144,7 +144,7 @@
 
     <el-dialog title="选择险种" :visible.sync="productDialogVisible" width="1000px" custom-class="trial-dialog" :close-on-click-modal="false">
       <div class="dialog-query">
-        <el-input v-model.trim="riskQuery.riskCode" placeholder="险种编码" clearable /><el-input v-model.trim="riskQuery.riskName" placeholder="险种名称" clearable class="wide-input" />
+        <el-input v-model.trim="riskQuery.riskCode" maxlength="20" placeholder="险种编码" clearable /><el-input v-model.trim="riskQuery.riskName" maxlength="50" placeholder="险种名称" clearable class="wide-input" />
         <el-select v-for="(options, index) in riskClasses" :key="index" v-model="riskQuery['type' + (index + 1)]" :placeholder="'全部分类' + ['一', '二', '三', '四'][index]" clearable><el-option :label="'全部分类' + ['一', '二', '三', '四'][index]" value="" /><el-option v-for="option in options" :key="option" :label="option" :value="option" /></el-select>
         <el-button type="primary" @click="searchRisks">查询</el-button><el-button @click="resetRisks">重置</el-button>
       </div>

@@ -8,10 +8,10 @@
       <el-form :inline="true" :model="queryForm" size="small" class="trace-query-form" @submit.native.prevent="handleSearch">
         <div class="filter-row">
           <el-form-item>
-            <el-input v-model.trim="queryForm.custId" aria-label="客户号" placeholder="客户号" clearable @keyup.enter.native="handleSearch" />
+            <el-input v-model.trim="queryForm.custId" maxlength="30" aria-label="客户号" placeholder="客户号" clearable @keyup.enter.native="handleSearch" />
           </el-form-item>
           <el-form-item>
-            <el-input v-model.trim="queryForm.custName" aria-label="客户姓名" placeholder="客户姓名" clearable @keyup.enter.native="handleSearch" />
+            <el-input v-model.trim="queryForm.custName" maxlength="50" aria-label="客户姓名" placeholder="客户姓名" clearable @keyup.enter.native="handleSearch" />
           </el-form-item>
           <el-form-item>
             <el-select v-model="queryForm.idType" aria-label="证件类型" placeholder="全部证件类型" clearable>
@@ -20,7 +20,7 @@
             </el-select>
           </el-form-item>
           <el-form-item class="wide-filter">
-            <el-input v-model.trim="queryForm.idNo" aria-label="证件号码" placeholder="证件号码" clearable @keyup.enter.native="handleSearch" />
+            <el-input v-model.trim="queryForm.idNo" maxlength="30" aria-label="证件号码" placeholder="证件号码" clearable @keyup.enter.native="handleSearch" />
           </el-form-item>
           <el-form-item class="org-filter">
             <el-select v-model="queryForm.orgName" aria-label="服务归属机构" placeholder="全部服务归属机构" clearable>
@@ -263,7 +263,7 @@ export default {
           this[['idTypeOptions', 'orgOptions', 'benefitOptions'][index]] = result.value.data
         }
       })
-      if (results.some(result => result.status === 'rejected')) this.$message.error('部分筛选选项加载失败，请刷新重试')
+      if (results.some(result => result.status === 'rejected' && (!result.reason || !result.reason.messageShown))) this.$message.error('部分筛选选项加载失败，请刷新重试')
     },
     async fetchData() {
       const requestId = ++this.listRequestId

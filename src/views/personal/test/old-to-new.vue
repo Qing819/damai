@@ -31,7 +31,7 @@
             </el-select>
           </el-form-item>
           <el-form-item class="certificate-filter">
-            <el-input v-model.trim="queryForm.idNo" aria-label="证件号码" placeholder="证件号码" clearable @keyup.enter.native="handleSearch" />
+            <el-input v-model.trim="queryForm.idNo" maxlength="30" aria-label="证件号码" placeholder="证件号码" clearable @keyup.enter.native="handleSearch" />
           </el-form-item>
           <el-form-item>
             <el-select v-model="queryForm.orgName" aria-label="服务归属机构" placeholder="全部服务归属机构" clearable>
@@ -40,7 +40,7 @@
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-input v-model.trim="queryForm.applicant" aria-label="申请人" placeholder="申请人" clearable @keyup.enter.native="handleSearch" />
+            <el-input v-model.trim="queryForm.applicant" maxlength="50" aria-label="申请人" placeholder="申请人" clearable @keyup.enter.native="handleSearch" />
           </el-form-item>
           <el-form-item>
             <el-select v-model="queryForm.status" aria-label="切换状态" placeholder="全部切换状态" clearable>
@@ -71,7 +71,7 @@
           </el-form-item>
         </el-form>
         <el-table ref="applyTable" v-loading="loading" :data="tableData" stripe size="mini" row-key="id" @selection-change="selectedRows = $event">
-          <el-table-column type="selection" width="45" align="center" />
+          <el-table-column type="selection" :selectable="canSelectApplication" width="45" align="center" />
           <el-table-column prop="applyNo" label="申请单号" min-width="165" align="center" />
           <el-table-column label="客户" min-width="180" align="center" show-overflow-tooltip>
             <template slot-scope="{ row }">{{ maskName(row.custName) }}（{{ value(row.custId) }}）</template>
@@ -155,11 +155,11 @@
 
     <el-dialog title="新增切换申请" :visible.sync="addDialogVisible" width="520px" custom-class="switch-dialog" :close-on-click-modal="false" :close-on-press-escape="!addLoading" :show-close="!addLoading">
       <el-form ref="addFormRef" :model="addForm" :rules="addRules" label-width="122px" label-position="left" class="dialog-form">
-        <el-form-item label="客户姓名" prop="custName"><el-input v-model.trim="addForm.custName" placeholder="请输入客户姓名" /></el-form-item>
+        <el-form-item label="客户姓名" prop="custName"><el-input v-model.trim="addForm.custName" maxlength="50" placeholder="请输入客户姓名" /></el-form-item>
         <el-form-item label="证件类型" prop="idType">
           <el-select v-model="addForm.idType" placeholder="请选择证件类型"><el-option v-for="item in idTypeOptions" :key="item.code" :label="formatIdType(item.name)" :value="item.code" /></el-select>
         </el-form-item>
-        <el-form-item label="证件号" prop="idNo" class="certificate-field"><el-input v-model.trim="addForm.idNo" placeholder="请输入证件号" /></el-form-item>
+        <el-form-item label="证件号" prop="idNo" class="certificate-field"><el-input v-model.trim="addForm.idNo" maxlength="30" placeholder="请输入证件号" /></el-form-item>
         <el-form-item label="服务归属机构" prop="orgName">
           <el-select v-model="addForm.orgName" placeholder="请选择服务归属机构" clearable><el-option v-for="item in orgOptions" :key="item" :label="item" :value="item" /></el-select>
         </el-form-item>
@@ -218,9 +218,9 @@ export default {
       templateLoading: false, exportLoading: false, importLoading: false,
       addDialogVisible: false, addLoading: false, addForm: newApplication(),
       addRules: {
-        custName: [{ required: true, message: '请输入客户姓名', trigger: 'blur' }],
+        custName: [{ required: true, message: '请输入客户姓名', trigger: 'blur' }, { max: 50, message: '客户姓名不能超过50字', trigger: 'blur' }],
         idType: [{ required: true, message: '请选择证件类型', trigger: 'change' }],
-        idNo: [{ required: true, message: '请输入证件号', trigger: 'blur' }],
+        idNo: [{ required: true, message: '请输入证件号', trigger: 'blur' }, { max: 30, message: '证件号不能超过30字', trigger: 'blur' }],
         effectiveDate: [{ required: true, message: '请选择切换生效日期', trigger: 'change' }]
       },
       pickerOptions: { disabledDate(date) {
@@ -279,7 +279,7 @@ export default {
       results.forEach((result, index) => {
         if (result.status === 'fulfilled' && Array.isArray(result.value.data)) this[['idTypeOptions', 'orgOptions'][index]] = result.value.data
       })
-      if (results.some(result => result.status === 'rejected')) this.$message.error('部分下拉选项加载失败，请刷新重试')
+      if (results.some(result => result.status === 'rejected' && (!result.reason || !result.reason.messageShown))) this.$message.error('部分下拉选项加载失败，请刷新重试')
     },
     queryParams(paginated = true) {
       const params = { ...this.appliedQuery }
@@ -418,6 +418,7 @@ export default {
         this.$message.error(error.message || '申请数据导出失败')
       } finally { this.exportLoading = false }
     },
+    canSelectApplication(row) { return row.status === 'PENDING' },
     prepareBatch() {
       this.batchRows = this.selectedRows.filter(row => row.status === 'PENDING')
       this.batchSelectionCount = this.selectedRows.length

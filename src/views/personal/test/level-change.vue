@@ -8,10 +8,10 @@
     <el-card shadow="never" class="filter-container">
       <el-form :inline="true" :model="queryForm" size="small" class="trace-query-form" @submit.native.prevent="handleQuery">
         <el-form-item>
-          <el-input v-model.trim="queryForm.custId" aria-label="客户号" placeholder="客户号" clearable @keyup.enter.native="handleQuery" />
+          <el-input v-model.trim="queryForm.custId" maxlength="30" aria-label="客户号" placeholder="客户号" clearable @keyup.enter.native="handleQuery" />
         </el-form-item>
         <el-form-item>
-          <el-input v-model.trim="queryForm.custName" aria-label="客户姓名" placeholder="客户姓名" clearable @keyup.enter.native="handleQuery" />
+          <el-input v-model.trim="queryForm.custName" maxlength="100" aria-label="客户姓名" placeholder="客户姓名" clearable @keyup.enter.native="handleQuery" />
         </el-form-item>
         <el-form-item>
           <el-select v-model="queryForm.idType" aria-label="证件类型" placeholder="全部证件类型" clearable>
@@ -20,7 +20,7 @@
           </el-select>
         </el-form-item>
         <el-form-item class="certificate-filter">
-          <el-input v-model.trim="queryForm.idNo" aria-label="证件号码" placeholder="证件号码" clearable @keyup.enter.native="handleQuery" />
+          <el-input v-model.trim="queryForm.idNo" maxlength="30" aria-label="证件号码" placeholder="证件号码" clearable @keyup.enter.native="handleQuery" />
         </el-form-item>
         <el-form-item>
           <el-select v-model="queryForm.orgName" aria-label="服务归属机构" placeholder="全部服务归属机构" clearable>
@@ -187,7 +187,7 @@ import {
 
 const defaultQuery = () => ({
   custId: '', custName: '', idType: '', idNo: '', orgName: '',
-  channel: '', changeType: '', dateFrom: '2026-07-01', dateTo: '2026-08-25'
+  channel: '', changeType: '', dateFrom: '', dateTo: ''
 })
 const emptySummary = () => ({ upgradeCount: 0, downgradeCount: 0, invalidCount: 0, totalCount: 0 })
 import pagePermissions from '@/mixins/pagePermissions'
@@ -306,7 +306,7 @@ export default {
           this[['orgOptions', 'idTypeOptions', 'channelOptions'][index]] = Array.isArray(data) ? data : []
         }
       })
-      if (results.some(result => result.status === 'rejected')) this.$message.error('部分筛选选项加载失败，请刷新重试')
+      if (results.some(result => result.status === 'rejected' && (!result.reason || !result.reason.messageShown))) this.$message.error('部分筛选选项加载失败，请刷新重试')
     },
     async fetchData() {
       const requestId = ++this.listRequestId

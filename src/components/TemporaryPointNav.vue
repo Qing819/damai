@@ -40,7 +40,7 @@ export default {
   },
   computed: {
     visible() {
-      return menus.some(item => this.$route.path === item.path)
+      return process.env.NODE_ENV === 'development' && menus.some(item => this.$route.path === item.path)
     }
   }
 }

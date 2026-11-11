@@ -50,6 +50,31 @@ async function loadPermissions(path) {
 }
 
 async function run() {
+  for (const [file, method, firstOptions] of [
+    ['service-guiji', 'fetchOptions', 'idTypeOptions'],
+    ['level-change', 'fetchOptions', 'orgOptions'],
+    ['guiji-tab', 'fetchOptions', 'idTypeOptions'],
+    ['old-to-new', 'fetchOptions', 'idTypeOptions'],
+    ['service-apply', 'loadResources', 'catalog'],
+    ['service-approval', 'loadResources', 'catalog']
+  ]) {
+    const { vm, messages } = instance(component(file))
+    handler = async () => { throw Object.assign(new Error('公共层已提示'), { messageShown: true }) }
+    await vm[method]()
+    assert.strictEqual(messages.length, 0, `${file}: reported request errors must not trigger another page message`)
+    handler = async () => { throw new Error('尚未提示的错误') }
+    await vm[method]()
+    assert.strictEqual(messages.length, 1, `${file}: unreported errors keep one fallback`)
+    messages.length = 0
+    let optionCall = 0
+    handler = async () => {
+      if (optionCall++ === 0) return { data: [{ code: 'SUCCESS' }] }
+      throw Object.assign(new Error('公共层已提示'), { messageShown: true })
+    }
+    await vm[method]()
+    assert.strictEqual(messages.length, 0)
+    assert.strictEqual(vm[firstOptions][0].code, 'SUCCESS', `${file}: successful options survive partial failures`)
+  }
   const pages = {
     manage: 'pointManage', apply: 'pointApply', sh: 'pointSh', guiji: 'pointGuiJi', rule: 'pointRule',
     lc: 'levelChange', srm: 'serviceRuleManage', serviceApply: 'serviceApply', serviceApproval: 'serviceApproval',

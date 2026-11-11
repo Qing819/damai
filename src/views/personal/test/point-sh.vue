@@ -17,15 +17,15 @@
         </el-form-item>
 
         <el-form-item label="证件号码">
-          <el-input v-model="searchForm.idNo" placeholder="请输入证件号码" style="width: 160px" clearable />
+          <el-input v-model="searchForm.idNo" maxlength="30" placeholder="请输入证件号码" style="width: 160px" clearable />
         </el-form-item>
 
         <el-form-item label="客户姓名">
-          <el-input v-model="searchForm.custName" placeholder="请输入客户姓名" style="width: 140px" clearable />
+          <el-input v-model="searchForm.custName" maxlength="100" placeholder="请输入客户姓名" style="width: 140px" clearable />
         </el-form-item>
 
         <el-form-item label="客户号">
-          <el-input v-model="searchForm.custId" placeholder="请输入客户号" style="width: 140px" clearable />
+          <el-input v-model="searchForm.custId" maxlength="30" placeholder="请输入客户号" style="width: 140px" clearable />
         </el-form-item>
 
         <el-form-item label="服务归属机构">
@@ -66,7 +66,7 @@
 
         <!-- 操作按钮 -->
         <el-form-item label="申请人">
-          <el-input v-model="searchForm.applicant" placeholder="请输入申请人" style="width: 130px" clearable />
+          <el-input v-model="searchForm.applicant" maxlength="50" placeholder="请输入申请人" style="width: 130px" clearable />
         </el-form-item>
 
         <el-form-item class="form-btn-item">
@@ -244,6 +244,7 @@
           <template v-if="isPending(currentRow.status)">
             <el-input
                 v-model="auditRemark"
+                maxlength="500"
                 type="textarea"
                 :rows="3"
                 placeholder="请输入审核意见"
@@ -459,7 +460,7 @@ export default {
         this.tableData = []
         this.total = 0
         console.error('获取列表数据异常:', err)
-        this.$message.error('获取列表失败')
+        if (!err || !err.messageShown) this.$message.error('获取列表失败')
       } finally {
         if (request === this.listRequest) this.loading = false
       }
@@ -543,6 +544,10 @@ export default {
     async handleAuditSubmit(resultCode) {
       if (this.submitLoading || this.detailLoading || !this.currentRow || !this.isPending(this.currentRow.status)) return
       if (!['APPROVED', 'REJECTED'].includes(resultCode)) return
+      if (this.auditRemark.length > 500) {
+        this.$message.warning('审核意见不能超过500字')
+        return
+      }
       const isReject = resultCode === 'REJECTED' || resultCode === '驳回'
       if (isReject && !this.auditRemark.trim()) {
         this.$message.warning('驳回时必须填写审核意见！')
